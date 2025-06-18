@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
+            Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{1DE0FBC2-185C-499D-B691-1FF01FFF28F2}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>lib</RootNamespace>
+        <AssemblyName>lib</AssemblyName>
+        <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
+          <HintPath>..\packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+        </Reference>
+        <Reference Include="log4net, Version=2.0.16.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+          <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.CSharp" />
+        <Reference Include="NtpDateTime, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\NtpDateTime.1.0.8\lib\NtpDateTime.dll</HintPath>
+        </Reference>
+        <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+          <HintPath>..\packages\protobuf-net.2.4.9\lib\net35\protobuf-net.dll</HintPath>
+        </Reference>
+        <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\RestSharp.105.2.3\lib\net4\RestSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="System"/>
+        <Reference Include="System.Configuration" />
+        <Reference Include="System.Core"/>
+        <Reference Include="System.Data"/>
+        <Reference Include="System.Numerics" />
+        <Reference Include="System.Runtime.Serialization" />
+        <Reference Include="System.Security" />
+        <Reference Include="System.ServiceModel" />
+        <Reference Include="System.Web" />
+        <Reference Include="System.Xml"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="audio\AbsChunkedInputStream.cs" />
+        <Compile Include="audio\cdn\CdnFeedHelper.cs" />
+        <Compile Include="audio\cdn\CdnManager.cs" />
+        <Compile Include="audio\DecodedAudioStream.cs" />
+        <Compile Include="audio\decoders\AudioQuality.cs" />
+        <Compile Include="audio\decoders\Decoders.cs" />
+        <Compile Include="audio\decoders\VorbisOnlyAudioQuality.cs" />
+        <Compile Include="audio\decrypt\AesAudioDecrypt.cs" />
+        <Compile Include="audio\decrypt\AudioDecrypt.cs" />
+        <Compile Include="audio\decrypt\NoopAudioDecrypt.cs" />
+        <Compile Include="audio\format\AudioQualityPicker.cs" />
+        <Compile Include="audio\format\SuperAudioFormat.cs" />
+        <Compile Include="audio\GeneralWriteableStream.cs" />
+        <Compile Include="audio\storage\AudioFile.cs" />
+        <Compile Include="audio\storage\ChannelManager.cs" />
+        <Compile Include="audio\StreamId.cs" />
+        <Compile Include="cache\CacheJournal.cs" />
+        <Compile Include="cache\CacheManager.cs" />
+        <Compile Include="cache\JournalHeader.cs" />
+        <Compile Include="common\AsyncProcessor.cs" />
+        <Compile Include="common\Enumeration.cs" />
+        <Compile Include="common\HttpClient.cs" />
+        <Compile Include="common\NameThreadFactory.cs" />
+        <Compile Include="common\QueuedTaskScheduler.cs" />
+        <Compile Include="common\Utils.cs" />
+        <Compile Include="core\ApResolver.cs" />
+        <Compile Include="core\Session.cs" />
+        <Compile Include="core\TimeProvider.cs" />
+        <Compile Include="crypto\CipherPair.cs" />
+        <Compile Include="crypto\DiffieHellman.cs" />
+        <Compile Include="crypto\Packet.cs" />
+        <Compile Include="crypto\Shannon.cs" />
+        <Compile Include="protogens\authentication.cs" />
+        <Compile Include="protogens\canvaz-meta.cs" />
+        <Compile Include="protogens\canvaz.cs" />
+        <Compile Include="protogens\client_token.cs" />
+        <Compile Include="protogens\connect.cs" />
+        <Compile Include="protogens\connectivity.cs" />
+        <Compile Include="protogens\context.cs" />
+        <Compile Include="protogens\context_page.cs" />
+        <Compile Include="protogens\context_player_options.cs" />
+        <Compile Include="protogens\context_track.cs" />
+        <Compile Include="protogens\entity_extension_data.cs" />
+        <Compile Include="protogens\explicit_content_pubsub.cs" />
+        <Compile Include="protogens\extended_metadata.cs" />
+        <Compile Include="protogens\extension_kind.cs" />
+        <Compile Include="protogens\keyexchange.cs" />
+        <Compile Include="protogens\mercury.cs" />
+        <Compile Include="protogens\metadata.cs" />
+        <Compile Include="protogens\playback.cs" />
+        <Compile Include="protogens\player.cs" />
+        <Compile Include="protogens\playlist4_external.cs" />
+        <Compile Include="protogens\playlist_annotate3.cs" />
+        <Compile Include="protogens\play_origin.cs" />
+        <Compile Include="protogens\pubsub.cs" />
+        <Compile Include="protogens\queue.cs" />
+        <Compile Include="protogens\restrictions.cs" />
+        <Compile Include="protogens\session.cs" />
+        <Compile Include="protogens\storage-resolve.cs" />
+        <Compile Include="protogens\transfer_state.cs" />
+        <Compile Include="Version.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="compileProto.sh" />
+      <Content Include="proto\authentication.proto" />
+      <Content Include="proto\canvaz-meta.proto" />
+      <Content Include="proto\canvaz.proto" />
+      <Content Include="proto\client_token.proto" />
+      <Content Include="proto\connect.proto" />
+      <Content Include="proto\connectivity.proto" />
+      <Content Include="proto\context.proto" />
+      <Content Include="proto\context_page.proto" />
+      <Content Include="proto\context_player_options.proto" />
+      <Content Include="proto\context_track.proto" />
+      <Content Include="proto\entity_extension_data.proto" />
+      <Content Include="proto\explicit_content_pubsub.proto" />
+      <Content Include="proto\extended_metadata.proto" />
+      <Content Include="proto\extension_kind.proto" />
+      <Content Include="proto\keyexchange.proto" />
+      <Content Include="proto\mercury.proto" />
+      <Content Include="proto\metadata.proto" />
+      <Content Include="proto\playback.proto" />
+      <Content Include="proto\player.proto" />
+      <Content Include="proto\playlist4_external.proto" />
+      <Content Include="proto\playlist_annotate3.proto" />
+      <Content Include="proto\play_origin.proto" />
+      <Content Include="proto\pubsub.proto" />
+      <Content Include="proto\queue.proto" />
+      <Content Include="proto\restrictions.proto" />
+      <Content Include="proto\session.proto" />
+      <Content Include="proto\spotify\login5\v3\challenges\code.proto" />
+      <Content Include="proto\spotify\login5\v3\challenges\hashcash.proto" />
+      <Content Include="proto\spotify\login5\v3\client_info.proto" />
+      <Content Include="proto\spotify\login5\v3\credentials\credentials.proto" />
+      <Content Include="proto\spotify\login5\v3\identifiers\identifiers.proto" />
+      <Content Include="proto\spotify\login5\v3\login5.proto" />
+      <Content Include="proto\spotify\login5\v3\user_info.proto" />
+      <Content Include="proto\storage-resolve.proto" />
+      <Content Include="proto\transfer_state.proto" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>
