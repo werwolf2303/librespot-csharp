@@ -1,16 +1,22 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
+using System.Threading;
 using lib.common;
+using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace lib.crypto
 {
     public class CipherPair
     {
-        private Shannon sendCipher;
-        private Shannon recvCipher;
+        private readonly Shannon sendCipher;
+        private readonly Shannon recvCipher;
         private int sendNonce;
         private int recvNonce;
+        private readonly object sendLock = new object();
+        private readonly object recvLock = new object();
 
         public CipherPair(byte[] sendKey, byte[] recvKey)
         {
@@ -23,66 +29,62 @@ namespace lib.crypto
             recvNonce = 0;
         }
 
-        /// <exception cref="IOException"/>
-        public void sendEncoded(NetworkStream stream, byte cmd, byte[] payload)
+        public void SendEncoded(BinaryWriter outStream, byte cmd, byte[] payload)
         {
-            //synchronized (sendCipher) {
-            sendCipher.nonce(Utils.toByteArray(sendNonce));
-            sendNonce += 1;
-
-            var buffer = new byte[1 + 2 + payload.Length];
-            using (MemoryStream ms = new MemoryStream(buffer))
-            using (BinaryWriter bw = new BinaryWriter(ms))
+            lock (sendLock)
             {
-                // Write the command byte
-                bw.Write(cmd);
+                sendCipher.nonce(Utils.toByteArray(Interlocked.Increment(ref sendNonce) - 1));
+                
+                byte[] buffer = new byte[1 + 2 + payload.Length];
+                buffer[0] = cmd;
+                buffer[1] = (byte)(payload.Length >> 8);
+                buffer[2] = (byte)(payload.Length & 0xFF);
+                Array.Copy(payload, 0, buffer, 3, payload.Length);
 
-                // Write the length of the payload as a short (2 bytes)
-                // Ensure the length is cast to a short if it's not already
-                bw.Write((short)payload.Length);
+                sendCipher.encrypt(buffer);
 
-                // Write the payload byte array
-                bw.Write(payload);
+                byte[] mac = new byte[4];
+                sendCipher.finish(mac);
+
+                outStream.Write(buffer, 0, buffer.Length);
+                outStream.Write(mac, 0, mac.Length);
+                outStream.Flush();
             }
-
-            sendCipher.encrypt(buffer);
-
-            byte[] mac = new byte[4];
-            sendCipher.finish(mac);
-
-            stream.Write(buffer, 0, buffer.Length);
-            stream.Write(mac, 0, mac.Length);
-            stream.Flush();
-            //}
         }
 
-        /// <exception cref="GeneralSecurityException"></exception>
-        public Packet receiveEncoded(NetworkStream stream)
+        public Packet ReceiveEncoded(BinaryReader reader)
         {
-            //synchronized (recvCipher) {
-            recvCipher.nonce(Utils.toByteArray(recvNonce));
-            recvNonce += 1;
+            lock (recvLock)
+            {
+                recvCipher.nonce(Utils.toByteArray(Interlocked.Increment(ref recvNonce) - 1));
 
-            byte[] headerBytes = new byte[3];
-            stream.Read(headerBytes, 0, headerBytes.Length);
-            recvCipher.decrypt(headerBytes);
+                byte[] headerBytes = reader.ReadBytes(3);
+                if (headerBytes.Length < 3)
+                    throw new EndOfStreamException("Stream ended prematurely while reading header");
 
-            byte cmd = headerBytes[0];
-            short payloadLength = (short)((headerBytes[1] << 8) | (headerBytes[2] & 0xFF));
+                recvCipher.decrypt(headerBytes);
 
-            byte[] payloadBytes = new byte[payloadLength];
-            stream.Read(payloadBytes, 0, payloadBytes.Length);
-            recvCipher.decrypt(payloadBytes);
+                byte cmd = headerBytes[0];
+                int payloadLength = (headerBytes[1] << 8) | headerBytes[2];
 
-            byte[] mac = new byte[4];
-            stream.Read(mac, 0, mac.Length);
+                byte[] payloadBytes = reader.ReadBytes(payloadLength);
+                if (payloadBytes.Length < payloadLength)
+                    throw new EndOfStreamException("Stream ended prematurely while reading payload");
 
-            byte[] expectedMac = new byte[4];
-            recvCipher.finish(expectedMac);
-            if (mac != expectedMac) throw new Exception("MACs don't match!");
+                recvCipher.decrypt(payloadBytes);
 
-            return new Packet(cmd, payloadBytes);
-            //}
+                byte[] mac = reader.ReadBytes(4);
+                if (mac.Length < 4)
+                    throw new EndOfStreamException("Stream ended prematurely while reading MAC");
+
+                byte[] expectedMac = new byte[4];
+                recvCipher.finish(expectedMac);
+
+                if (!Arrays.AreEqual(mac, expectedMac))
+                    throw new InvalidOperationException("MACs don't match!");
+
+                return new Packet(cmd, payloadBytes);
+            }
         }
     }
 }

@@ -46,6 +46,12 @@
         <Compile Include="Properties\AssemblyInfo.cs"/>
         <Compile Include="SeekableInputStream.cs" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\sink-api\sink-api.csproj">
+        <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>
+        <Name>sink-api</Name>
+      </ProjectReference>
+    </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

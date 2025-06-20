@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
+using EasyHttp.Http;
 using lib.common;
 using log4net;
-using RestSharp;
-using RestSharp.Deserializers;
+using Newtonsoft.Json.Linq;
 
 namespace lib.core
 {
@@ -36,9 +35,9 @@ namespace lib.core
             fillPool();
         }
 
-        private static List<String> getUrls(JsonObject body, String type)
+        private static List<String> getUrls(JObject body, String type)
         {
-            JsonArray aps = body[type] as JsonArray;
+            var aps = body[type] as JArray;
             List<String> list = new List<String>(aps.Count);
             foreach (String ap in aps)
             {
@@ -58,11 +57,10 @@ namespace lib.core
                 url.Append("type=").Append(types[i]);
             }
             
-            RestRequest request = new RestRequest(url.ToString(), Method.GET);
-            IRestResponse<dynamic> response = client.newCall(request);
+            JObject response = JObject.Parse(client.Get(url.ToString()).RawText);
             Dictionary<String, List<String>> map = new Dictionary<String, List<String>>();
             foreach (String type in types)
-                map.Add(type, getUrls(SimpleJson.DeserializeObject<JsonObject>(response.Content), type));
+                map.Add(type, getUrls(response, type));
 
             // synchronized (pool) {
             foreach (KeyValuePair<String, List<String>> pair in map)

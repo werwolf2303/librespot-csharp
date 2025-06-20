@@ -33,21 +33,33 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Base62, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\Base62.1.1.0\lib\net40\Base62.dll</HintPath>
+        </Reference>
         <Reference Include="BouncyCastle.Crypto, Version=1.9.0.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
           <HintPath>..\packages\Portable.BouncyCastle.1.9.0\lib\net40\BouncyCastle.Crypto.dll</HintPath>
+        </Reference>
+        <Reference Include="EasyHttp, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\EasyHttp.1.7.0\lib\net40\EasyHttp.dll</HintPath>
+        </Reference>
+        <Reference Include="JsonFx, Version=2.0.1209.2802, Culture=neutral, PublicKeyToken=315052dd637f8a52, processorArchitecture=MSIL">
+          <HintPath>..\packages\JsonFx.2.0.1209.2802\lib\net40\JsonFx.dll</HintPath>
         </Reference>
         <Reference Include="log4net, Version=2.0.16.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
           <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
         </Reference>
         <Reference Include="Microsoft.CSharp" />
+        <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
+          <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+          <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+        </Reference>
         <Reference Include="NtpDateTime, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
           <HintPath>..\packages\NtpDateTime.1.0.8\lib\NtpDateTime.dll</HintPath>
         </Reference>
         <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
           <HintPath>..\packages\protobuf-net.2.4.9\lib\net35\protobuf-net.dll</HintPath>
-        </Reference>
-        <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-          <HintPath>..\packages\RestSharp.105.2.3\lib\net4\RestSharp.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Configuration" />
@@ -58,6 +70,7 @@
         <Reference Include="System.Security" />
         <Reference Include="System.ServiceModel" />
         <Reference Include="System.Web" />
+        <Reference Include="System.Windows.Forms" />
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
@@ -67,6 +80,8 @@
         <Compile Include="audio\DecodedAudioStream.cs" />
         <Compile Include="audio\decoders\AudioQuality.cs" />
         <Compile Include="audio\decoders\Decoders.cs" />
+        <Compile Include="audio\decoders\Mp3Decoder.cs" />
+        <Compile Include="audio\decoders\VorbisDecoder.cs" />
         <Compile Include="audio\decoders\VorbisOnlyAudioQuality.cs" />
         <Compile Include="audio\decrypt\AesAudioDecrypt.cs" />
         <Compile Include="audio\decrypt\AudioDecrypt.cs" />
@@ -74,6 +89,7 @@
         <Compile Include="audio\format\AudioQualityPicker.cs" />
         <Compile Include="audio\format\SuperAudioFormat.cs" />
         <Compile Include="audio\GeneralWriteableStream.cs" />
+        <Compile Include="audio\HaltListener.cs" />
         <Compile Include="audio\storage\AudioFile.cs" />
         <Compile Include="audio\storage\ChannelManager.cs" />
         <Compile Include="audio\StreamId.cs" />
@@ -81,18 +97,22 @@
         <Compile Include="cache\CacheManager.cs" />
         <Compile Include="cache\JournalHeader.cs" />
         <Compile Include="common\AsyncProcessor.cs" />
+        <Compile Include="common\AsyncWorker.cs" />
+        <Compile Include="common\BinaryReaderExtension.cs" />
         <Compile Include="common\Enumeration.cs" />
-        <Compile Include="common\HttpClient.cs" />
+        <Compile Include="common\Iterator.cs" />
         <Compile Include="common\NameThreadFactory.cs" />
         <Compile Include="common\QueuedTaskScheduler.cs" />
         <Compile Include="common\Utils.cs" />
         <Compile Include="core\ApResolver.cs" />
+        <Compile Include="core\OAuth.cs" />
         <Compile Include="core\Session.cs" />
         <Compile Include="core\TimeProvider.cs" />
         <Compile Include="crypto\CipherPair.cs" />
         <Compile Include="crypto\DiffieHellman.cs" />
         <Compile Include="crypto\Packet.cs" />
         <Compile Include="crypto\Shannon.cs" />
+        <Compile Include="mercury\MercuryRequests.cs" />
         <Compile Include="protogens\authentication.cs" />
         <Compile Include="protogens\canvaz-meta.cs" />
         <Compile Include="protogens\canvaz.cs" />
@@ -164,6 +184,12 @@
       <Content Include="proto\spotify\login5\v3\user_info.proto" />
       <Content Include="proto\storage-resolve.proto" />
       <Content Include="proto\transfer_state.proto" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\decoder-api\decoder-api.csproj">
+        <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
+        <Name>decoder-api</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

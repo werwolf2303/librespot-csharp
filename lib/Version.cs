@@ -7,7 +7,7 @@ namespace lib
 {
     public class Version
     { 
-        private static String VERSION; 
+        private static String VERSION = "0.0.0"; 
         private static String OS = Environment.OSVersion.ToString().ToLower();
 
         static Version()

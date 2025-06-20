@@ -1,16 +1,32 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 using Connectstate;
+using EasyHttp.Http;
 using lib.common;
 using lib.crypto;
+using lib.mercury;
 using log4net;
+using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Macs;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Encoders;
+using ProtoBuf;
+using Spotify;
+using ClientHello = Spotify.ClientHello;
 
 namespace lib.core
 {
-    public class Session
+    public class Session : IDisposable
     {
         private static ILog LOGGER = LogManager.GetLogger(typeof(Session));
 
@@ -46,15 +62,404 @@ namespace lib.core
         private Inner inner;
 
         // private ScheduledExecutorService scheduler
-        private bool authLock = false;
-        private HttpClient client;
+        private Object authLock = new Object();
+        private bool authLockState = false;
+        private static HttpClient client;
         private List<CloseListener> closeListeners = new List<CloseListener>();
         private List<ReconnectionListener> reconnectionListeners = new List<ReconnectionListener>();
         private Dictionary<String, String> userAttributtes = new Dictionary<String, String>();
-        private ConnectionHolder conn;
-        private volatile CipherPair cipherPair;
+        private static ConnectionHolder conn;
+        private static volatile CipherPair cipherPair;
+        private Receiver receiver;
+        private APWelcome apWelcome;
 
-        public Random random()
+        private String countryCode = null;
+        private static volatile bool closed = false;
+        private static volatile bool closing = false;
+
+        private Session(Inner inner)
+        {
+            this.inner = inner;
+            keys = new DiffieHellman(inner.random);
+            client = createClient(inner.conf);
+            apResolver = new ApResolver(client);
+            String addr = apResolver.getRandomAccesspoint();
+            conn = ConnectionHolder.create(addr, inner.conf);
+
+            LOGGER.Info(String.Format("Created new session! (deviceId: {0}, ap: {1}, proxy: {2})", inner.deviceId, addr,
+                false));
+        }
+
+        private static HttpClient createClient(Configuration configuration)
+        {
+            HttpClient client = new HttpClient();
+
+            /*if (conf.proxyEnabled && conf.proxyType != Proxy.Type.DIRECT) {
+                builder.proxy(new Proxy(conf.proxyType, new InetSocketAddress(conf.proxyAddress, conf.proxyPort)));
+                if (conf.proxyAuth) {
+                    builder.proxyAuthenticator(new Authenticator() {
+                        final String username = conf.proxyUsername;
+                        final String password = conf.proxyPassword;
+
+                        @Override
+                        public Request authenticate(Route route, @NotNull Response response) {
+                        String credential = Credentials.basic(username, password);
+                        return response.request().newBuilder()
+                        .header("Proxy-Authorization", credential)
+                        .build();
+                    }
+                    });
+                }
+                if (conf.proxyType == Proxy.Type.HTTP && conf.proxySSL) {
+                    // builder.socketFactory(SSLSocketFactory.getDefault()) throws an error on some okhttp versions
+                    builder.socketFactory(new DelegatingSocketFactory(SSLSocketFactory.getDefault()));
+                }
+            }*/
+
+            /*client.RegisteredInterceptions.Add(new HttpRequestInterception(request =>
+            {
+                if (request.Data == null || request.RawHeaders.ContainsKey("Content-Encoding"))
+                    return true;
+
+                request.ContentEncoding = "gzip";
+                request.Data = new GZipStream(request.Data as Stream, CompressionMode.Compress);
+
+                return true;
+            }));*/
+
+            return client;
+        }
+
+        private static int readBlobInt(byte[] buffer)
+        {
+            int pos = 0;
+            int lo = buffer[pos];
+            pos++;
+            if ((lo & 0x80) == 0) return lo;
+            int hi = buffer[pos];
+            return lo & 0x7f | hi << 7;
+        }
+
+        private void connect()
+        {
+            MemoryStream acc = new MemoryStream();
+
+            byte[] nonce = new byte[0x10];
+            inner.random.GetBytes(nonce);
+
+            ClientHello clientHello = new ClientHello
+            {
+                BuildInfo = Version.standardBuildInfo(),
+                CryptosuitesSupporteds = { Cryptosuite.CryptoSuiteShannon },
+                LoginCryptoHello = new LoginCryptoHelloUnion
+                {
+                    DiffieHellman = new LoginCryptoDiffieHellmanHello
+                    {
+                        Gc = keys.PublicKeyArray(),
+                        ServerKeysKnown = 1
+                    }
+                },
+                ClientNonce = nonce,
+                Padding = new byte[] { 0x1e }
+            };
+
+
+            byte[] clientHelloBytes;
+            var memStream = new MemoryStream();
+            Serializer.Serialize(memStream, clientHello);
+            clientHelloBytes = memStream.ToArray();
+
+            int length = 2 + 4 + clientHelloBytes.Length;
+            conn._out.Write(0x00);
+            conn._out.Write(0x04);
+            conn._out.Write(ToBigEndian(length)); 
+            conn._out.Write(clientHelloBytes);
+            conn._out.Flush();
+
+            acc.WriteByte(0x00);
+            acc.WriteByte(0x04);
+
+            byte[] bigEndianLength = ToBigEndian(length);
+            acc.Write(bigEndianLength, 0, bigEndianLength.Length);
+
+            byte[] buffer = new byte[length - 4];
+            conn._in.ReadFully(buffer); // <- Stuck here
+            acc.Write(buffer, 0, buffer.Length);
+            
+            MemoryStream apResponseStream = new MemoryStream();
+            apResponseStream.Write(buffer, 0, buffer.Length);
+            apResponseStream.Position = 0;
+            APResponseMessage apResponseMessage = Serializer.Deserialize<APResponseMessage>(apResponseStream);
+            byte[] sharedKey = Utils.toByteArray(keys.ComputeSharedKey(apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.Gs));
+
+            RsaKeyParameters publicKey = new RsaKeyParameters(
+                false,
+                new BigInteger(1, serverKey),
+                BigInteger.ValueOf(65537));
+
+            ISigner signer = new RsaDigestSigner(new Sha1Digest());
+            signer.Init(false, publicKey);
+             
+            byte[] dataHellmanGs = apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.Gs;
+            signer.BlockUpdate(dataHellmanGs, 0, dataHellmanGs.Length);
+            
+            byte[] signature = apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.GsSignature;
+            
+            bool verified = signer.VerifySignature(signature);
+            if (!verified)
+                throw new Exception("Failed signature check!");
+            
+            MemoryStream data = new MemoryStream(0x64);
+            
+            HMac mac = new HMac(new Sha1Digest());
+            KeyParameter keyParam = new KeyParameter(sharedKey);
+            mac.Init(keyParam);
+            
+            byte[] accBytes = acc.ToArray(); 
+            for (int i = 1; i < 6; i++) {
+                mac.Reset();
+                mac.BlockUpdate(accBytes, 0, accBytes.Length);
+                mac.BlockUpdate(new byte[] { (byte)i }, 0, 1);
+
+                byte[] result = new byte[mac.GetMacSize()];
+                mac.DoFinal(result, 0);
+                data.Write(result, 0, result.Length);
+            }
+            
+            byte[] dataArray = data.ToArray();
+            byte[] truncatedKey = new byte[0x14];
+            Array.Copy(dataArray, 0, truncatedKey, 0, 0x14);
+
+            mac.Init(new KeyParameter(truncatedKey));
+            mac.BlockUpdate(accBytes, 0, accBytes.Length);
+
+            byte[] challenge = new byte[mac.GetMacSize()];
+            mac.DoFinal(challenge, 0);
+            ClientResponsePlaintext clientResponsePlaintext = new ClientResponsePlaintext
+            {
+                LoginCryptoResponse = new LoginCryptoResponseUnion
+                {
+                    DiffieHellman = new LoginCryptoDiffieHellmanResponse
+                    {
+                        Hmac = challenge
+                    }
+                },
+                PowResponse = new PoWResponseUnion(),
+                CryptoResponse = new CryptoResponseUnion()
+            };
+            
+            MemoryStream clientResponsePlaintextStream = new MemoryStream();
+            Serializer.Serialize(clientResponsePlaintextStream, clientResponsePlaintext);
+            
+            byte[] clientResponsePlaintextBytes = clientResponsePlaintextStream.ToArray();
+            length = 4 + clientResponsePlaintextBytes.Length;
+            conn._out.Write(ToBigEndian(length));
+            conn._out.Write(clientResponsePlaintextBytes);
+            conn._out.Flush();
+            
+            try
+            {
+                byte[] scrap = new byte[4];
+                conn.socket.ReceiveTimeout = 300;
+                int read = conn._in.Read(scrap, 0, scrap.Length);
+                if (read == scrap.Length)
+                {
+                    length = (scrap[0] << 24) | (scrap[1] << 16) | (scrap[2] << 8) | (scrap[3] & 0xFF);
+                    byte[] payload = new byte[length - 4];
+                    conn._in.ReadFully(payload);
+                    MemoryStream payloadStream = new MemoryStream();
+                    payloadStream.Write(payload, 0, payload.Length);
+                    payloadStream.Position = 0;
+                    APLoginFailed failed = Serializer.Deserialize<APResponseMessage>(payloadStream).LoginFailed;
+                    throw new SpotifyAuthenticationException(failed);
+                }
+                else if (read > 0)
+                {
+                    throw new Exception("Read unknown data!");
+                }
+            }
+            catch (IOException e) when ((e.InnerException as SocketException)?.SocketErrorCode == SocketError.TimedOut)
+            {
+                Console.WriteLine("Skipped");
+            }
+            finally
+            {
+                conn.socket.ReceiveTimeout = 0;
+            }
+
+            lock (authLock)
+            {
+                cipherPair = new CipherPair(Arrays.CopyOfRange(data.ToArray(), 0x14, 0x34), 
+                    Arrays.CopyOfRange(dataArray, 0x34, 0x54));
+                authLockState = true;
+            }
+            
+            LOGGER.Info("Connected successfully!");
+        }
+        
+        private void authenticate(LoginCredentials loginCredentials)
+        {
+            authenticatePartial(loginCredentials, false);
+            
+            
+        }
+
+        private void authenticatePartial(LoginCredentials credentials, bool removeLock)
+        { 
+            if (conn == null || cipherPair == null) throw new Exception("Illegal state! Connection not established!");
+
+            ClientResponseEncrypted clientResponseEncrypted = new ClientResponseEncrypted
+            {
+                LoginCredentials = credentials,
+                SystemInfo = new SystemInfo
+                {
+                    Os = Os.OsUnknown,
+                    CpuFamily = CpuFamily.CpuUnknown,
+                    SystemInformationString = Version.systemInfoString(),
+                    DeviceId = inner.deviceId
+                },
+                VersionString = Version.versionString()
+            };
+            
+            MemoryStream clientResponseEncryptedStream = new MemoryStream();
+            Serializer.Serialize(clientResponseEncryptedStream, clientResponseEncrypted);
+            
+            sendUnchecked(Packet.Type.Login, clientResponseEncryptedStream.ToArray());
+
+            Packet packet = cipherPair.ReceiveEncoded(conn._in);
+            if (packet.Is(Packet.Type.APWelcome))
+            {
+                apWelcome = Serializer.Deserialize<APWelcome>(new MemoryStream(packet.payload));
+
+                receiver = new Receiver();
+
+                byte[] bytes0x0f = new byte[20];
+                random().GetBytes(bytes0x0f);
+                sendUnchecked(Packet.Type.Unknown_0x0f, bytes0x0f);
+
+                byte[] preferredLocaleBytes = Encoding.UTF8.GetBytes(inner.preferredLocale);
+                MemoryStream preferredLocale = new MemoryStream();
+                preferredLocale.WriteByte(0x0);
+                preferredLocale.WriteByte(0x0);
+                preferredLocale.WriteByte(0x10);
+                preferredLocale.WriteByte(0x0);
+                preferredLocale.WriteByte(0x02);
+                preferredLocale.Write(preferredLocaleBytes, 0, preferredLocaleBytes.Length);
+                sendUnchecked(Packet.Type.PreferredLocale, preferredLocale.ToArray());
+
+                if (removeLock)
+                {
+                    lock (authLock)
+                    {
+                        authLockState = false;
+                        Monitor.PulseAll(authLock);
+                    }
+                }
+
+                if (inner.conf.storeCredentials)
+                {
+                    byte[] reusable = apWelcome.ReusableAuthCredentials;
+                    AuthenticationType reusableType = apWelcome.ReusableAuthCredentialsType;
+                    
+                    JObject obj = new JObject();
+                    obj["username"] = apWelcome.CanonicalUsername;
+                    obj["credentials"] = Base64.Encode(reusable);
+                    obj["type"] = reusableType.ToString();
+
+                    if (inner.conf.storedCredentialsFile == null) throw new Exception("Illegal argument");
+                    FileStream credentialsFileStream = File.OpenWrite(inner.conf.storedCredentialsFile);
+                    byte[] credentialsBytes = Encoding.UTF8.GetBytes(obj.ToString());
+                    credentialsFileStream.Write(credentialsBytes, 0, credentialsBytes.Length);
+                }
+            }else if (packet.Is(Packet.Type.AuthFailure))
+            {
+                throw new SpotifyAuthenticationException(Serializer.Deserialize<APLoginFailed>(new MemoryStream(packet.payload)));
+            }
+            else
+            {
+                throw new Exception("Illegal state! Unknown CMD 0x" + Utils.bytesToHex(new[] { packet.cmd }));
+            }
+        }
+        
+        public void Dispose()
+        {
+            LOGGER.Info("Closing session. (deviceId: " + inner.deviceId + ")");
+
+            // if (scheduledReconnect != null) scheduledReconnect.cancel(true);
+            
+            closing = true;
+            
+            // scheduler.shutdownNow
+            
+            
+        }
+
+        private void sendUnchecked(Packet.Type cmd, byte[] payload)
+        {
+            if (conn == null) throw new Exception("Illegal state! Cannot write to missing connection.");
+
+            cipherPair.SendEncoded(conn._out, (byte)cmd, payload);
+        }
+
+        private void waitAuthLock()
+        {
+            if (closing && conn == null)
+            {
+                LOGGER.Debug("Connection was broken while closing.");
+                return;
+            }
+
+            if (closed) throw new Exception("Illegal state! Session is closed!");
+
+            lock (authLock)
+            {
+                if (cipherPair == null)
+                {
+                    Monitor.Wait(authLock);
+                }
+            }
+        }
+
+        public void send(Packet.Type cmd, byte[] payload)
+        {
+            if (closing && conn == null)
+            {
+                LOGGER.Debug("Connection was broken while closing.");
+                return;
+            }
+            
+            if (closed) throw new Exception("Illegal state! Session is closed!");
+
+            lock (authLock)
+            {
+                if (cipherPair == null)
+                {
+                    Monitor.Wait(authLock);
+                }
+                
+                sendUnchecked(cmd, payload);
+            }
+        }
+
+        public ApResolver APResolver()
+        {
+            return apResolver;
+        }
+
+        private static byte[] ToBigEndian(int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
+
+        public HttpClient Client()
+        {
+            return client;
+        }
+
+        public RandomNumberGenerator random()
         {
             return inner.random;
         }
@@ -73,21 +478,163 @@ namespace lib.core
 
         private class Inner
         {
-            DeviceType deviceType;
-            String deviceName;
-            public Random random;
-            String deviceId;
-            Session.Configuration conf;
-            String preferredLocale;
+            public DeviceType deviceType;
+            public String deviceName;
+            public RandomNumberGenerator random;
+            public String deviceId;
+            public Session.Configuration conf;
+            public String preferredLocale;
 
-            Inner(DeviceType deviceType, String deviceName, String deviceId, String preferredLocale, Configuration conf)
+            public Inner(DeviceType deviceType, String deviceName, String deviceId, String preferredLocale, Configuration conf)
             {
-                random = new Random();
+                random = RandomNumberGenerator.Create();
                 this.preferredLocale = preferredLocale;
                 this.conf = conf;
                 this.deviceType = deviceType;
-                this.deviceName = deviceName;
+                this.deviceName = deviceName; 
                 this.deviceId = String.IsNullOrEmpty(deviceId) ? Utils.randomHexString(random, 40).ToLower() : deviceId;
+            }
+        }
+
+        public abstract class AbsBuilder<T>
+        {
+            protected Configuration conf;
+            protected String deviceId = null;
+            protected String clientToken = null;
+            protected String deviceName = "librespot-java";
+            protected DeviceType deviceType = DeviceType.Computer;
+            protected String preferredLocale = "en";
+
+            public AbsBuilder(Configuration conf)
+            {
+                this.conf = conf;
+            }
+
+            protected AbsBuilder() : this(new Configuration.Builder().build())
+            {
+            }
+
+            /**
+             * Sets the preferred locale for the user.
+             *
+             * @param locale A 2 chars locale code
+             */
+            public AbsBuilder<T> setPreferredLocale(String locale)
+            {
+                if (locale.Length != 2)
+                    throw new Exception("Invalid locale: " + locale);
+
+                preferredLocale = locale;
+                return this;
+            }
+
+            /**
+             * Sets the device name that will appear on Spotify Connect.
+             *
+             * @param deviceName The device name
+             */
+            public AbsBuilder<T> setDeviceName(String deviceName)
+            {
+                this.deviceName = deviceName;
+                return this;
+            }
+
+            /**
+             * Sets the device ID. If not provided or empty will be generated randomly.
+             *
+             * @param deviceId A 40 chars string
+             */
+            public AbsBuilder<T> setDeviceId(String deviceId)
+            {
+                if (deviceId != null && deviceId.Length != 40)
+                    throw new Exception("Device ID must be 40 chars long.");
+
+                this.deviceId = deviceId;
+                return this;
+            }
+
+            /**
+             * Sets the client token. If empty, it will be retrieved.
+             *
+             * @param token A 168 bytes Base64 encoded string
+             */
+            public AbsBuilder<T> setClientToken(String token)
+            {
+                clientToken = token;
+                return this;
+            }
+
+            /**
+             * Sets the device type.
+             *
+             * @param deviceType The {@link com.spotify.connectstate.Connect.DeviceType}
+             */
+            public AbsBuilder<T> setDeviceType(DeviceType deviceType)
+            {
+                this.deviceType = deviceType;
+                return this;
+            }
+        }
+
+        public class Builder : AbsBuilder<Builder>
+        {
+            private LoginCredentials loginCredentials = null;
+
+            public Builder(Configuration conf) : base(conf)
+            {
+            }
+
+            public Builder()
+            {
+            }
+
+            public Builder stored()
+            {
+                if (!conf.storeCredentials) throw new Exception("Illegal state! Credentials storing not enabled!");
+                return stored(conf.storedCredentialsFile);
+            }
+
+            public Builder stored(String storedCredentials)
+            {
+                FileStream fileStream = File.OpenRead(storedCredentials);
+                StreamReader reader = new StreamReader(fileStream);
+                JObject obj = JObject.Parse(reader.ReadToEnd());
+                
+                loginCredentials = new LoginCredentials
+                {
+                    Typ = (AuthenticationType)Enum.Parse(typeof(AuthenticationType), obj["type"].ToString()),
+                    Username = obj["username"].ToString(),
+                    AuthData = Base64.Decode(obj["credentials"].ToString()),
+                };
+
+                return this;
+            }
+
+            public Builder oauth()
+            {
+                if (conf.storeCredentials && File.Exists(conf.storedCredentialsFile))
+                    return stored();
+
+                OAuth oauth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"));
+                loginCredentials = oauth.flow();
+                
+                return this;
+            }
+
+            public Session create()
+            {
+                if (loginCredentials == null)
+                {
+                    //throw new Exception("You must select an authentication method.");
+                }
+                
+                TimeProvider.init(conf);
+
+                Session session = new Session(new Inner(deviceType, deviceName, deviceId, preferredLocale, conf));
+                session.connect();
+                session.authenticate(loginCredentials);
+                //session.api().setClientToken(clientToken);
+                return session;
             }
         }
 
@@ -313,23 +860,36 @@ namespace lib.core
             }
         }
 
+        public class SpotifyAuthenticationException : Exception
+        {
+            public SpotifyAuthenticationException(APLoginFailed loginFailed) : base(loginFailed.ErrorCode.ToString())
+            {
+            }
+        }
+
         private class ConnectionHolder
         {
-            TcpClient client;
+            public Socket socket;
+            public NetworkStream stream;
+            public BinaryReader _in;
+            public BinaryWriter _out;
 
             /// <exception cref="IOException"></exception>
-            private ConnectionHolder(TcpClient client)
+            private ConnectionHolder(Socket socket)
             {
-                this.client = client;
+                this.socket = socket;
+                stream = new NetworkStream(socket);
+                _in = new BinaryReader(stream);
+                _out = new BinaryWriter(stream);
             }
 
             /// <exception cref="IOException"></exception>
-            static ConnectionHolder create(String addr, Configuration conf)
+            public static ConnectionHolder create(String addr, Configuration conf)
             {
                 String[] split = addr.Split(':');
                 String apAddr = split[0];
                 int apPort = int.Parse(split[1]);
-                return new ConnectionHolder(new TcpClient(apAddr, apPort));
+                return new ConnectionHolder(new TcpClient(apAddr, apPort).Client);
                 /*if (!conf.proxyEnabled || conf.proxyType == Proxy.Type.DIRECT)
                     return new ConnectionHolder(new Socket(apAddr, apPort));
 
@@ -385,6 +945,136 @@ namespace lib.core
                     default:
                         throw new UnsupportedOperationException();
                 } */
+            }
+        }
+
+        public class Receiver
+        {
+            private Thread thread;
+            private volatile bool running = true;
+
+            internal Receiver()
+            {
+                thread = new Thread(run);
+                thread.Name = "session-packet-receiver";
+                thread.Start();
+            }
+
+            void stop()
+            {
+                running = false;
+                thread.Interrupt();
+            }
+
+            public void run()
+            {
+                /*LOGGER.Debug("Session.Receiver started");
+
+                while (running)
+                {
+                    Packet packet;
+                    Packet.Type cmd;
+                    try
+                    {
+                        packet = cipherPair.receiveEncoded(conn.client.GetStream());
+                        cmd = Packet.parse(packet.cmd);
+                        if (cmd == Packet.Type.NULL)
+                        {
+                            LOGGER.Info(string.Format("Skipping unknown command (cmd: 0x{0}, payload: {1})",
+                                BitConverter.ToString(new byte[] {packet.cmd}), Utils.bytesToHex(packet.payload)));
+                            continue;
+                        }
+                    }
+                    catch (GeneralSecurityException ex) {
+                        if (running && !closing)
+                        {
+                            LOGGER.Error("Failed reading packet!", ex);
+                            reconnect();
+                        }
+
+                        break;
+                    }
+
+                    if (!running) break;
+
+                    switch (cmd)
+                    {
+                        case Packet.Type.Ping:
+                            if (scheduledReconnect != null) scheduledReconnect.cancel(true);
+                            scheduledReconnect = scheduler.schedule(()-> {
+                            LOGGER.warn("Socket timed out. Reconnecting...");
+                            reconnect();
+                        }, 2 * 60 + configuration().connectionTimeout, Utils.TimeUnit.SECONDS);
+
+                            TimeProvider.updateWithPing(packet.payload);
+
+                            try
+                            {
+                                send(Packet.Type.Pong, packet.payload);
+                            }
+                            catch (IOException ex)
+                            {
+                                LOGGER.error("Failed sending Pong!", ex);
+                            }
+
+                            break;
+                        case PongAck:
+                            // Silent
+                            break;
+                        case CountryCode:
+                            countryCode = new String(packet.payload);
+                            LOGGER.info("Received CountryCode: " + countryCode);
+                            break;
+                        case LicenseVersion:
+                            ByteBuffer licenseVersion = ByteBuffer.wrap(packet.payload);
+                            short id = licenseVersion.getShort();
+                            if (id != 0)
+                            {
+                                byte[] buffer = new byte[licenseVersion.get()];
+                                licenseVersion.get(buffer);
+                                LOGGER.info("Received LicenseVersion: {}, {}", id, new String(buffer));
+                            }
+                            else
+                            {
+                                LOGGER.info("Received LicenseVersion: {}", id);
+                            }
+
+                            break;
+                        case Unknown_0x10:
+                            LOGGER.debug("Received 0x10: " + Utils.bytesToHex(packet.payload));
+                            break;
+                        case MercurySub:
+                        case MercuryUnsub:
+                        case MercuryEvent:
+                        case MercuryReq:
+                            mercury().dispatch(packet);
+                            break;
+                        case AesKey:
+                        case AesKeyError:
+                            audioKey().dispatch(packet);
+                            break;
+                        case ChannelError:
+                        case StreamChunkRes:
+                            channel().dispatch(packet);
+                            break;
+                        case ProductInfo:
+                            try
+                            {
+                                parseProductInfo(new ByteArrayInputStream(packet.payload));
+                            }
+                            catch (IOException |
+
+                            ParserConfigurationException | SAXException ex) {
+                            LOGGER.warn("Failed parsing product info!", ex);
+                        }
+                            break;
+                        default:
+                            LOGGER.info("Skipping " + cmd.name());
+                            break;
+                    }
+                }
+
+                LOGGER.trace("Session.Receiver stopped");*/
             }
         }
     }

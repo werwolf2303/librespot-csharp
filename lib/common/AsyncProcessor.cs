@@ -4,6 +4,7 @@ using log4net;
 
 namespace lib.common
 {
+    /*
 public delegate TResult Func<T, TResult>(T arg);
 
     /// <summary>
@@ -68,17 +69,10 @@ public delegate TResult Func<T, TResult>(T arg);
             }
         }
         
-        public void close()
+        public void Dispose()
         {
             LOGGER.Debug("AsyncProcessor{{{0}}} is shutting down: " + name);
             executor.Shutdown();
-        }
-        
-        public void Dispose()
-        {
-            close();
-            executor?.Dispose();
-            GC.SuppressFinalize(this);
         }
 
         private TimeSpan ConvertTimeUnitToTimeSpan(long timeout, Utils.TimeUnit unit)
@@ -95,5 +89,5 @@ public delegate TResult Func<T, TResult>(T arg);
                 default: throw new ArgumentOutOfRangeException(nameof(unit), "Unsupported TimeUnit.");
             }
         }
-    }
+    }*/
 }

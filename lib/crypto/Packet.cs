@@ -21,6 +21,7 @@ namespace lib.crypto
         }
 
         public bool Is(Type type) {
+            Console.Write(getType().ToString() + " is " + type.ToString() + " ? " + (getType() == type));
             return getType() == type;
         }
 

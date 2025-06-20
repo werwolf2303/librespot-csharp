@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
+using Org.BouncyCastle.Utilities;
 using spotify.metadata.proto;
 
 namespace lib.common
@@ -138,9 +140,9 @@ namespace lib.common
             }
         }
         
-        public static String randomHexString(Random random, int length) {
+        public static String randomHexString(RandomNumberGenerator random, int length) {
             byte[] bytes = new byte[length / 2];
-            random.NextBytes(bytes);
+            random.GetBytes(bytes);
             return bytesToHex(bytes, 0, bytes.Length, false, length);
         }
 
@@ -150,6 +152,14 @@ namespace lib.common
             return buffer;
         }
 
+        public static byte[] toByteArray(BigInteger i)
+        {
+            byte[] array = i.ToByteArray();
+            if (array[array.Length - 1] == 0)
+                array = array.Take(array.Length - 1).ToArray();
+            Array.Reverse(array);
+            return array;
+        }
 
         public static long getUnixTimeStampInMilliseconds()
         {
