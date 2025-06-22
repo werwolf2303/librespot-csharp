@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Connectstate;
 using EasyHttp.Http;
+using EasyHttp.Http.Injection;
 using lib.common;
 using lib.crypto;
 using lib.mercury;
@@ -94,38 +96,16 @@ namespace lib.core
         {
             HttpClient client = new HttpClient();
 
-            /*if (conf.proxyEnabled && conf.proxyType != Proxy.Type.DIRECT) {
-                builder.proxy(new Proxy(conf.proxyType, new InetSocketAddress(conf.proxyAddress, conf.proxyPort)));
-                if (conf.proxyAuth) {
-                    builder.proxyAuthenticator(new Authenticator() {
-                        final String username = conf.proxyUsername;
-                        final String password = conf.proxyPassword;
-
-                        @Override
-                        public Request authenticate(Route route, @NotNull Response response) {
-                        String credential = Credentials.basic(username, password);
-                        return response.request().newBuilder()
-                        .header("Proxy-Authorization", credential)
-                        .build();
-                    }
-                    });
-                }
-                if (conf.proxyType == Proxy.Type.HTTP && conf.proxySSL) {
-                    // builder.socketFactory(SSLSocketFactory.getDefault()) throws an error on some okhttp versions
-                    builder.socketFactory(new DelegatingSocketFactory(SSLSocketFactory.getDefault()));
-                }
-            }*/
-
-            /*client.RegisteredInterceptions.Add(new HttpRequestInterception(request =>
+            client.RegisteredInterceptions.Add(new HttpRequestInterception(request =>
             {
-                if (request.Data == null || request.RawHeaders.ContainsKey("Content-Encoding"))
-                    return true;
-
+                if (request.Data == null || !request.RawHeaders.ContainsKey("Content-Encoding"))
+                    return false;
+                
                 request.ContentEncoding = "gzip";
                 request.Data = new GZipStream(request.Data as Stream, CompressionMode.Compress);
 
                 return true;
-            }));*/
+            }));
 
             return client;
         }
@@ -142,7 +122,8 @@ namespace lib.core
 
         private void connect()
         {
-            MemoryStream acc = new MemoryStream();
+            MemoryStream accStream = new MemoryStream();
+            BinaryWriter acc = new BinaryWriter(accStream);
 
             byte[] nonce = new byte[0x10];
             inner.random.GetBytes(nonce);
@@ -168,26 +149,30 @@ namespace lib.core
             var memStream = new MemoryStream();
             Serializer.Serialize(memStream, clientHello);
             clientHelloBytes = memStream.ToArray();
-
+            
             int length = 2 + 4 + clientHelloBytes.Length;
-            conn._out.Write(0x00);
-            conn._out.Write(0x04);
-            conn._out.Write(ToBigEndian(length)); 
+            conn._out.Write((byte)0);
+            conn._out.Write((byte)4);
+            conn._out.WriteBigEndian(length); 
             conn._out.Write(clientHelloBytes);
             conn._out.Flush();
+            
+            acc.Write((byte)0);
+            acc.Write((byte)4);
+            acc.WriteBigEndian(length);
+            acc.Write(clientHelloBytes);
+            
+            byte[] apResponseLengthBytes = conn._in.ReadBytes(4);
+            if (BitConverter.IsLittleEndian) Array.Reverse(apResponseLengthBytes);
+            int apResponseLength = BitConverter.ToInt32(apResponseLengthBytes, 0);
+            acc.WriteBigEndian(apResponseLength);
 
-            acc.WriteByte(0x00);
-            acc.WriteByte(0x04);
-
-            byte[] bigEndianLength = ToBigEndian(length);
-            acc.Write(bigEndianLength, 0, bigEndianLength.Length);
-
-            byte[] buffer = new byte[length - 4];
-            conn._in.ReadFully(buffer); // <- Stuck here
-            acc.Write(buffer, 0, buffer.Length);
+            byte[] apResponseMessageBytes = new byte[apResponseLength - 4];
+            conn._in.ReadFully(apResponseMessageBytes);
+            acc.Write(apResponseMessageBytes);
             
             MemoryStream apResponseStream = new MemoryStream();
-            apResponseStream.Write(buffer, 0, buffer.Length);
+            apResponseStream.Write(apResponseMessageBytes, 0, apResponseMessageBytes.Length);
             apResponseStream.Position = 0;
             APResponseMessage apResponseMessage = Serializer.Deserialize<APResponseMessage>(apResponseStream);
             byte[] sharedKey = Utils.toByteArray(keys.ComputeSharedKey(apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.Gs));
@@ -215,22 +200,21 @@ namespace lib.core
             KeyParameter keyParam = new KeyParameter(sharedKey);
             mac.Init(keyParam);
             
-            byte[] accBytes = acc.ToArray(); 
-            for (int i = 1; i < 6; i++) {
-                mac.Reset();
+            byte[] accBytes = accStream.ToArray();
+            accStream.Close();
+            for (int i = 1; i < 6; i++)
+            {
                 mac.BlockUpdate(accBytes, 0, accBytes.Length);
                 mac.BlockUpdate(new byte[] { (byte)i }, 0, 1);
 
                 byte[] result = new byte[mac.GetMacSize()];
                 mac.DoFinal(result, 0);
                 data.Write(result, 0, result.Length);
+                mac.Reset();
             }
-            
-            byte[] dataArray = data.ToArray();
-            byte[] truncatedKey = new byte[0x14];
-            Array.Copy(dataArray, 0, truncatedKey, 0, 0x14);
 
-            mac.Init(new KeyParameter(truncatedKey));
+            byte[] dataArray = data.ToArray();
+            mac.Init(new KeyParameter(Arrays.CopyOfRange(dataArray, 0, 0x14)));
             mac.BlockUpdate(accBytes, 0, accBytes.Length);
 
             byte[] challenge = new byte[mac.GetMacSize()];
@@ -247,20 +231,21 @@ namespace lib.core
                 PowResponse = new PoWResponseUnion(),
                 CryptoResponse = new CryptoResponseUnion()
             };
+
             
             MemoryStream clientResponsePlaintextStream = new MemoryStream();
             Serializer.Serialize(clientResponsePlaintextStream, clientResponsePlaintext);
             
             byte[] clientResponsePlaintextBytes = clientResponsePlaintextStream.ToArray();
             length = 4 + clientResponsePlaintextBytes.Length;
-            conn._out.Write(ToBigEndian(length));
+            conn._out.WriteBigEndian(length);
             conn._out.Write(clientResponsePlaintextBytes);
             conn._out.Flush();
-            
+
             try
             {
                 byte[] scrap = new byte[4];
-                conn.socket.ReceiveTimeout = 300;
+                conn.stream.ReadTimeout = 300;
                 int read = conn._in.Read(scrap, 0, scrap.Length);
                 if (read == scrap.Length)
                 {
@@ -280,17 +265,22 @@ namespace lib.core
             }
             catch (IOException e) when ((e.InnerException as SocketException)?.SocketErrorCode == SocketError.TimedOut)
             {
-                Console.WriteLine("Skipped");
+            }
+            catch (IOException e) when ((e.InnerException as SocketException)?.SocketErrorCode ==
+                                        SocketError.WouldBlock)
+            {
+                //https://github.com/mono/mono/blob/main/mcs/class/System/Test/System.Net.Sockets/NetworkStreamTest.cs#L71-L72
             }
             finally
             {
-                conn.socket.ReceiveTimeout = 0;
+                conn.stream.ReadTimeout = -1;
             }
-
             lock (authLock)
             {
-                cipherPair = new CipherPair(Arrays.CopyOfRange(data.ToArray(), 0x14, 0x34), 
-                    Arrays.CopyOfRange(dataArray, 0x34, 0x54));
+                cipherPair = new CipherPair(
+                    Arrays.CopyOfRange(dataArray, 0x14, 0x34), 
+                    Arrays.CopyOfRange(dataArray, 0x34, 0x54)
+                );
                 authLockState = true;
             }
             
@@ -307,7 +297,7 @@ namespace lib.core
         private void authenticatePartial(LoginCredentials credentials, bool removeLock)
         { 
             if (conn == null || cipherPair == null) throw new Exception("Illegal state! Connection not established!");
-
+            
             ClientResponseEncrypted clientResponseEncrypted = new ClientResponseEncrypted
             {
                 LoginCredentials = credentials,
@@ -325,7 +315,7 @@ namespace lib.core
             Serializer.Serialize(clientResponseEncryptedStream, clientResponseEncrypted);
             
             sendUnchecked(Packet.Type.Login, clientResponseEncryptedStream.ToArray());
-
+            
             Packet packet = cipherPair.ReceiveEncoded(conn._in);
             if (packet.Is(Packet.Type.APWelcome))
             {
@@ -444,14 +434,6 @@ namespace lib.core
         public ApResolver APResolver()
         {
             return apResolver;
-        }
-
-        private static byte[] ToBigEndian(int value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(bytes);
-            return bytes;
         }
 
         public HttpClient Client()
@@ -624,9 +606,7 @@ namespace lib.core
             public Session create()
             {
                 if (loginCredentials == null)
-                {
-                    //throw new Exception("You must select an authentication method.");
-                }
+                    throw new Exception("You must select an authentication method.");
                 
                 TimeProvider.init(conf);
 
@@ -640,16 +620,6 @@ namespace lib.core
 
         public class Configuration
         {
-            // Proxy
-            //public bool proxyEnabled;
-            //public Proxy.Type proxyType;
-            //public bool proxySSL;
-            //public String proxyAddress;
-            //public int proxyPort;
-            //public bool proxyAuth;
-            //public String proxyUsername;
-            //public String proxyPassword;
-
             // Time sync
             public TimeProvider.Method timeSynchronizationMethod;
             public int timeManualCorrection;
@@ -669,31 +639,6 @@ namespace lib.core
             // Network
             public int connectionTimeout;
 
-            /*private Configuration(bool proxyEnabled, Proxy.Type proxyType, bool proxySSL, String proxyAddress,
-                                  int proxyPort, bool proxyAuth, String proxyUsername, String proxyPassword,
-                                  TimeProvider.Method timeSynchronizationMethod, int timeManualCorrection,
-                                  bool cacheEnabled, File cacheDir, bool doCacheCleanUp,
-                                  bool storeCredentials, File storedCredentialsFile,
-                                  bool retryOnChunkError, int connectionTimeout) {
-                this.proxyEnabled = proxyEnabled;
-                this.proxyType = proxyType;
-                this.proxySSL = proxySSL;
-                this.proxyAddress = proxyAddress;
-                this.proxyPort = proxyPort;
-                this.proxyAuth = proxyAuth;
-                this.proxyUsername = proxyUsername;
-                this.proxyPassword = proxyPassword;
-                this.timeSynchronizationMethod = timeSynchronizationMethod;
-                this.timeManualCorrection = timeManualCorrection;
-                this.cacheEnabled = cacheEnabled;
-                this.cacheDir = cacheDir;
-                this.doCacheCleanUp = doCacheCleanUp;
-                this.storeCredentials = storeCredentials;
-                this.storedCredentialsFile = storedCredentialsFile;
-                this.retryOnChunkError = retryOnChunkError;
-                this.connectionTimeout = connectionTimeout;
-            }*/
-
             private Configuration(TimeProvider.Method timeSynchronizationMethod, int timeManualCorrection,
                 bool cacheEnabled, String cacheDir, bool doCacheCleanUp,
                 bool storeCredentials, String storedCredentialsFile,
@@ -712,16 +657,6 @@ namespace lib.core
 
             public class Builder
             {
-                // Proxy
-                //private bool proxyEnabled = false;
-                //private Proxy.Type proxyType;
-                //private bool proxySSL = false;
-                //private String proxyAddress;
-                //private int proxyPort;
-                //private bool proxyAuth;
-                //private String proxyUsername;
-                //private String proxyPassword;
-
                 // Time sync
                 private TimeProvider.Method timeSynchronizationMethod = TimeProvider.Method.NTP;
                 private int timeManualCorrection;
@@ -744,49 +679,7 @@ namespace lib.core
                 public Builder()
                 {
                 }
-
-                /*
-                public Builder setProxyEnabled(bool proxyEnabled) {
-                    this.proxyEnabled = proxyEnabled;
-                    return this;
-                }
-
-                public Builder setProxyType(Proxy.Type proxyType) {
-                    this.proxyType = proxyType;
-                    return this;
-                }
-
-                public Builder setProxySSL(bool proxySSL) {
-                    this.proxySSL = proxySSL;
-                    return this;
-                }
-
-                public Builder setProxyAddress(String proxyAddress) {
-                    this.proxyAddress = proxyAddress;
-                    return this;
-                }
-
-                public Builder setProxyPort(int proxyPort) {
-                    this.proxyPort = proxyPort;
-                    return this;
-                }
-
-                public Builder setProxyAuth(bool proxyAuth) {
-                    this.proxyAuth = proxyAuth;
-                    return this;
-                }
-
-                public Builder setProxyUsername(String proxyUsername) {
-                    this.proxyUsername = proxyUsername;
-                    return this;
-                }
-
-                public Builder setProxyPassword(String proxyPassword) {
-                    this.proxyPassword = proxyPassword;
-                    return this;
-                }
-                */
-
+                
                 public Builder setTimeSynchronizationMethod(TimeProvider.Method timeSynchronizationMethod)
                 {
                     this.timeSynchronizationMethod = timeSynchronizationMethod;
@@ -841,15 +734,6 @@ namespace lib.core
                     return this;
                 }
 
-                /*public Configuration build() {
-                    return new Configuration(proxyEnabled, proxyType, proxySSL, proxyAddress, proxyPort, proxyAuth,
-                            proxyUsername, proxyPassword,
-                            timeSynchronizationMethod, timeManualCorrection,
-                            cacheEnabled, cacheDir, doCacheCleanUp,
-                            storeCredentials, storedCredentialsFile,
-                            retryOnChunkError, connectionTimeout);
-                }*/
-
                 public Configuration build()
                 {
                     return new Configuration(timeSynchronizationMethod, timeManualCorrection,
@@ -866,7 +750,7 @@ namespace lib.core
             {
             }
         }
-
+        
         private class ConnectionHolder
         {
             public Socket socket;
@@ -878,7 +762,7 @@ namespace lib.core
             private ConnectionHolder(Socket socket)
             {
                 this.socket = socket;
-                stream = new NetworkStream(socket);
+                stream = new NetworkStream(this.socket);
                 _in = new BinaryReader(stream);
                 _out = new BinaryWriter(stream);
             }
@@ -889,62 +773,9 @@ namespace lib.core
                 String[] split = addr.Split(':');
                 String apAddr = split[0];
                 int apPort = int.Parse(split[1]);
-                return new ConnectionHolder(new TcpClient(apAddr, apPort).Client);
-                /*if (!conf.proxyEnabled || conf.proxyType == Proxy.Type.DIRECT)
-                    return new ConnectionHolder(new Socket(apAddr, apPort));
-
-                switch (conf.proxyType) {
-                    case HTTP:
-                        Socket sock;
-                        if (conf.proxySSL) {
-                            sock = SSLSocketFactory.getDefault().createSocket(conf.proxyAddress, conf.proxyPort);
-                        } else {
-                            sock = new Socket(conf.proxyAddress, conf.proxyPort);
-                        }
-                        OutputStream out = sock.getOutputStream();
-                        DataInputStream in = new DataInputStream(sock.getInputStream());
-
-                        out.write(String.format("CONNECT %s:%d HTTP/1.0\n", apAddr, apPort).getBytes());
-                        if (conf.proxyAuth)
-                            out.write(String.format("Proxy-Authorization: %s\n", Credentials.basic(conf.proxyUsername, conf.proxyPassword)).getBytes());
-
-                        out.write('\n');
-                        out.flush();
-
-                        String sl = Utils.readLine(in);
-                        if (!sl.contains("200")) throw new IOException("Failed connecting: " + sl);
-
-                        //noinspection StatementWithEmptyBody
-                        while (!Utils.readLine(in).isEmpty()) {
-                            // Read all headers
-                        }
-
-                        LOGGER.info(String.format("Successfully connected to the %s proxy.", conf.proxySSL ? "HTTPS" : "HTTP"));
-                        return new ConnectionHolder(sock);
-                    case SOCKS:
-                        if (conf.proxyAuth) {
-                            java.net.Authenticator.setDefault(new java.net.Authenticator() {
-                                final String username = conf.proxyUsername;
-                                final String password = conf.proxyPassword;
-
-                                @Override
-                                protected PasswordAuthentication getPasswordAuthentication() {
-                                    if (Objects.equals(getRequestingProtocol(), "SOCKS5") && Objects.equals(getRequestingPrompt(), "SOCKS authentication"))
-                                        return new PasswordAuthentication(username, password.toCharArray());
-
-                                    return super.getPasswordAuthentication();
-                                }
-                            });
-                        }
-
-                        Proxy proxy = new Proxy(conf.proxyType, new InetSocketAddress(conf.proxyAddress, conf.proxyPort));
-                        Socket proxySocket = new Socket(proxy);
-                        proxySocket.connect(new InetSocketAddress(apAddr, apPort));
-                        LOGGER.info("Successfully connected to the SOCKS proxy.");
-                        return new ConnectionHolder(proxySocket);
-                    default:
-                        throw new UnsupportedOperationException();
-                } */
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket.Connect(apAddr, apPort);
+                return new ConnectionHolder(socket);
             }
         }
 

@@ -35,6 +35,8 @@ namespace librespot {
             configuration.setStoreCredentials(true);
             configuration.setStoredCredentialsFile("credentials.json");
             
+            Console.WriteLine(Version.systemInfoString());
+            
             Session.Builder builder = new Session.Builder(configuration.build());
             
             builder.oauth();

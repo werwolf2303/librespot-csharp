@@ -174,5 +174,13 @@ namespace lib.common
             foreach (AudioFile file in files) list.Add(file.format);
             return list;
         }
+        
+        public static byte[] ToBigEndian(int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
     }
 }

@@ -98,6 +98,7 @@
         <Compile Include="cache\JournalHeader.cs" />
         <Compile Include="common\AsyncProcessor.cs" />
         <Compile Include="common\AsyncWorker.cs" />
+        <Compile Include="common\BigEndianWriter.cs" />
         <Compile Include="common\BinaryReaderExtension.cs" />
         <Compile Include="common\Enumeration.cs" />
         <Compile Include="common\Iterator.cs" />

@@ -228,4 +228,3 @@ message CryptoShannonResponse {
 message CryptoRc4Sha1HmacResponse {
     optional int32 dummy = 0x1;
 }
-

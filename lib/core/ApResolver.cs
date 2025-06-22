@@ -94,6 +94,10 @@ namespace lib.core
 
             List<String> urls = pool[type];
             if (urls == null || urls.Count == 0) throw new Exception("Illegal state");
+            if (type == "accesspoint")
+            {
+                return "ap-gew4.spotify.com:80";
+            }
             return urls[new Random().Next(0, urls.Count - 1)];
         }
 

@@ -8,6 +8,7 @@ namespace lib.core
     public class TimeProvider
     {
         private static long offset = 0;
+        private static object offsetLock = new object();
         private static ILog LOGGER = LogManager.GetLogger(typeof(TimeProvider));
         private static Method method = Method.NTP;
 
@@ -30,9 +31,10 @@ namespace lib.core
                     }
                     break;
                 case Method.MANUAL:
-                    // synchronized (offset) {
-                    offset = conf.timeManualCorrection;
-                    // }
+                    lock (offsetLock)
+                    {
+                        offset = conf.timeManualCorrection;
+                    }
                     break; 
             }
         }
@@ -41,25 +43,26 @@ namespace lib.core
         {
             if (method != Method.MELODY) return;
 
-            //updateMelody();
+            updateMelody(session);
         }
 
         public static long currentTimeMillis()
         {
-            // synchronized (offset) {
-            return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            // }
+            lock (offsetLock) { 
+                return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            }
         }
 
         /// <exception cref="IOException" />
         private static void updateWithNtp()
         {
-            // synchronized (offset) {
-            DateTime time = DateTime.Now.FromNtp();
-            int offsetValue = TimeZone.CurrentTimeZone.GetUtcOffset(time).Milliseconds;
-            LOGGER.Debug("Loaded time offset from NTP: " + offsetValue + "ms");
-            offset = offsetValue;
-            // ]
+            lock (offsetLock)
+            {
+                DateTime time = DateTime.Now.FromNtp();
+                int offsetValue = TimeZone.CurrentTimeZone.GetUtcOffset(time).Milliseconds;
+                LOGGER.Debug("Loaded time offset from NTP: " + offsetValue + "ms");
+                offset = offsetValue;
+            }
         }
 
         private static void updateMelody(Session session)

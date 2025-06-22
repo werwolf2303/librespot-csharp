@@ -46,7 +46,26 @@ namespace lib
         
         public static String systemInfoString()
         {
-            return versionString() + "; C# " + Environment.Version + "; " + Environment.OSVersion;
+            String os;
+            switch (Environment.OSVersion.Platform)
+            {
+                case PlatformID.Win32Windows:
+                case PlatformID.Win32NT:
+                case PlatformID.Win32S:
+                case PlatformID.WinCE:
+                    os = "Windows";
+                    break;
+                case PlatformID.Unix:
+                    os = "Linux";
+                    break;
+                case PlatformID.MacOSX:
+                    os = "MacOSX";
+                    break;
+                default:
+                    os = "Unknown";
+                    break;
+            }
+            return versionString() + "; C# " + Environment.Version + "; " + os;
         }
         
         /// <returns><see cref="BuildInfo"/> object identifying a standard client.</returns>
