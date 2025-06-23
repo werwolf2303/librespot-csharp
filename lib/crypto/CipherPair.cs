@@ -51,8 +51,7 @@ namespace lib.crypto
                 byte[] mac = new byte[4];
                 sendCipher.finish(mac);
                 
-                Console.WriteLine(Utils.bytesToHex(mac));
-
+                
                 outStream.Write(encryptedBuffer);
                 outStream.Write(mac);
                 outStream.Flush();

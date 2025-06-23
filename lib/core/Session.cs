@@ -219,6 +219,8 @@ namespace lib.core
             byte[] challenge = new byte[mac.GetMacSize()];
             mac.DoFinal(challenge, 0);
             
+            Console.WriteLine(challenge.Length);
+            
             ClientResponsePlaintext clientResponsePlaintext = new ClientResponsePlaintext
             {
                 LoginCryptoResponse = new LoginCryptoResponseUnion
