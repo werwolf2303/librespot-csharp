@@ -194,17 +194,16 @@ namespace lib.core
             if (!verified)
                 throw new Exception("Failed signature check!");
             
-            MemoryStream data = new MemoryStream(0x64);
+            MemoryStream data = new MemoryStream(100);
             
             HMac mac = new HMac(new Sha1Digest());
             KeyParameter keyParam = new KeyParameter(sharedKey);
             mac.Init(keyParam);
             
             byte[] accBytes = accStream.ToArray();
-            accStream.Close();
             for (int i = 1; i < 6; i++)
             {
-                mac.BlockUpdate(accBytes, 0, accBytes.Length);
+                mac.BlockUpdate(accBytes, 0, accBytes.Length); 
                 mac.BlockUpdate(new byte[] { (byte)i }, 0, 1);
 
                 byte[] result = new byte[mac.GetMacSize()];
@@ -214,11 +213,12 @@ namespace lib.core
             }
 
             byte[] dataArray = data.ToArray();
-            mac.Init(new KeyParameter(Arrays.CopyOfRange(dataArray, 0, 0x14)));
+            mac.Init(new KeyParameter(Arrays.CopyOfRange(dataArray, 0, 20)));
             mac.BlockUpdate(accBytes, 0, accBytes.Length);
 
             byte[] challenge = new byte[mac.GetMacSize()];
             mac.DoFinal(challenge, 0);
+            
             ClientResponsePlaintext clientResponsePlaintext = new ClientResponsePlaintext
             {
                 LoginCryptoResponse = new LoginCryptoResponseUnion
@@ -231,7 +231,6 @@ namespace lib.core
                 PowResponse = new PoWResponseUnion(),
                 CryptoResponse = new CryptoResponseUnion()
             };
-
             
             MemoryStream clientResponsePlaintextStream = new MemoryStream();
             Serializer.Serialize(clientResponsePlaintextStream, clientResponsePlaintext);
@@ -241,12 +240,12 @@ namespace lib.core
             conn._out.WriteBigEndian(length);
             conn._out.Write(clientResponsePlaintextBytes);
             conn._out.Flush();
-
+            
             try
             {
                 byte[] scrap = new byte[4];
                 conn.stream.ReadTimeout = 300;
-                int read = conn._in.Read(scrap, 0, scrap.Length);
+                int read = conn._in.Read(scrap, 0, scrap.Length); 
                 if (read == scrap.Length)
                 {
                     length = (scrap[0] << 24) | (scrap[1] << 16) | (scrap[2] << 8) | (scrap[3] & 0xFF);
@@ -278,8 +277,8 @@ namespace lib.core
             lock (authLock)
             {
                 cipherPair = new CipherPair(
-                    Arrays.CopyOfRange(dataArray, 0x14, 0x34), 
-                    Arrays.CopyOfRange(dataArray, 0x34, 0x54)
+                    Arrays.CopyOfRange(dataArray, 20, 52), 
+                    Arrays.CopyOfRange(dataArray, 52, 84)
                 );
                 authLockState = true;
             }

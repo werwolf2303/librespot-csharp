@@ -11,8 +11,8 @@ namespace lib.crypto
 {
     public class CipherPair
     {
-        private readonly Shannon sendCipher;
-        private readonly Shannon recvCipher;
+        private Shannon sendCipher;
+        private Shannon recvCipher;
         private int sendNonce;
         private int recvNonce;
         private object sendLock = new object();
@@ -42,12 +42,12 @@ namespace lib.crypto
                 MemoryStream buffer = new MemoryStream(1 + 2 + payload.Length);
                 BinaryWriter bufferWriter = new BinaryWriter(buffer);
                 bufferWriter.Write(cmd);
-                bufferWriter.WriteBigEndian(payload.Length);
+                bufferWriter.WriteBigEndian((short)payload.Length);
                 bufferWriter.Write(payload);
                 
                 byte[] encryptedBuffer = buffer.ToArray();
                 sendCipher.encrypt(encryptedBuffer);
-
+                
                 byte[] mac = new byte[4];
                 sendCipher.finish(mac);
                 

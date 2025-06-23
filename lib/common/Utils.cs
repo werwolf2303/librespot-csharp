@@ -43,8 +43,8 @@ namespace lib.common
             int newOffset = 0;
             bool trimming = trim;
             char[] hexChars = new char[length * 2];
-            for (int j = offset; j < length; j++) {
-                int v = bytes[j] & 0xFF;
+            for (int j = 0; j < length; j++) {
+                int v = bytes[offset + j] & 0xFF;
                 if (trimming) {
                     if (v == 0) {
                         newOffset = j + 1;
@@ -53,7 +53,9 @@ namespace lib.common
                             trimming = false;
 
                         continue;
-                    } else {
+                    }
+                    else
+                    {
                         trimming = false;
                     }
                 }
@@ -91,53 +93,10 @@ namespace lib.common
             }
             if (dictionary.Any())
             {
-                sb.Length -= Environment.NewLine.Length + 1; 
+                sb.Length--; 
             }
             sb.Append("}");
             return sb.ToString();
-        }
-        
-        public enum TimeUnit
-        {
-            NANOSECONDS,
-            MICROSECONDS,
-            MILLISECONDS,
-            SECONDS,
-            MINUTES,
-            HOURS,
-            DAYS
-        }
-        
-        // https://stackoverflow.com/a/78491060
-        public class SecureRandom : IDisposable
-        {
-            private RandomNumberGenerator rng = RandomNumberGenerator.Create();
-
-            public int GenerateRandom(int minValue, int maxValue)
-            {
-                if (minValue >= maxValue)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(minValue), "minValue must be less than maxValue");
-                }
-
-                int range = maxValue - minValue + 1;
-                byte[] uint32Buffer = new byte[4];
-
-                int result;
-                do
-                {
-                    rng.GetBytes(uint32Buffer);
-                    uint randomUint = BitConverter.ToUInt32(uint32Buffer, 0);
-                    result = (int)(randomUint % range);
-                } while (result < 0 || result >= range);
-
-                return minValue + result;
-            }
-
-            public void Dispose()
-            {
-                rng.Dispose();
-            }
         }
         
         public static String randomHexString(RandomNumberGenerator random, int length) {
@@ -147,9 +106,13 @@ namespace lib.common
         }
 
         public static byte[] toByteArray(int i) {
-            var buffer = new byte[4];
-            buffer[0] = Convert.ToByte(i);
-            return buffer;
+            return new [] 
+            {
+                (byte)((i >> 24) & 0xFF),
+                (byte)((i >> 16) & 0xFF),
+                (byte)((i >> 8) & 0xFF),
+                (byte)(i & 0xFF)
+            };
         }
 
         public static byte[] toByteArray(BigInteger i)
