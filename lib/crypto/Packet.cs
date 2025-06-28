@@ -21,7 +21,6 @@ namespace lib.crypto
         }
 
         public bool Is(Type type) {
-            Console.Write(getType().ToString() + " is " + type.ToString() + " ? " + (getType() == type));
             return getType() == type;
         }
 
@@ -62,8 +61,9 @@ namespace lib.crypto
         public static Type parse(byte val)
         {
             foreach (Type cmd in Enum.GetValues(typeof(Type)))
-                if (cmd.Equals(val))
+                if ((int) cmd == val)
                     return cmd;
+
             return Type.NULL;
         }
 

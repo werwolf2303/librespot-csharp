@@ -21,11 +21,11 @@ namespace lib.crypto
         public CipherPair(byte[] sendKey, byte[] recvKey)
         {
             sendCipher = new Shannon();
-            sendCipher.key(sendKey);
+            sendCipher.Key(sendKey);
             sendNonce = 0;
 
             recvCipher = new Shannon();
-            recvCipher.key(recvKey);
+            recvCipher.Key(recvKey);
             recvNonce = 0;
         }
 
@@ -33,7 +33,7 @@ namespace lib.crypto
         {
             lock (sendLock)
             {
-                sendCipher.nonce(Utils.toByteArray(sendNonce));
+                sendCipher.Nonce(Utils.toByteArray(sendNonce));
                 sendNonce++;
                 
                 Console.WriteLine(Enum.Parse(typeof(Packet.Type), cmd.ToString()));
@@ -46,11 +46,10 @@ namespace lib.crypto
                 bufferWriter.Write(payload);
                 
                 byte[] encryptedBuffer = buffer.ToArray();
-                sendCipher.encrypt(encryptedBuffer);
+                sendCipher.Encrypt(encryptedBuffer);
                 
                 byte[] mac = new byte[4];
-                sendCipher.finish(mac);
-                
+                sendCipher.Finish(mac);
                 
                 outStream.Write(encryptedBuffer);
                 outStream.Write(mac);
@@ -62,25 +61,25 @@ namespace lib.crypto
         {
             lock (recvLock)
             {
-                recvCipher.nonce(Utils.toByteArray(recvNonce));
+                recvCipher.Nonce(Utils.toByteArray(recvNonce));
                 recvNonce++;
                 
                 byte[] headerBytes = new byte[3];
                 reader.ReadFully(headerBytes);
-                recvCipher.decrypt(headerBytes);
+                recvCipher.Decrypt(headerBytes);
 
                 byte cmd = headerBytes[0];
                 int payloadLength = (headerBytes[1] << 8) | (headerBytes[2] & 0xFF);
 
                 byte[] payloadBytes = new byte[payloadLength];
                 reader.ReadFully(payloadBytes);
-                recvCipher.decrypt(payloadBytes);
+                recvCipher.Decrypt(payloadBytes);
 
                 byte[] mac = new byte[4];
                 reader.ReadFully(mac);
                 
                 byte[] expectedMac = new byte[4];
-                recvCipher.finish(expectedMac);
+                recvCipher.Finish(expectedMac);
                 if (!Arrays.AreEqual(mac, expectedMac))
                     throw new GeneralSecurityException("MACs don't match!");
 

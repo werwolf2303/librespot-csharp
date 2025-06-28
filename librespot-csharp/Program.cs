@@ -3,6 +3,7 @@ using EasyHttp.Http;
 using lib.audio.decoders;
 using lib.common;
 using lib.core;
+using lib.crypto;
 using lib.mercury;
 using log4net;
 using log4net.Appender;
