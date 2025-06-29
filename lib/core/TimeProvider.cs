@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using lib.common;
 using log4net;
 using Tarczynski.NtpDateTime;
 
@@ -7,10 +8,10 @@ namespace lib.core
 {
     public class TimeProvider
     {
-        private static long offset = 0;
-        private static object offsetLock = new object();
+        private static long _offset = 0;
+        private static object _offsetLock = new object();
         private static ILog LOGGER = LogManager.GetLogger(typeof(TimeProvider));
-        private static Method method = Method.NTP;
+        private static Method _method = Method.NTP;
 
         private TimeProvider()
         {
@@ -18,7 +19,7 @@ namespace lib.core
 
         public static void init(Session.Configuration conf)
         {
-            switch (method = conf.timeSynchronizationMethod)
+            switch (_method = conf.timeSynchronizationMethod)
             {
                 case Method.NTP:
                     try
@@ -31,9 +32,9 @@ namespace lib.core
                     }
                     break;
                 case Method.MANUAL:
-                    lock (offsetLock)
+                    lock (_offsetLock)
                     {
-                        offset = conf.timeManualCorrection;
+                        _offset = conf.timeManualCorrection;
                     }
                     break; 
             }
@@ -41,43 +42,51 @@ namespace lib.core
 
         public static void init(Session session)
         {
-            if (method != Method.MELODY) return;
+            if (_method != Method.MELODY) return;
 
             updateMelody(session);
         }
 
         public static long currentTimeMillis()
         {
-            lock (offsetLock) { 
-                return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            lock (_offsetLock) { 
+                return Utils.getUnixTimeStampInMilliseconds() + _offset;
             }
         }
 
         /// <exception cref="IOException" />
         private static void updateWithNtp()
         {
-            lock (offsetLock)
+            lock (_offsetLock)
             {
                 DateTime time = DateTime.Now.FromNtp();
                 int offsetValue = TimeZone.CurrentTimeZone.GetUtcOffset(time).Milliseconds;
                 LOGGER.Debug("Loaded time offset from NTP: " + offsetValue + "ms");
-                offset = offsetValue;
+                _offset = offsetValue;
             }
         }
 
         private static void updateMelody(Session session)
         {
+            // Needs the whole api class implemented
             //ToDo: Implement 
             throw new NotImplementedException();
         }
 
-        private static void updateWithPing(byte[] pingPayload)
+        public static void updateWithPing(byte[] pingPayload)
         {
-            if (method != Method.PING) return;
-            
-            // synchronized (offset) {
-            throw new NotImplementedException();
-            // }
+            if (_method != Method.PING) return;
+
+            lock (_offsetLock)
+            {
+                byte[] fourBytes = new byte[4];
+                Buffer.BlockCopy(pingPayload, 0, fourBytes, 0, 4);
+                int pingInt = BitConverter.ToInt32(fourBytes, 0);
+                long diff = pingInt * 1000L - Utils.getUnixTimeStampInMilliseconds();
+                _offset = diff;
+                
+                LOGGER.Debug("Loaded time offset from ping: " + diff + "ms");
+            }
         }
         
         public enum Method {

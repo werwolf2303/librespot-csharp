@@ -43,8 +43,14 @@
         <Reference Include="log4net">
           <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
         </Reference>
+        <Reference Include="Newtonsoft.Json">
+          <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+        </Reference>
         <Reference Include="NtpDateTime">
           <HintPath>..\packages\NtpDateTime.1.0.8\lib\NtpDateTime.dll</HintPath>
+        </Reference>
+        <Reference Include="protobuf-net">
+          <HintPath>..\packages\protobuf-net.2.4.9\lib\net35\protobuf-net.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>

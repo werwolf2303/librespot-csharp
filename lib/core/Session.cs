@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Xml;
 using Connectstate;
 using EasyHttp.Http;
 using EasyHttp.Http.Injection;
@@ -20,6 +22,7 @@ using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using ProtoBuf;
@@ -63,12 +66,13 @@ namespace lib.core
 
         private Inner inner;
 
-        // private ScheduledExecutorService scheduler
+        private ScheduledExecutorService scheduler = new ScheduledExecutorService();
         private Object authLock = new Object();
         private bool authLockState = false;
         private static HttpClient client;
         private List<CloseListener> closeListeners = new List<CloseListener>();
         private List<ReconnectionListener> reconnectionListeners = new List<ReconnectionListener>();
+        private Object reconnectionListenersLock = new Object();
         private Dictionary<String, String> userAttributtes = new Dictionary<String, String>();
         private static ConnectionHolder conn;
         private static volatile CipherPair cipherPair;
@@ -76,8 +80,9 @@ namespace lib.core
         private APWelcome apWelcome;
 
         private String countryCode = null;
-        private static volatile bool closed = false;
-        private static volatile bool closing = false;
+        private volatile bool closed = false;
+        private volatile bool closing = false;
+        private volatile ScheduledExecutorService.ScheduledFuture<int> _scheduledReconnect;
 
         private Session(Inner inner)
         {
@@ -87,6 +92,13 @@ namespace lib.core
             apResolver = new ApResolver(client);
             String addr = apResolver.getRandomAccesspoint();
             conn = ConnectionHolder.create(addr, inner.conf);
+
+            _scheduledReconnect = new ScheduledExecutorService.ScheduledFuture<int>(() =>
+                {
+                    LOGGER.Warn("Socket timed out. Reconnecting...");
+                    reconnect();
+                    return 0;
+                }, 2 * 60 + configuration().connectionTimeout);
 
             LOGGER.Info(String.Format("Created new session! (deviceId: {0}, ap: {1}, proxy: {2})", inner.deviceId, addr,
                 false));
@@ -288,11 +300,14 @@ namespace lib.core
             LOGGER.Info("Connected successfully!");
         }
         
-        private void authenticate(LoginCredentials loginCredentials)
+        private void authenticate(LoginCredentials credentials)
         {
-            authenticatePartial(loginCredentials, false);
-            
-            
+            authenticatePartial(credentials, false);
+
+            if (credentials.GetType() == AuthenticationType.AuthenticationSpotifyToken.GetType())
+            {
+                reconnect();
+            }
         }
 
         private void authenticatePartial(LoginCredentials credentials, bool removeLock)
@@ -320,9 +335,9 @@ namespace lib.core
             Packet packet = cipherPair.ReceiveEncoded(conn._in);
             if (packet.Is(Packet.Type.APWelcome))
             {
-                apWelcome = Serializer.Deserialize<APWelcome>(new MemoryStream(packet.payload));
+                apWelcome = Serializer.Deserialize<APWelcome>(new MemoryStream(packet._payload));
 
-                receiver = new Receiver();
+                receiver = new Receiver(this);
 
                 byte[] bytes0x0f = new byte[20];
                 random().GetBytes(bytes0x0f);
@@ -354,7 +369,7 @@ namespace lib.core
                     
                     JObject obj = new JObject();
                     obj["username"] = apWelcome.CanonicalUsername;
-                    obj["credentials"] = Base64.Encode(reusable);
+                    obj["credentials"] = Base64.ToBase64String(reusable);
                     obj["type"] = reusableType.ToString();
 
                     if (inner.conf.storedCredentialsFile == null) throw new Exception("Illegal argument");
@@ -364,11 +379,11 @@ namespace lib.core
                 }
             }else if (packet.Is(Packet.Type.AuthFailure))
             {
-                throw new SpotifyAuthenticationException(Serializer.Deserialize<APLoginFailed>(new MemoryStream(packet.payload)));
+                throw new SpotifyAuthenticationException(Serializer.Deserialize<APLoginFailed>(new MemoryStream(packet._payload)));
             }
             else
             {
-                throw new Exception("Illegal state! Unknown CMD 0x" + Utils.bytesToHex(new[] { packet.cmd }));
+                throw new Exception("Illegal state! Unknown CMD 0x" + Utils.bytesToHex(new[] { packet._cmd }));
             }
         }
         
@@ -411,7 +426,7 @@ namespace lib.core
             }
         }
 
-        public void send(Packet.Type cmd, byte[] payload)
+        public void Send(Packet.Type cmd, byte[] payload)
         {
             if (closing && conn == null)
             {
@@ -445,6 +460,91 @@ namespace lib.core
         public RandomNumberGenerator random()
         {
             return inner.random;
+        }
+
+        public Configuration configuration()
+        {
+            return inner.conf;
+        }
+
+        private void reconnect()
+        {
+            if (closing) return;
+
+            lock (reconnectionListenersLock)
+            {
+                reconnectionListeners.ForEach(l => l.onConnectionDropped());
+            }
+
+            try
+            {
+                if (conn != null)
+                {
+                    receiver.stop();
+                    conn.socket.Close();
+                }
+
+                apResolver.refreshPool();
+
+                conn = ConnectionHolder.create(apResolver.getRandomAccesspoint(), inner.conf);
+                connect();
+                authenticatePartial(
+                    new LoginCredentials
+                    {
+                        Username = apWelcome.CanonicalUsername,
+                        Typ = apWelcome.ReusableAuthCredentialsType,
+                        AuthData = apWelcome.ReusableAuthCredentials
+                    }, true
+                );
+                
+                LOGGER.Info("Re-authenticated as " + apWelcome.CanonicalUsername + "!");
+
+                lock (reconnectionListenersLock)
+                {
+                    reconnectionListeners.ForEach(l => l.onConnectionEstablished());
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException || ex is SpotifyAuthenticationException)
+                {
+                    conn = null;
+                    LOGGER.Error("Failed reconnecting, retrying in 10 seconds...", ex);
+
+                    scheduler.schedule(
+                        new ScheduledExecutorService.ScheduledFuture<int>(
+                            () =>
+                            {
+                                reconnect();
+                                return 0;
+                            }, 10
+                        )
+                    );
+                }
+                else throw;
+            }
+        }
+
+        private void parseProductInfo(byte[] payload)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(Encoding.UTF8.GetString(payload));
+
+            if (doc.GetElementsByTagName("product").Count == 0) return;
+            XmlNode products = doc.GetElementsByTagName("products")[0];
+
+            if (doc.ChildNodes.Count == 0) return;
+            XmlNode product = doc.ChildNodes[0];
+
+            XmlNodeList properties = product.ChildNodes;
+            for (int i = 0; i < products.ChildNodes.Count; i++)
+            {
+                XmlNode node = properties[i];
+                userAttributtes.Add(node.Name, node.InnerText);
+            }
+            
+            String userAttributesDebugString = "{" + string.Join(",", userAttributtes.Select(kv => kv.Key + "=" + kv.Value).ToArray()) + "}";
+            LOGGER.Debug("Parsed product info: " + userAttributesDebugString);
         }
 
         public interface ReconnectionListener
@@ -589,6 +689,8 @@ namespace lib.core
                     Username = obj["username"].ToString(),
                     AuthData = Base64.Decode(obj["credentials"].ToString()),
                 };
+                
+                reader.Close();
 
                 return this;
             }
@@ -782,131 +884,128 @@ namespace lib.core
 
         public class Receiver
         {
-            private Thread thread;
-            private volatile bool running = true;
+            private Thread _thread;
+            private volatile bool _running = true;
+            private Session _sessionParent;
 
-            internal Receiver()
+            internal Receiver(Session sessionParent)
             {
-                thread = new Thread(run);
-                thread.Name = "session-packet-receiver";
-                thread.Start();
+                _sessionParent = sessionParent;
+                _thread = new Thread(run);
+                _thread.Name = "session-packet-receiver";
+                _thread.Start();
             }
 
-            void stop()
+            public void stop()
             {
-                running = false;
-                thread.Interrupt();
+                _running = false;
+                _thread.Interrupt();
             }
 
             public void run()
             {
-                /*LOGGER.Debug("Session.Receiver started");
+                LOGGER.Debug("Session.Receiver started");
 
-                while (running)
+                while (_running)
                 {
                     Packet packet;
                     Packet.Type cmd;
                     try
                     {
-                        packet = cipherPair.receiveEncoded(conn.client.GetStream());
-                        cmd = Packet.parse(packet.cmd);
+                        packet = cipherPair.ReceiveEncoded(conn._in);
+                        cmd = Packet.Parse(packet._cmd);
                         if (cmd == Packet.Type.NULL)
                         {
                             LOGGER.Info(string.Format("Skipping unknown command (cmd: 0x{0}, payload: {1})",
-                                BitConverter.ToString(new byte[] {packet.cmd}), Utils.bytesToHex(packet.payload)));
+                                BitConverter.ToString(new byte[] {packet._cmd}), Utils.bytesToHex(packet._payload)));
                             continue;
                         }
                     }
                     catch (GeneralSecurityException ex) {
-                        if (running && !closing)
+                        if (_running && !_sessionParent.closing)
                         {
                             LOGGER.Error("Failed reading packet!", ex);
-                            reconnect();
+                            _sessionParent.reconnect();
                         }
 
                         break;
                     }
 
-                    if (!running) break;
+                    if (!_running) break;
 
                     switch (cmd)
                     {
                         case Packet.Type.Ping:
-                            if (scheduledReconnect != null) scheduledReconnect.cancel(true);
-                            scheduledReconnect = scheduler.schedule(()-> {
-                            LOGGER.warn("Socket timed out. Reconnecting...");
-                            reconnect();
-                        }, 2 * 60 + configuration().connectionTimeout, Utils.TimeUnit.SECONDS);
+                            if (_sessionParent._scheduledReconnect != null) _sessionParent._scheduledReconnect.Cancel();
+                            _sessionParent.scheduler.schedule(_sessionParent._scheduledReconnect);
 
-                            TimeProvider.updateWithPing(packet.payload);
+                            TimeProvider.updateWithPing(packet._payload);
 
                             try
                             {
-                                send(Packet.Type.Pong, packet.payload);
+                                _sessionParent.Send(Packet.Type.Pong, packet._payload);
                             }
                             catch (IOException ex)
                             {
-                                LOGGER.error("Failed sending Pong!", ex);
+                                LOGGER.Error("Failed sending Pong!", ex);
                             }
 
                             break;
-                        case PongAck:
+                        case Packet.Type.PongAck:
                             // Silent
                             break;
-                        case CountryCode:
-                            countryCode = new String(packet.payload);
-                            LOGGER.info("Received CountryCode: " + countryCode);
+                        case Packet.Type.CountryCode:
+                            _sessionParent.countryCode = Encoding.UTF8.GetString(packet._payload);
+                            LOGGER.Info("Received CountryCode: " + _sessionParent.countryCode);
                             break;
-                        case LicenseVersion:
-                            ByteBuffer licenseVersion = ByteBuffer.wrap(packet.payload);
-                            short id = licenseVersion.getShort();
+                        case Packet.Type.LicenseVersion:
+                            BinaryReader licenseVersion = new BinaryReader(new MemoryStream(packet._payload));
+                            short id = licenseVersion.ReadInt16();
                             if (id != 0)
                             {
-                                byte[] buffer = new byte[licenseVersion.get()];
-                                licenseVersion.get(buffer);
-                                LOGGER.info("Received LicenseVersion: {}, {}", id, new String(buffer));
+                                byte[] buffer = new byte[licenseVersion.ReadByte()];
+                                licenseVersion.ReadFully(buffer);
+                                LOGGER.Info("Received LicenseVersion: " + id + ", " + Encoding.UTF8.GetString(buffer));
                             }
                             else
                             {
-                                LOGGER.info("Received LicenseVersion: {}", id);
+                                LOGGER.Info("Received LicenseVersion: " + id);
                             }
 
                             break;
-                        case Unknown_0x10:
-                            LOGGER.debug("Received 0x10: " + Utils.bytesToHex(packet.payload));
+                        case Packet.Type.Unknown_0x10:
+                            LOGGER.Debug("Received 0x10: " + Utils.bytesToHex(packet._payload));
                             break;
-                        case MercurySub:
-                        case MercuryUnsub:
-                        case MercuryEvent:
-                        case MercuryReq:
+                        case Packet.Type.MercurySub:
+                        case Packet.Type.MercuryUnsub:
+                        case Packet.Type.MercuryEvent:
+                        /*case Packet.Type.MercuryReq:
                             mercury().dispatch(packet);
                             break;
-                        case AesKey:
-                        case AesKeyError:
+                        case Packet.Type.AesKey:
+                        case Packet.Type.AesKeyError:
                             audioKey().dispatch(packet);
                             break;
-                        case ChannelError:
-                        case StreamChunkRes:
+                        case Packet.Type.ChannelError:
+                        case Packet.Type.StreamChunkRes:
                             channel().dispatch(packet);
                             break;
-                        case ProductInfo:
+                        case Packet.Type.ProductInfo:
                             try
                             {
-                                parseProductInfo(new ByteArrayInputStream(packet.payload));
+                                _sessionParent.parseProductInfo(packet.payload);
                             }
-                            catch (IOException |
-
-                            ParserConfigurationException | SAXException ex) {
-                            LOGGER.warn("Failed parsing product info!", ex);
-                        }
-                            break;
+                            catch (Exception ex) {
+                                LOGGER.Warn("Failed parsing product info!", ex); 
+                            }
+                            break;*/
                         default:
-                            LOGGER.info("Skipping " + cmd.name());
+                            LOGGER.Info("Skipping " + cmd);
                             break;
                     }
                 }
 
-                LOGGER.trace("Session.Receiver stopped");*/
+                LOGGER.Debug("Session.Receiver stopped");
             }
         }
     }

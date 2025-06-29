@@ -1,15 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using Connectstate;
 using EasyHttp.Http;
 using lib.audio.decoders;
 using lib.common;
 using lib.core;
 using lib.crypto;
 using lib.mercury;
+using lib.metadata;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
+using Newtonsoft.Json.Linq;
+using ProtoBuf;
+using Spotify;
 using Tarczynski.NtpDateTime;
 using Version = lib.Version;
 
@@ -31,7 +39,7 @@ namespace librespot {
             rootLogger.AddAppender(consoleAppender);
             hierarchy.Configured = true;
 
-            Session.Configuration.Builder configuration = new Session.Configuration.Builder();
+            /*Session.Configuration.Builder configuration = new Session.Configuration.Builder();
             
             configuration.setStoreCredentials(true);
             configuration.setStoredCredentialsFile("credentials.json");
@@ -39,7 +47,10 @@ namespace librespot {
             Session.Builder builder = new Session.Builder(configuration.build());
             
             builder.oauth();
-            builder.create();
+            builder.create();*/
+            
+            
+            Console.WriteLine(SpotifyId.FromUri("spotify:album:3hhCBdiplySJTJfyV6Beyh").ToSpotifyUri());
         }
     }
 }

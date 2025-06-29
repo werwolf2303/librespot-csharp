@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
+using Base62;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities;
 using spotify.metadata.proto;
 
@@ -122,6 +124,24 @@ namespace lib.common
                 array = array.Take(array.Length - 1).ToArray();
             Array.Reverse(array);
             return array;
+        }
+
+        public static String Base62ToHex(string base62String, int length = 16, Base62 base62 = null)
+        {
+            if (base62 == null) base62 = Base62.createInstance();
+            return bytesToHex(base62.decode(Encoding.UTF8.GetBytes(base62String), length));
+        }
+
+        public static O Optional<O>(O value, O defaultIfNull)
+        {
+            if (value == null) return defaultIfNull;
+            return value;
+        }
+
+        public static O OptionalJSON<O>(JObject obj, String key, O defaultIfNull)
+        {
+            if (obj.ContainsKey(key)) return obj[key].ToObject<O>();
+            return defaultIfNull;
         }
 
         public static long getUnixTimeStampInMilliseconds()

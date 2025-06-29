@@ -28,7 +28,7 @@ namespace lib.core
             request("accesspoint", "dealer", "spclient");
         }
 
-        private void refreshPool()
+        public void refreshPool()
         {
             poolReady = false;
             pool.Clear();

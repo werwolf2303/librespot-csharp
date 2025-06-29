@@ -6,22 +6,22 @@ namespace lib.crypto
      * @author Gianlu
      */
     public class Packet {
-        public byte cmd;
-        public byte[] payload;
-        private Type type = Type.NULL;
+        public byte _cmd;
+        public byte[] _payload;
+        private Type _type = Type.NULL;
 
         public Packet(byte cmd, byte[] payload) {
-            this.cmd = cmd;
-            this.payload = payload;
+            this._cmd = cmd;
+            this._payload = payload;
         }
         
-        public Type getType() {
-            if (type == Type.NULL) type = parse(cmd);
-            return type;
+        public Type GetType() {
+            if (_type == Type.NULL) _type = Parse(_cmd);
+            return _type;
         }
 
         public bool Is(Type type) {
-            return getType() == type;
+            return GetType() == type;
         }
 
         public enum Type {
@@ -58,7 +58,7 @@ namespace lib.crypto
             Unknown_0x10=0x10
         }
 
-        public static Type parse(byte val)
+        public static Type Parse(byte val)
         {
             foreach (Type cmd in Enum.GetValues(typeof(Type)))
                 if ((int) cmd == val)
@@ -67,7 +67,7 @@ namespace lib.crypto
             return Type.NULL;
         }
 
-        public static Type forMethod(String method) {
+        public static Type ForMethod(String method) {
             switch (method) {
                 case "SUB":
                     return Type.MercurySub;
