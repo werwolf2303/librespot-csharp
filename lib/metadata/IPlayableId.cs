@@ -53,7 +53,7 @@ namespace lib.metadata
     public class PlayableId : IPlayableId
     {
         internal static IPlayableId _playableId;
-        internal static common.Base62 _base62 = common.Base62.createInstanceWithInvertedCharacterSet();
+        internal static common.Base62 _base62 = common.Base62.CreateInstanceWithInvertedCharacterSet();
         
         protected PlayableId()
         {
@@ -120,7 +120,7 @@ namespace lib.metadata
 
         public string ToSpotifyUri()
         {
-            return "spotify:" + PlayableIds.ToString(_playableId.GetId()).ToLower() + ":" + Encoding.UTF8.GetString(_base62.encode(Encoding.UTF8.GetBytes(_playableId.HexId())));
+            return "spotify:" + PlayableIds.ToString(_playableId.GetId()).ToLower() + ":" + Utils.HexToBase62(_playableId.HexId(), 16, _base62);
         }
 
         public int GetId()

@@ -125,11 +125,36 @@ namespace lib.common
             Array.Reverse(array);
             return array;
         }
+        
+        public static byte[] toByteArray(string hex) {
+            if (hex.Length % 2 == 1)
+                throw new Exception("The binary key cannot have an odd number of digits");
+
+            byte[] arr = new byte[hex.Length >> 1];
+
+            for (int i = 0; i < hex.Length >> 1; ++i)
+            {
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+            }
+
+            return arr;
+        }
 
         public static String Base62ToHex(string base62String, int length = 16, Base62 base62 = null)
         {
-            if (base62 == null) base62 = Base62.createInstance();
-            return bytesToHex(base62.decode(Encoding.UTF8.GetBytes(base62String), length));
+            if (base62 == null) base62 = Base62.CreateInstance();
+            return bytesToHex(base62.Decode(Encoding.UTF8.GetBytes(base62String), length));
+        }
+
+        public static String HexToBase62(string hexString, int length = 16, Base62 base62 = null)
+        {
+            if (base62 == null) base62 = Base62.CreateInstance();
+            return Encoding.UTF8.GetString(base62.Encode(toByteArray(hexString), length));
+        }
+
+        public static int GetHexVal(char hex) {
+            int val = (int)hex;
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
 
         public static O Optional<O>(O value, O defaultIfNull)

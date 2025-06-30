@@ -211,7 +211,6 @@
       <Content Include="proto\spotify\login5\v3\user_info.proto" />
       <Content Include="proto\storage-resolve.proto" />
       <Content Include="proto\transfer_state.proto" />
-      <Content Include="Todo.txt" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\decoder-api\decoder-api.csproj">

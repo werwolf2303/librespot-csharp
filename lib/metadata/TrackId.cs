@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using lib.common;
 
@@ -12,7 +14,7 @@ namespace lib.metadata
         private TrackId(String hex)
         {
             _playableId = this;
-            _hexId = hex;
+            _hexId = hex.ToLower();
         }
 
         public static TrackId FromBase62(String base62)
@@ -32,7 +34,7 @@ namespace lib.metadata
 
         public string ToSpotifyUri()
         {
-            return "spotify:track:" + Utils.Base62ToHex(_hexId, 22, _base62); 
+            return "spotify:track:" + Utils.HexToBase62(_hexId, 22, _base62); 
         }
 
         public string HexId()

@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using lib.common;
 
 namespace lib.metadata
 {
@@ -13,7 +14,7 @@ namespace lib.metadata
     public class SpotifyId : ISpotifyId
     {
         internal static ISpotifyId _spotifyId;
-        internal static common.Base62 _base62 = common.Base62.createInstanceWithInvertedCharacterSet();
+        internal static common.Base62 _base62 = common.Base62.CreateInstanceWithInvertedCharacterSet();
 
         public static ISpotifyId FromUri(String uri)
         {
@@ -37,7 +38,7 @@ namespace lib.metadata
         
         public string ToSpotifyUri()
         {
-            return "spotify:" + PlayableIds.ToString(_spotifyId.GetId()).ToLower() + ":" + Encoding.UTF8.GetString(_base62.encode(Encoding.UTF8.GetBytes(_spotifyId.HexId())));
+            return "spotify:" + PlayableIds.ToString(_spotifyId.GetId()).ToLower() + ":" + Utils.HexToBase62(_spotifyId.HexId(), 16, _base62);
         }
 
         public int GetId()

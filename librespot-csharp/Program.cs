@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Connectstate;
 using EasyHttp.Http;
 using lib.audio.decoders;
@@ -48,9 +49,11 @@ namespace librespot {
             
             builder.oauth();
             builder.create();*/
+
             
-            
-            Console.WriteLine(SpotifyId.FromUri("spotify:album:3hhCBdiplySJTJfyV6Beyh").ToSpotifyUri());
+
+            Console.WriteLine(TrackId.FromUri("spotify:track:73gwUCEJBgLhLzM1WTMBv0").ToSpotifyUri());
         }
     }
+    
 }

@@ -1,2 +1,0 @@
-- Fix Base62 class returning invalid stuff when decoding (Should probably check the entire class)
-

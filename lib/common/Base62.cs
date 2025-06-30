@@ -1,146 +1,187 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using Org.BouncyCastle.Utilities;
 
 namespace lib.common
 {
     /**
      * A Base62 encoder/decoder.
      *
+     * This is a C# port of the original Java implementation by Sebastian Ruhleder.
      * @author Sebastian Ruhleder, sebastian@seruco.io
      */
     public class Base62
     {
-        private static int STANDARD_BASE = 256;
-        private static int TARGET_BASE = 62;
-        private byte[] alphabet;
-        private byte[] lookup;
+        private const int STANDARD_BASE = 256;
+        private const int TARGET_BASE = 62;
+        private readonly byte[] _alphabet;
+        private readonly byte[] _lookup;
 
         private Base62(byte[] alphabet)
         {
-            this.alphabet = alphabet;
-            createLookupTable();
+            _alphabet = alphabet;
+            _lookup = CreateLookupTable(alphabet);
         }
-
-        public static Base62 createInstance()
+        
+        /// <summary>
+        /// Creates a Base62 instance. Defaults to the GMP-style character set.
+        /// </summary>
+        /// <returns>A Base62 instance.</returns>
+        public static Base62 CreateInstance()
         {
-            return createInstanceWithGmpCharacterSet();
+            return CreateInstanceWithGmpCharacterSet();
         }
 
-        public static Base62 createInstanceWithGmpCharacterSet()
+        /// <summary>
+        /// Creates a Base62 instance using the GMP-style character set.
+        /// </summary>
+        /// <returns>A Base62 instance.</returns>
+        public static Base62 CreateInstanceWithGmpCharacterSet()
         {
-            return new Base62(CharacterSets.GMP);
+            return new Base62(CharacterSets.Gmp);
         }
 
-        public static Base62 createInstanceWithInvertedCharacterSet()
+        /// <summary>
+        /// Creates a Base62 instance using the inverted character set.
+        /// </summary>
+        /// <returns>A Base62 instance.</returns>
+        public static Base62 CreateInstanceWithInvertedCharacterSet()
         {
-            return new Base62(CharacterSets.INVERTED);
+            return new Base62(CharacterSets.Inverted);
         }
 
-        public byte[] encode(byte[] message, int length)
+        /// <summary>
+        /// Encodes a sequence of bytes in Base62 encoding and pads it accordingly.
+        /// </summary>
+        /// <param name="message">A byte sequence.</param>
+        /// <param name="length">The expected length of the output. If -1, length is estimated.</param>
+        /// <returns>A sequence of Base62-encoded bytes.</returns>
+        public byte[] Encode(byte[] message, int length)
         {
-            byte[] indices = convert(message, STANDARD_BASE, TARGET_BASE, length);
-            return translate(indices, alphabet);
+            byte[] indices = Convert(message, STANDARD_BASE, TARGET_BASE, length);
+            return Translate(indices, _alphabet);
         }
 
-        public byte[] encode(byte[] message)
+        /// <summary>
+        /// Encodes a sequence of bytes in Base62 encoding.
+        /// </summary>
+        /// <param name="message">A byte sequence.</param>
+        /// <returns>A sequence of Base62-encoded bytes.</returns>
+        public byte[] Encode(byte[] message)
         {
-            return encode(message, -1);
+            return Encode(message, -1);
         }
 
-        public byte[] decode(byte[] encoded, int length)
+        /// <summary>
+        /// Decodes a sequence of Base62-encoded bytes and pads it accordingly.
+        /// </summary>
+        /// <param name="encoded">A sequence of Base62-encoded bytes.</param>
+        /// <param name="length">The expected length of the output. If -1, length is estimated.</param>
+        /// <returns>A byte sequence.</returns>
+        public byte[] Decode(byte[] encoded, int length)
         {
-            byte[] prepared = translate(encoded, lookup);
-            return convert(prepared, TARGET_BASE, STANDARD_BASE, length);
+            byte[] prepared = Translate(encoded, _lookup);
+            return Convert(prepared, TARGET_BASE, STANDARD_BASE, length);
         }
 
-        public byte[] decode(byte[] encoded)
+        /// <summary>
+        /// Decodes a sequence of Base62-encoded bytes.
+        /// </summary>
+        /// <param name="encoded">A sequence of Base62-encoded bytes.</param>
+        /// <returns>A byte sequence.</returns>
+        public byte[] Decode(byte[] encoded)
         {
-            return decode(encoded, -1);
+            return Decode(encoded, -1);
         }
 
-        private byte[] translate(byte[] indices, byte[] dictionary)
+        /// <summary>
+        /// Uses the elements of a byte array as indices to a dictionary and returns the corresponding values
+        /// in form of a byte array.
+        /// </summary>
+        private byte[] Translate(byte[] indices, byte[] dictionary)
         {
             byte[] translation = new byte[indices.Length];
             for (int i = 0; i < indices.Length; i++)
+            {
                 translation[i] = dictionary[indices[i]];
-
+            }
             return translation;
         }
 
-        private byte[] convert(byte[] message, int sourceBase, int targetBase, int length)
+        /// <summary>
+        /// Converts a byte array from a source base to a target base.
+        /// </summary>
+        private byte[] Convert(byte[] message, int sourceBase, int targetBase, int length)
         {
-            int estimatedLength = length == -1 ? estimateOutputLength(message.Length, sourceBase, targetBase) : length;
+            int estimatedLength = length == -1 ? EstimateOutputLength(message.Length, sourceBase, targetBase) : length;
 
-            using (MemoryStream stream = new MemoryStream(estimatedLength))
-            using (BinaryWriter streamWriter = new BinaryWriter(stream))
+            var source = message.ToList();
+            var result = new List<byte>(estimatedLength);
+
+            while (source.Count > 0)
             {
-                byte[] source = message;
-                while (source.Length > 0)
+                var quotient = new List<byte>();
+                int remainder = 0;
+
+                foreach (byte b in source)
                 {
-                    using (MemoryStream quotient = new MemoryStream(source.Length))
-                    using (BinaryWriter quotientWriter = new BinaryWriter(quotient))
+                    int accumulator = b + remainder * sourceBase;
+                    
+                    int digit = accumulator / targetBase;
+                    remainder = accumulator % targetBase;
+
+                    if (quotient.Count > 0 || digit > 0)
                     {
-                        int remainder = 0;
-                        foreach (byte b in source)
-                        {
-                            int accumulator = b + remainder * sourceBase;
-                            int digit = (accumulator - (accumulator % targetBase)) / targetBase;
-                            remainder = accumulator % targetBase;
-
-                            if (quotient.Length > 0 || digit > 0)
-                                quotientWriter.Write((byte)digit);
-                        }
-
-                        streamWriter.Write((byte)remainder);
-                        source = quotient.ToArray();
+                        quotient.Add((byte)digit);
                     }
                 }
 
-                byte[] resultBytes;
-                if (stream.Length < estimatedLength)
-                {
-                    long currentSize = stream.Length;
-                    for (int i = 0; i < estimatedLength - currentSize; i++)
-                        streamWriter.Write((byte)0);
-                    resultBytes = stream.ToArray();
-                }
-                else if (stream.Length > estimatedLength)
-                {
-                    resultBytes = stream.ToArray().Take(estimatedLength).ToArray();
-                }
-                else
-                {
-                    resultBytes = stream.ToArray();
-                }
-
-                Array.Reverse(resultBytes);
-                return resultBytes;
+                result.Add((byte)remainder);
+                source = quotient;
             }
+            
+            int resultCount = result.Count;
+            if (estimatedLength > resultCount)
+            {
+                for (int i = 0; i < estimatedLength - resultCount; i++)
+                {
+                    result.Add(0);
+                }
+            }
+
+            if (estimatedLength < result.Count)
+            {
+                result = result.Take(estimatedLength).ToList();
+            }
+
+            result.Reverse();
+            return result.ToArray();
         }
 
-        private int estimateOutputLength(int inputLength, int sourceBase, int targetBase)
+        /// <summary>
+        /// Estimates the length of the output in bytes.
+        /// </summary>
+        private int EstimateOutputLength(int inputLength, int sourceBase, int targetBase)
         {
             return (int)Math.Ceiling(Math.Log(sourceBase) / Math.Log(targetBase) * inputLength);
         }
 
-        private byte[] reverse(byte[] arr)
+        /// <summary>
+        /// Creates the lookup table from character to index of character in character set.
+        /// </summary>
+        private byte[] CreateLookupTable(byte[] alphabet)
         {
-            Array.Reverse(arr);
-            return arr;
-        }
-
-        private void createLookupTable()
-        {
-            lookup = new byte[256];
+            var lookup = new byte[256];
             for (int i = 0; i < alphabet.Length; i++)
-                lookup[alphabet[i]] = (byte)i;
+            {
+                lookup[alphabet[i]] = (byte) i;
+            }
+            return lookup;
         }
 
         private static class CharacterSets
         {
-            public static byte[] GMP =
+            public static readonly byte[] Gmp =
             {
                 (byte)'0', (byte)'1', (byte)'2', (byte)'3', (byte)'4', (byte)'5', (byte)'6', (byte)'7',
                 (byte)'8', (byte)'9', (byte)'A', (byte)'B', (byte)'C', (byte)'D', (byte)'E', (byte)'F',
@@ -152,7 +193,7 @@ namespace lib.common
                 (byte)'u', (byte)'v', (byte)'w', (byte)'x', (byte)'y', (byte)'z'
             };
 
-            public static byte[] INVERTED =
+            public static readonly byte[] Inverted =
             {
                 (byte)'0', (byte)'1', (byte)'2', (byte)'3', (byte)'4', (byte)'5', (byte)'6', (byte)'7',
                 (byte)'8', (byte)'9', (byte)'a', (byte)'b', (byte)'c', (byte)'d', (byte)'e', (byte)'f',
