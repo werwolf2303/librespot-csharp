@@ -43,6 +43,9 @@
         <Reference Include="log4net">
           <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
         </Reference>
+        <Reference Include="NAudio">
+          <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+        </Reference>
         <Reference Include="Newtonsoft.Json">
           <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
         </Reference>
@@ -62,9 +65,21 @@
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\decoder-api\decoder-api.csproj">
+        <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
+        <Name>decoder-api</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\deps\deps.csproj">
+        <Project>{a961c373-4854-47f9-91df-1ab68479e0c3}</Project>
+        <Name>deps</Name>
+      </ProjectReference>
       <ProjectReference Include="..\lib\lib.csproj">
         <Project>{1de0fbc2-185c-499d-b691-1ff01fff28f2}</Project>
         <Name>lib</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\sink-api\sink-api.csproj">
+        <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>
+        <Name>sink-api</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>

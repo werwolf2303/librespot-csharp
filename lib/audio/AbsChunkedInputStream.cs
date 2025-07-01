@@ -4,7 +4,7 @@ using decoder_api;
 
 namespace lib.audio
 {
-    public abstract class AbsChunkedInputStream : SeekableInputStream, HaltListener
+    public abstract class AbsChunkedInputStream : Stream, HaltListener
     {
         private static int PRELOAD_AHEAD = 3;
         private static int PRELOAD_CHUNK_RETRIES = 2;
@@ -31,7 +31,7 @@ namespace lib.audio
         }
 
         protected abstract byte[][] buffer();
-        public override abstract int size();
+        public abstract int size();
 
         public override void Close()
         {

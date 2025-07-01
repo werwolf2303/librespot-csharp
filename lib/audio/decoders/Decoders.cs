@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using decoder_api;
 using lib.audio.format;
 using lib.common;
@@ -9,62 +10,30 @@ namespace lib.audio.decoders
 {
     public class Decoders
     {
-        private static Dictionary<SuperAudioFormat, List<Type>> decoders = new Dictionary<SuperAudioFormat, List<Type>>();
+        private static Dictionary<int, Type> decoders = new Dictionary<int, Type>();
         private static ILog LOGGER = LogManager.GetLogger(typeof(Decoders));
 
         static Decoders()
         {
-            //ToDo: Register decoders
-
+            decoders.Add(SuperAudioFormat.VORBIS.Id, typeof(VorbisDecoder));
+            decoders.Add(SuperAudioFormat.MP3.Id, typeof(Mp3Decoder));
         }
 
         private Decoders()
         {
         }
 
-        public static Iterator<Decoder> initDecoder(SuperAudioFormat format, SeekableInputStream audioIn,
-            float normalizationFactor, int duration)
+        public static Decoder initDecoder(SuperAudioFormat format, Stream audioIn,
+            float normalizationFactor)
         {
-            List<Type> list = decoders[format];
-            if (list == null) list = new List<Type>();
-
-            int seekZero = audioIn.position();
-            return new AudioIterator(seekZero, audioIn, normalizationFactor, duration, list);
+            audioIn.Seek((int)audioIn.Position, SeekOrigin.Begin);
+            Type decoder = decoders[format.Id];
+            if (decoder == null)
+            {
+                throw new DecoderException(String.Format("Unsupported audio format: {0}", format));
+            }
+            return decoder.GetConstructor(new []{ typeof(Stream), typeof(float)}).Invoke(new object[] { audioIn, normalizationFactor }) as Decoder;
         }
-
-        private class AudioIterator : Iterator<Decoder>
-        {
-            private int seekZero;
-            private SeekableInputStream audioIn;
-            private float normalizationFactor;
-            private int duration;
-            private List<Type> list;
-            private int currIterPosition = 0;
-            
-            public AudioIterator(int seekZero, SeekableInputStream audioIn, float normalizationFactor, int duration, List<Type> list)
-            {
-                this.seekZero = seekZero;
-                this.audioIn = audioIn;
-                this.normalizationFactor = normalizationFactor;
-                this.duration = duration;
-                this.list = list;
-            }
-            
-            public bool HasNext()
-            {
-                return currIterPosition < list.Count -1;
-            }
-
-            public Decoder Next()
-            {
-                
-                audioIn.seek(seekZero);
-
-                Type type = list[currIterPosition];
-             
-                currIterPosition++;
-                return Activator.CreateInstance(type, audioIn, normalizationFactor, duration) as Decoder;
-            }
-        }
+        
     }
 }

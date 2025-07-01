@@ -28,14 +28,14 @@ public class CacheManager : IDisposable
 
     public CacheManager(Session.Configuration conf)
     {
-        if (!conf.cacheEnabled)
+        if (!conf.CacheEnabled)
         {
             parent = null;
             journal = null;
             return;
         }
 
-        this.parent = conf.cacheDir;
+        this.parent = conf.CacheDir;
         if (!File.Exists(parent))
         {
             File.Create(parent).Close();
@@ -65,7 +65,7 @@ public class CacheManager : IDisposable
                     journal.remove(id);
                 }
 
-                if (conf.doCacheCleanUp)
+                if (conf.DoCacheCleanUp)
                 {
                     List<string> expiredEntries = new List<string>();
                     foreach (string id in entries)

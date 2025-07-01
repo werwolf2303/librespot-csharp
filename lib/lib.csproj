@@ -90,6 +90,9 @@
         <Compile Include="audio\format\SuperAudioFormat.cs" />
         <Compile Include="audio\GeneralWriteableStream.cs" />
         <Compile Include="audio\HaltListener.cs" />
+        <Compile Include="audio\playback\Alsa.cs" />
+        <Compile Include="audio\playback\BlockingStream.cs" />
+        <Compile Include="audio\playback\IPlayback.cs" />
         <Compile Include="audio\storage\AudioFile.cs" />
         <Compile Include="audio\storage\ChannelManager.cs" />
         <Compile Include="audio\StreamId.cs" />
@@ -216,6 +219,14 @@
       <ProjectReference Include="..\decoder-api\decoder-api.csproj">
         <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
         <Name>decoder-api</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\deps\deps.csproj">
+        <Project>{a961c373-4854-47f9-91df-1ab68479e0c3}</Project>
+        <Name>deps</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\sink-api\sink-api.csproj">
+        <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>
+        <Name>sink-api</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>

@@ -19,7 +19,7 @@ namespace lib.core
 
         public static void init(Session.Configuration conf)
         {
-            switch (_method = conf.timeSynchronizationMethod)
+            switch (_method = conf.TimeSynchronizationMethod)
             {
                 case Method.NTP:
                     try
@@ -34,7 +34,7 @@ namespace lib.core
                 case Method.MANUAL:
                     lock (_offsetLock)
                     {
-                        _offset = conf.timeManualCorrection;
+                        _offset = conf.TimeManualCorrection;
                     }
                     break; 
             }

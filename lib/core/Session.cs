@@ -35,7 +35,7 @@ namespace lib.core
     {
         private static ILog LOGGER = LogManager.GetLogger(typeof(Session));
 
-        private static byte[] serverKey =
+        private static byte[] _serverKey =
         {
             0xac, 0xe0, 0x46, 0x0b, 0xff, 0xc2, 0x30, 0xaf, 0xf4, 0x6b, 0xfe, 0xc3,
             0xbf, 0xbf, 0x86, 0x3d, 0xa1, 0x91, 0xc6, 0xcc, 0x33, 0x6c, 0x93, 0xa1,
@@ -61,50 +61,51 @@ namespace lib.core
             0x19, 0xe6, 0x55, 0xbd
         };
 
-        private ApResolver apResolver;
-        private DiffieHellman keys;
+        private ApResolver _apResolver;
+        private DiffieHellman _keys;
 
-        private Inner inner;
+        private Inner _inner;
 
-        private ScheduledExecutorService scheduler = new ScheduledExecutorService();
-        private Object authLock = new Object();
-        private bool authLockState = false;
-        private static HttpClient client;
-        private List<CloseListener> closeListeners = new List<CloseListener>();
-        private List<ReconnectionListener> reconnectionListeners = new List<ReconnectionListener>();
-        private Object reconnectionListenersLock = new Object();
-        private Dictionary<String, String> userAttributtes = new Dictionary<String, String>();
-        private static ConnectionHolder conn;
-        private static volatile CipherPair cipherPair;
-        private Receiver receiver;
-        private APWelcome apWelcome;
+        private ScheduledExecutorService _scheduler = new ScheduledExecutorService();
+        private Object _authLock = new Object();
+        private bool _authLockState = false;
+        private HttpClient _client;
+        private List<CloseListener> _closeListeners = new List<CloseListener>();
+        private List<ReconnectionListener> _reconnectionListeners = new List<ReconnectionListener>();
+        private Object _reconnectionListenersLock = new Object();
+        private Dictionary<String, String> _userAttributtes = new Dictionary<String, String>();
+        private ConnectionHolder _conn;
+        private volatile CipherPair _cipherPair;
+        private Receiver _receiver;
+        private APWelcome _apWelcome;
+        private MercuryClient _mercuryClient;
 
-        private String countryCode = null;
-        private volatile bool closed = false;
-        private volatile bool closing = false;
+        private String _countryCode = null;
+        private volatile bool _closed = false;
+        private volatile bool _closing = false;
         private volatile ScheduledExecutorService.ScheduledFuture<int> _scheduledReconnect;
 
         private Session(Inner inner)
         {
-            this.inner = inner;
-            keys = new DiffieHellman(inner.random);
-            client = createClient(inner.conf);
-            apResolver = new ApResolver(client);
-            String addr = apResolver.getRandomAccesspoint();
-            conn = ConnectionHolder.create(addr, inner.conf);
+            _inner = inner;
+            _keys = new DiffieHellman(inner.Random);
+            _client = CreateClient(inner.Conf);
+            _apResolver = new ApResolver(_client);
+            String addr = _apResolver.getRandomAccesspoint();
+            _conn = ConnectionHolder.Create(addr, inner.Conf);
 
             _scheduledReconnect = new ScheduledExecutorService.ScheduledFuture<int>(() =>
                 {
                     LOGGER.Warn("Socket timed out. Reconnecting...");
-                    reconnect();
+                    Reconnect();
                     return 0;
-                }, 2 * 60 + configuration().connectionTimeout);
+                }, 2 * 60 + GetConfiguration().ConnectionTimeout);
 
-            LOGGER.Info(String.Format("Created new session! (deviceId: {0}, ap: {1}, proxy: {2})", inner.deviceId, addr,
+            LOGGER.Info(String.Format("Created new session! (deviceId: {0}, ap: {1}, proxy: {2})", inner.DeviceId, addr,
                 false));
         }
 
-        private static HttpClient createClient(Configuration configuration)
+        private static HttpClient CreateClient(Configuration configuration)
         {
             HttpClient client = new HttpClient();
 
@@ -122,7 +123,7 @@ namespace lib.core
             return client;
         }
 
-        private static int readBlobInt(byte[] buffer)
+        private static int ReadBlobInt(byte[] buffer)
         {
             int pos = 0;
             int lo = buffer[pos];
@@ -132,13 +133,13 @@ namespace lib.core
             return lo & 0x7f | hi << 7;
         }
 
-        private void connect()
+        private void Connect()
         {
             MemoryStream accStream = new MemoryStream();
             BinaryWriter acc = new BinaryWriter(accStream);
 
             byte[] nonce = new byte[0x10];
-            inner.random.GetBytes(nonce);
+            _inner.Random.GetBytes(nonce);
 
             ClientHello clientHello = new ClientHello
             {
@@ -148,7 +149,7 @@ namespace lib.core
                 {
                     DiffieHellman = new LoginCryptoDiffieHellmanHello
                     {
-                        Gc = keys.PublicKeyArray(),
+                        Gc = _keys.PublicKeyArray(),
                         ServerKeysKnown = 1
                     }
                 },
@@ -163,35 +164,35 @@ namespace lib.core
             clientHelloBytes = memStream.ToArray();
             
             int length = 2 + 4 + clientHelloBytes.Length;
-            conn._out.Write((byte)0);
-            conn._out.Write((byte)4);
-            conn._out.WriteBigEndian(length); 
-            conn._out.Write(clientHelloBytes);
-            conn._out.Flush();
+            _conn.Out.Write((byte)0);
+            _conn.Out.Write((byte)4);
+            _conn.Out.WriteBigEndian(length); 
+            _conn.Out.Write(clientHelloBytes);
+            _conn.Out.Flush();
             
             acc.Write((byte)0);
             acc.Write((byte)4);
             acc.WriteBigEndian(length);
             acc.Write(clientHelloBytes);
             
-            byte[] apResponseLengthBytes = conn._in.ReadBytes(4);
+            byte[] apResponseLengthBytes = _conn.In.ReadBytes(4);
             if (BitConverter.IsLittleEndian) Array.Reverse(apResponseLengthBytes);
             int apResponseLength = BitConverter.ToInt32(apResponseLengthBytes, 0);
             acc.WriteBigEndian(apResponseLength);
 
             byte[] apResponseMessageBytes = new byte[apResponseLength - 4];
-            conn._in.ReadFully(apResponseMessageBytes);
+            _conn.In.ReadFully(apResponseMessageBytes);
             acc.Write(apResponseMessageBytes);
             
             MemoryStream apResponseStream = new MemoryStream();
             apResponseStream.Write(apResponseMessageBytes, 0, apResponseMessageBytes.Length);
             apResponseStream.Position = 0;
             APResponseMessage apResponseMessage = Serializer.Deserialize<APResponseMessage>(apResponseStream);
-            byte[] sharedKey = Utils.toByteArray(keys.ComputeSharedKey(apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.Gs));
+            byte[] sharedKey = Utils.toByteArray(_keys.ComputeSharedKey(apResponseMessage.Challenge.LoginCryptoChallenge.DiffieHellman.Gs));
 
             RsaKeyParameters publicKey = new RsaKeyParameters(
                 false,
-                new BigInteger(1, serverKey),
+                new BigInteger(1, _serverKey),
                 BigInteger.ValueOf(65537));
 
             ISigner signer = new RsaDigestSigner(new Sha1Digest());
@@ -251,20 +252,20 @@ namespace lib.core
             
             byte[] clientResponsePlaintextBytes = clientResponsePlaintextStream.ToArray();
             length = 4 + clientResponsePlaintextBytes.Length;
-            conn._out.WriteBigEndian(length);
-            conn._out.Write(clientResponsePlaintextBytes);
-            conn._out.Flush();
+            _conn.Out.WriteBigEndian(length);
+            _conn.Out.Write(clientResponsePlaintextBytes);
+            _conn.Out.Flush();
             
             try
             {
                 byte[] scrap = new byte[4];
-                conn.stream.ReadTimeout = 300;
-                int read = conn._in.Read(scrap, 0, scrap.Length); 
+                _conn.Stream.ReadTimeout = 300;
+                int read = _conn.In.Read(scrap, 0, scrap.Length); 
                 if (read == scrap.Length)
                 {
                     length = (scrap[0] << 24) | (scrap[1] << 16) | (scrap[2] << 8) | (scrap[3] & 0xFF);
                     byte[] payload = new byte[length - 4];
-                    conn._in.ReadFully(payload);
+                    _conn.In.ReadFully(payload);
                     MemoryStream payloadStream = new MemoryStream();
                     payloadStream.Write(payload, 0, payload.Length);
                     payloadStream.Position = 0;
@@ -286,33 +287,38 @@ namespace lib.core
             }
             finally
             {
-                conn.stream.ReadTimeout = -1;
+                _conn.Stream.ReadTimeout = -1;
             }
-            lock (authLock)
+            lock (_authLock)
             {
-                cipherPair = new CipherPair(
+                _cipherPair = new CipherPair(
                     Arrays.CopyOfRange(dataArray, 20, 52), 
                     Arrays.CopyOfRange(dataArray, 52, 84)
                 );
-                authLockState = true;
+                _authLockState = true;
             }
             
             LOGGER.Info("Connected successfully!");
         }
         
-        private void authenticate(LoginCredentials credentials)
+        private void Authenticate(LoginCredentials credentials)
         {
-            authenticatePartial(credentials, false);
+            AuthenticatePartial(credentials, false);
 
             if (credentials.GetType() == AuthenticationType.AuthenticationSpotifyToken.GetType())
             {
-                reconnect();
+                Reconnect();
+            }
+
+            lock (_authLock)
+            {
+                _mercuryClient = new MercuryClient(this);
             }
         }
 
-        private void authenticatePartial(LoginCredentials credentials, bool removeLock)
+        private void AuthenticatePartial(LoginCredentials credentials, bool removeLock)
         { 
-            if (conn == null || cipherPair == null) throw new Exception("Illegal state! Connection not established!");
+            if (_conn == null || _cipherPair == null) throw new Exception("Illegal state! Connection not established!");
             
             ClientResponseEncrypted clientResponseEncrypted = new ClientResponseEncrypted
             {
@@ -322,7 +328,7 @@ namespace lib.core
                     Os = Os.OsUnknown,
                     CpuFamily = CpuFamily.CpuUnknown,
                     SystemInformationString = Version.systemInfoString(),
-                    DeviceId = inner.deviceId
+                    DeviceId = _inner.DeviceId
                 },
                 VersionString = Version.versionString()
             };
@@ -330,20 +336,20 @@ namespace lib.core
             MemoryStream clientResponseEncryptedStream = new MemoryStream();
             Serializer.Serialize(clientResponseEncryptedStream, clientResponseEncrypted);
             
-            sendUnchecked(Packet.Type.Login, clientResponseEncryptedStream.ToArray());
+            SendUnchecked(Packet.Type.Login, clientResponseEncryptedStream.ToArray());
             
-            Packet packet = cipherPair.ReceiveEncoded(conn._in);
+            Packet packet = _cipherPair.ReceiveEncoded(_conn.In);
             if (packet.Is(Packet.Type.APWelcome))
             {
-                apWelcome = Serializer.Deserialize<APWelcome>(new MemoryStream(packet._payload));
+                _apWelcome = Serializer.Deserialize<APWelcome>(new MemoryStream(packet._payload));
 
-                receiver = new Receiver(this);
+                _receiver = new Receiver(this);
 
                 byte[] bytes0x0f = new byte[20];
-                random().GetBytes(bytes0x0f);
-                sendUnchecked(Packet.Type.Unknown_0x0f, bytes0x0f);
+                GetRandom().GetBytes(bytes0x0f);
+                SendUnchecked(Packet.Type.Unknown_0x0f, bytes0x0f);
 
-                byte[] preferredLocaleBytes = Encoding.UTF8.GetBytes(inner.preferredLocale);
+                byte[] preferredLocaleBytes = Encoding.UTF8.GetBytes(_inner.PreferredLocale);
                 MemoryStream preferredLocale = new MemoryStream();
                 preferredLocale.WriteByte(0x0);
                 preferredLocale.WriteByte(0x0);
@@ -351,29 +357,29 @@ namespace lib.core
                 preferredLocale.WriteByte(0x0);
                 preferredLocale.WriteByte(0x02);
                 preferredLocale.Write(preferredLocaleBytes, 0, preferredLocaleBytes.Length);
-                sendUnchecked(Packet.Type.PreferredLocale, preferredLocale.ToArray());
+                SendUnchecked(Packet.Type.PreferredLocale, preferredLocale.ToArray());
 
                 if (removeLock)
                 {
-                    lock (authLock)
+                    lock (_authLock)
                     {
-                        authLockState = false;
-                        Monitor.PulseAll(authLock);
+                        _authLockState = false;
+                        Monitor.PulseAll(_authLock);
                     }
                 }
 
-                if (inner.conf.storeCredentials)
+                if (_inner.Conf.StoreCredentials)
                 {
-                    byte[] reusable = apWelcome.ReusableAuthCredentials;
-                    AuthenticationType reusableType = apWelcome.ReusableAuthCredentialsType;
+                    byte[] reusable = _apWelcome.ReusableAuthCredentials;
+                    AuthenticationType reusableType = _apWelcome.ReusableAuthCredentialsType;
                     
                     JObject obj = new JObject();
-                    obj["username"] = apWelcome.CanonicalUsername;
+                    obj["username"] = _apWelcome.CanonicalUsername;
                     obj["credentials"] = Base64.ToBase64String(reusable);
                     obj["type"] = reusableType.ToString();
 
-                    if (inner.conf.storedCredentialsFile == null) throw new Exception("Illegal argument");
-                    FileStream credentialsFileStream = File.OpenWrite(inner.conf.storedCredentialsFile);
+                    if (_inner.Conf.StoredCredentialsFile == null) throw new Exception("Illegal argument");
+                    FileStream credentialsFileStream = File.OpenWrite(_inner.Conf.StoredCredentialsFile);
                     byte[] credentialsBytes = Encoding.UTF8.GetBytes(obj.ToString());
                     credentialsFileStream.Write(credentialsBytes, 0, credentialsBytes.Length);
                 }
@@ -389,133 +395,138 @@ namespace lib.core
         
         public void Dispose()
         {
-            LOGGER.Info("Closing session. (deviceId: " + inner.deviceId + ")");
+            LOGGER.Info("Closing session. (deviceId: " + _inner.DeviceId + ")");
 
-            // if (scheduledReconnect != null) scheduledReconnect.cancel(true);
+            if (_scheduledReconnect != null) _scheduledReconnect.Cancel(true);
+
             
-            closing = true;
-            
-            // scheduler.shutdownNow
+            //ToDo: Implement this fully
             
             
         }
 
-        private void sendUnchecked(Packet.Type cmd, byte[] payload)
+        private void SendUnchecked(Packet.Type cmd, byte[] payload)
         {
-            if (conn == null) throw new Exception("Illegal state! Cannot write to missing connection.");
+            if (_conn == null) throw new Exception("Illegal state! Cannot write to missing connection.");
 
-            cipherPair.SendEncoded(conn._out, (byte)cmd, payload);
+            _cipherPair.SendEncoded(_conn.Out, (byte)cmd, payload);
         }
 
-        private void waitAuthLock()
+        private void WaitAuthLock()
         {
-            if (closing && conn == null)
+            if (_closing && _conn == null)
             {
                 LOGGER.Debug("Connection was broken while closing.");
                 return;
             }
 
-            if (closed) throw new Exception("Illegal state! Session is closed!");
+            if (_closed) throw new Exception("Illegal state! Session is closed!");
 
-            lock (authLock)
+            lock (_authLock)
             {
-                if (cipherPair == null)
+                if (_cipherPair == null)
                 {
-                    Monitor.Wait(authLock);
+                    Monitor.Wait(_authLock);
                 }
             }
         }
 
         public void Send(Packet.Type cmd, byte[] payload)
         {
-            if (closing && conn == null)
+            if (_closing && _conn == null)
             {
                 LOGGER.Debug("Connection was broken while closing.");
                 return;
             }
             
-            if (closed) throw new Exception("Illegal state! Session is closed!");
+            if (_closed) throw new Exception("Illegal state! Session is closed!");
 
-            lock (authLock)
+            lock (_authLock)
             {
-                if (cipherPair == null)
+                if (_cipherPair == null)
                 {
-                    Monitor.Wait(authLock);
+                    Monitor.Wait(_authLock);
                 }
                 
-                sendUnchecked(cmd, payload);
+                SendUnchecked(cmd, payload);
             }
         }
 
-        public ApResolver APResolver()
+        public ApResolver GetAPResolver()
         {
-            return apResolver;
+            return _apResolver;
         }
 
-        public HttpClient Client()
+        public MercuryClient GetMercury()
         {
-            return client;
+            WaitAuthLock();
+            return _mercuryClient;
         }
 
-        public RandomNumberGenerator random()
+        public HttpClient GetClient()
         {
-            return inner.random;
+            return _client;
         }
 
-        public Configuration configuration()
+        public RandomNumberGenerator GetRandom()
         {
-            return inner.conf;
+            return _inner.Random;
         }
 
-        private void reconnect()
+        public Configuration GetConfiguration()
         {
-            if (closing) return;
+            return _inner.Conf;
+        }
 
-            lock (reconnectionListenersLock)
+        private void Reconnect()
+        {
+            if (_closing) return;
+
+            lock (_reconnectionListenersLock)
             {
-                reconnectionListeners.ForEach(l => l.onConnectionDropped());
+                _reconnectionListeners.ForEach(l => l.OnConnectionDropped());
             }
 
             try
             {
-                if (conn != null)
+                if (_conn != null)
                 {
-                    receiver.stop();
-                    conn.socket.Close();
+                    _receiver.Stop();
+                    _conn.Socket.Close();
                 }
 
-                apResolver.refreshPool();
+                _apResolver.refreshPool();
 
-                conn = ConnectionHolder.create(apResolver.getRandomAccesspoint(), inner.conf);
-                connect();
-                authenticatePartial(
+                _conn = ConnectionHolder.Create(_apResolver.getRandomAccesspoint(), _inner.Conf);
+                Connect();
+                AuthenticatePartial(
                     new LoginCredentials
                     {
-                        Username = apWelcome.CanonicalUsername,
-                        Typ = apWelcome.ReusableAuthCredentialsType,
-                        AuthData = apWelcome.ReusableAuthCredentials
+                        Username = _apWelcome.CanonicalUsername,
+                        Typ = _apWelcome.ReusableAuthCredentialsType,
+                        AuthData = _apWelcome.ReusableAuthCredentials
                     }, true
                 );
                 
-                LOGGER.Info("Re-authenticated as " + apWelcome.CanonicalUsername + "!");
+                LOGGER.Info("Re-authenticated as " + _apWelcome.CanonicalUsername + "!");
 
-                lock (reconnectionListenersLock)
+                lock (_reconnectionListenersLock)
                 {
-                    reconnectionListeners.ForEach(l => l.onConnectionEstablished());
+                    _reconnectionListeners.ForEach(l => l.OnConnectionEstablished());
                 }
             }
             catch (Exception ex)
             {
                 if (ex is IOException || ex is SpotifyAuthenticationException)
                 {
-                    conn = null;
+                    _conn = null;
                     LOGGER.Error("Failed reconnecting, retrying in 10 seconds...", ex);
 
-                    scheduler.schedule(
+                    _scheduler.schedule(
                         new ScheduledExecutorService.ScheduledFuture<int>(
                             () =>
                             {
-                                reconnect();
+                                Reconnect();
                                 return 0;
                             }, 10
                         )
@@ -525,7 +536,7 @@ namespace lib.core
             }
         }
 
-        private void parseProductInfo(byte[] payload)
+        private void ParseProductInfo(byte[] payload)
         {
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(Encoding.UTF8.GetString(payload));
@@ -540,60 +551,60 @@ namespace lib.core
             for (int i = 0; i < products.ChildNodes.Count; i++)
             {
                 XmlNode node = properties[i];
-                userAttributtes.Add(node.Name, node.InnerText);
+                _userAttributtes.Add(node.Name, node.InnerText);
             }
             
-            String userAttributesDebugString = "{" + string.Join(",", userAttributtes.Select(kv => kv.Key + "=" + kv.Value).ToArray()) + "}";
+            String userAttributesDebugString = "{" + string.Join(",", _userAttributtes.Select(kv => kv.Key + "=" + kv.Value).ToArray()) + "}";
             LOGGER.Debug("Parsed product info: " + userAttributesDebugString);
         }
 
         public interface ReconnectionListener
         {
-            void onConnectionDropped();
+            void OnConnectionDropped();
 
-            void onConnectionEstablished();
+            void OnConnectionEstablished();
         }
 
         public interface CloseListener
         {
-            void onClose();
+            void OnClose();
         }
 
         private class Inner
         {
-            public DeviceType deviceType;
-            public String deviceName;
-            public RandomNumberGenerator random;
-            public String deviceId;
-            public Session.Configuration conf;
-            public String preferredLocale;
+            public DeviceType DeviceType;
+            public String DeviceName;
+            public RandomNumberGenerator Random;
+            public String DeviceId;
+            public Session.Configuration Conf;
+            public String PreferredLocale;
 
             public Inner(DeviceType deviceType, String deviceName, String deviceId, String preferredLocale, Configuration conf)
             {
-                random = RandomNumberGenerator.Create();
-                this.preferredLocale = preferredLocale;
-                this.conf = conf;
-                this.deviceType = deviceType;
-                this.deviceName = deviceName; 
-                this.deviceId = String.IsNullOrEmpty(deviceId) ? Utils.randomHexString(random, 40).ToLower() : deviceId;
+                Random = RandomNumberGenerator.Create();
+                preferredLocale = preferredLocale;
+                Conf = conf;
+                DeviceType = deviceType;
+                DeviceName = deviceName; 
+                DeviceId = String.IsNullOrEmpty(deviceId) ? Utils.randomHexString(Random, 40).ToLower() : deviceId;
             }
         }
 
         public abstract class AbsBuilder<T>
         {
-            protected Configuration conf;
-            protected String deviceId = null;
-            protected String clientToken = null;
-            protected String deviceName = "librespot-java";
-            protected DeviceType deviceType = DeviceType.Computer;
-            protected String preferredLocale = "en";
+            protected Configuration Conf;
+            protected String DeviceId = null;
+            protected String ClientToken = null;
+            protected String DeviceName = "librespot-java";
+            protected DeviceType DeviceType = DeviceType.Computer;
+            protected String PreferredLocale = "en";
 
             public AbsBuilder(Configuration conf)
             {
-                this.conf = conf;
+                Conf = conf;
             }
 
-            protected AbsBuilder() : this(new Configuration.Builder().build())
+            protected AbsBuilder() : this(new Configuration.Builder().Build())
             {
             }
 
@@ -602,12 +613,12 @@ namespace lib.core
              *
              * @param locale A 2 chars locale code
              */
-            public AbsBuilder<T> setPreferredLocale(String locale)
+            public AbsBuilder<T> SetPreferredLocale(String locale)
             {
                 if (locale.Length != 2)
                     throw new Exception("Invalid locale: " + locale);
 
-                preferredLocale = locale;
+                PreferredLocale = locale;
                 return this;
             }
 
@@ -616,9 +627,9 @@ namespace lib.core
              *
              * @param deviceName The device name
              */
-            public AbsBuilder<T> setDeviceName(String deviceName)
+            public AbsBuilder<T> SetDeviceName(String deviceName)
             {
-                this.deviceName = deviceName;
+                DeviceName = deviceName;
                 return this;
             }
 
@@ -627,12 +638,12 @@ namespace lib.core
              *
              * @param deviceId A 40 chars string
              */
-            public AbsBuilder<T> setDeviceId(String deviceId)
+            public AbsBuilder<T> SetDeviceId(String deviceId)
             {
                 if (deviceId != null && deviceId.Length != 40)
                     throw new Exception("Device ID must be 40 chars long.");
 
-                this.deviceId = deviceId;
+                DeviceId = deviceId;
                 return this;
             }
 
@@ -641,9 +652,9 @@ namespace lib.core
              *
              * @param token A 168 bytes Base64 encoded string
              */
-            public AbsBuilder<T> setClientToken(String token)
+            public AbsBuilder<T> SetClientToken(String token)
             {
-                clientToken = token;
+                ClientToken = token;
                 return this;
             }
 
@@ -652,16 +663,16 @@ namespace lib.core
              *
              * @param deviceType The {@link com.spotify.connectstate.Connect.DeviceType}
              */
-            public AbsBuilder<T> setDeviceType(DeviceType deviceType)
+            public AbsBuilder<T> SetDeviceType(DeviceType deviceType)
             {
-                this.deviceType = deviceType;
+                DeviceType = deviceType;
                 return this;
             }
         }
 
         public class Builder : AbsBuilder<Builder>
         {
-            private LoginCredentials loginCredentials = null;
+            private LoginCredentials _loginCredentials = null;
 
             public Builder(Configuration conf) : base(conf)
             {
@@ -671,19 +682,19 @@ namespace lib.core
             {
             }
 
-            public Builder stored()
+            public Builder Stored()
             {
-                if (!conf.storeCredentials) throw new Exception("Illegal state! Credentials storing not enabled!");
-                return stored(conf.storedCredentialsFile);
+                if (!Conf.StoreCredentials) throw new Exception("Illegal state! Credentials storing not enabled!");
+                return Stored(Conf.StoredCredentialsFile);
             }
 
-            public Builder stored(String storedCredentials)
+            public Builder Stored(String storedCredentials)
             {
                 FileStream fileStream = File.OpenRead(storedCredentials);
                 StreamReader reader = new StreamReader(fileStream);
                 JObject obj = JObject.Parse(reader.ReadToEnd());
                 
-                loginCredentials = new LoginCredentials
+                _loginCredentials = new LoginCredentials
                 {
                     Typ = (AuthenticationType)Enum.Parse(typeof(AuthenticationType), obj["type"].ToString()),
                     Username = obj["username"].ToString(),
@@ -695,28 +706,28 @@ namespace lib.core
                 return this;
             }
 
-            public Builder oauth()
+            public Builder OAuth()
             {
-                if (conf.storeCredentials && File.Exists(conf.storedCredentialsFile))
-                    return stored();
+                if (Conf.StoreCredentials && File.Exists(Conf.StoredCredentialsFile))
+                    return Stored();
 
                 OAuth oauth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"));
-                loginCredentials = oauth.flow();
+                _loginCredentials = oauth.flow();
                 
                 return this;
             }
 
-            public Session create()
+            public Session Create()
             {
-                if (loginCredentials == null)
+                if (_loginCredentials == null)
                     throw new Exception("You must select an authentication method.");
                 
-                TimeProvider.init(conf);
+                TimeProvider.init(Conf);
 
-                Session session = new Session(new Inner(deviceType, deviceName, deviceId, preferredLocale, conf));
-                session.connect();
-                session.authenticate(loginCredentials);
-                //session.api().setClientToken(clientToken);
+                Session session = new Session(new Inner(DeviceType, DeviceName, DeviceId, PreferredLocale, Conf));
+                session.Connect();
+                session.Authenticate(_loginCredentials);
+                //ToDo: session.api().setClientToken(clientToken);
                 return session;
             }
         }
@@ -724,125 +735,125 @@ namespace lib.core
         public class Configuration
         {
             // Time sync
-            public TimeProvider.Method timeSynchronizationMethod;
-            public int timeManualCorrection;
+            public TimeProvider.Method TimeSynchronizationMethod;
+            public int TimeManualCorrection;
 
             // Cache
-            public bool cacheEnabled;
-            public String cacheDir;
-            public bool doCacheCleanUp;
+            public bool CacheEnabled;
+            public String CacheDir;
+            public bool DoCacheCleanUp;
 
             // Stored credentials
-            public bool storeCredentials;
-            public String storedCredentialsFile;
+            public bool StoreCredentials;
+            public String StoredCredentialsFile;
 
             // Fetching
-            public bool retryOnChunkError;
+            public bool RetryOnChunkError;
 
             // Network
-            public int connectionTimeout;
+            public int ConnectionTimeout;
 
             private Configuration(TimeProvider.Method timeSynchronizationMethod, int timeManualCorrection,
                 bool cacheEnabled, String cacheDir, bool doCacheCleanUp,
                 bool storeCredentials, String storedCredentialsFile,
                 bool retryOnChunkError, int connectionTimeout)
             {
-                this.timeSynchronizationMethod = timeSynchronizationMethod;
-                this.timeManualCorrection = timeManualCorrection;
-                this.cacheEnabled = cacheEnabled;
-                this.cacheDir = cacheDir;
-                this.doCacheCleanUp = doCacheCleanUp;
-                this.storeCredentials = storeCredentials;
-                this.storedCredentialsFile = storedCredentialsFile;
-                this.retryOnChunkError = retryOnChunkError;
-                this.connectionTimeout = connectionTimeout;
+                TimeSynchronizationMethod = timeSynchronizationMethod;
+                TimeManualCorrection = timeManualCorrection;
+                CacheEnabled = cacheEnabled;
+                CacheDir = cacheDir;
+                DoCacheCleanUp = doCacheCleanUp;
+                StoreCredentials = storeCredentials;
+                StoredCredentialsFile = storedCredentialsFile;
+                RetryOnChunkError = retryOnChunkError;
+                ConnectionTimeout = connectionTimeout;
             }
 
             public class Builder
             {
                 // Time sync
-                private TimeProvider.Method timeSynchronizationMethod = TimeProvider.Method.NTP;
-                private int timeManualCorrection;
+                private TimeProvider.Method _timeSynchronizationMethod = TimeProvider.Method.NTP;
+                private int _timeManualCorrection;
 
                 // Cache
-                private bool cacheEnabled = true;
-                private String cacheDir = "cache";
-                private bool doCacheCleanUp;
+                private bool _cacheEnabled = true;
+                private String _cacheDir = "cache";
+                private bool _doCacheCleanUp;
 
                 // Stored credentials
-                private bool storeCredentials = true;
-                private String storedCredentialsFile = "credentials.json";
+                private bool _storeCredentials = true;
+                private String _storedCredentialsFile = "credentials.json";
 
                 // Fetching
-                private bool retryOnChunkError;
+                private bool _retryOnChunkError;
 
                 // Network
-                private int connectionTimeout;
+                private int _connectionTimeout;
 
                 public Builder()
                 {
                 }
                 
-                public Builder setTimeSynchronizationMethod(TimeProvider.Method timeSynchronizationMethod)
+                public Builder SetTimeSynchronizationMethod(TimeProvider.Method timeSynchronizationMethod)
                 {
-                    this.timeSynchronizationMethod = timeSynchronizationMethod;
+                    _timeSynchronizationMethod = timeSynchronizationMethod;
                     return this;
                 }
 
-                public Builder setTimeManualCorrection(int timeManualCorrection)
+                public Builder SetTimeManualCorrection(int timeManualCorrection)
                 {
-                    this.timeManualCorrection = timeManualCorrection;
+                    _timeManualCorrection = timeManualCorrection;
                     return this;
                 }
 
-                public Builder setCacheEnabled(bool cacheEnabled)
+                public Builder SetCacheEnabled(bool cacheEnabled)
                 {
-                    this.cacheEnabled = cacheEnabled;
+                    _cacheEnabled = cacheEnabled;
                     return this;
                 }
 
-                public Builder setCacheDir(String cacheDir)
+                public Builder SetCacheDir(String cacheDir)
                 {
-                    this.cacheDir = cacheDir;
+                    _cacheDir = cacheDir;
                     return this;
                 }
 
-                public Builder setDoCacheCleanUp(bool doCacheCleanUp)
+                public Builder SetDoCacheCleanUp(bool doCacheCleanUp)
                 {
-                    this.doCacheCleanUp = doCacheCleanUp;
+                    _doCacheCleanUp = doCacheCleanUp;
                     return this;
                 }
 
-                public Builder setStoreCredentials(bool storeCredentials)
+                public Builder SetStoreCredentials(bool storeCredentials)
                 {
-                    this.storeCredentials = storeCredentials;
+                    _storeCredentials = storeCredentials;
                     return this;
                 }
 
-                public Builder setStoredCredentialsFile(String storedCredentialsFile)
+                public Builder SetStoredCredentialsFile(String storedCredentialsFile)
                 {
-                    this.storedCredentialsFile = storedCredentialsFile;
+                    _storedCredentialsFile = storedCredentialsFile;
                     return this;
                 }
 
-                public Builder setRetryOnChunkError(bool retryOnChunkError)
+                public Builder SetRetryOnChunkError(bool retryOnChunkError)
                 {
-                    this.retryOnChunkError = retryOnChunkError;
+                    _retryOnChunkError = retryOnChunkError;
                     return this;
                 }
 
-                public Builder setConnectionTimeout(int connectionTimeout)
+                public Builder SetConnectionTimeout(int connectionTimeout)
                 {
-                    this.connectionTimeout = connectionTimeout;
+                    _connectionTimeout = connectionTimeout;
                     return this;
                 }
 
-                public Configuration build()
+                public Configuration Build()
                 {
-                    return new Configuration(timeSynchronizationMethod, timeManualCorrection,
-                        cacheEnabled, cacheDir, doCacheCleanUp,
-                        storeCredentials, storedCredentialsFile,
-                        retryOnChunkError, connectionTimeout);
+                    return new Configuration(_timeSynchronizationMethod, _timeManualCorrection,
+                        _cacheEnabled, _cacheDir, _doCacheCleanUp,
+                        _storeCredentials, _storedCredentialsFile,
+                        _retryOnChunkError, _connectionTimeout);
                 }
             }
         }
@@ -856,22 +867,22 @@ namespace lib.core
         
         private class ConnectionHolder
         {
-            public Socket socket;
-            public NetworkStream stream;
-            public BinaryReader _in;
-            public BinaryWriter _out;
+            public Socket Socket;
+            public NetworkStream Stream;
+            public BinaryReader In;
+            public BinaryWriter Out;
 
             /// <exception cref="IOException"></exception>
             private ConnectionHolder(Socket socket)
             {
-                this.socket = socket;
-                stream = new NetworkStream(this.socket);
-                _in = new BinaryReader(stream);
-                _out = new BinaryWriter(stream);
+                Socket = socket;
+                Stream = new NetworkStream(Socket);
+                In = new BinaryReader(Stream);
+                Out = new BinaryWriter(Stream);
             }
 
             /// <exception cref="IOException"></exception>
-            public static ConnectionHolder create(String addr, Configuration conf)
+            public static ConnectionHolder Create(String addr, Configuration conf)
             {
                 String[] split = addr.Split(':');
                 String apAddr = split[0];
@@ -891,18 +902,18 @@ namespace lib.core
             internal Receiver(Session sessionParent)
             {
                 _sessionParent = sessionParent;
-                _thread = new Thread(run);
+                _thread = new Thread(Run);
                 _thread.Name = "session-packet-receiver";
                 _thread.Start();
             }
 
-            public void stop()
+            public void Stop()
             {
                 _running = false;
                 _thread.Interrupt();
             }
 
-            public void run()
+            public void Run()
             {
                 LOGGER.Debug("Session.Receiver started");
 
@@ -912,7 +923,7 @@ namespace lib.core
                     Packet.Type cmd;
                     try
                     {
-                        packet = cipherPair.ReceiveEncoded(conn._in);
+                        packet = _sessionParent._cipherPair.ReceiveEncoded(_sessionParent._conn.In);
                         cmd = Packet.Parse(packet._cmd);
                         if (cmd == Packet.Type.NULL)
                         {
@@ -922,10 +933,10 @@ namespace lib.core
                         }
                     }
                     catch (GeneralSecurityException ex) {
-                        if (_running && !_sessionParent.closing)
+                        if (_running && !_sessionParent._closing)
                         {
                             LOGGER.Error("Failed reading packet!", ex);
-                            _sessionParent.reconnect();
+                            _sessionParent.Reconnect();
                         }
 
                         break;
@@ -937,7 +948,7 @@ namespace lib.core
                     {
                         case Packet.Type.Ping:
                             if (_sessionParent._scheduledReconnect != null) _sessionParent._scheduledReconnect.Cancel();
-                            _sessionParent.scheduler.schedule(_sessionParent._scheduledReconnect);
+                            _sessionParent._scheduler.schedule(_sessionParent._scheduledReconnect);
 
                             TimeProvider.updateWithPing(packet._payload);
 
@@ -955,8 +966,8 @@ namespace lib.core
                             // Silent
                             break;
                         case Packet.Type.CountryCode:
-                            _sessionParent.countryCode = Encoding.UTF8.GetString(packet._payload);
-                            LOGGER.Info("Received CountryCode: " + _sessionParent.countryCode);
+                            _sessionParent._countryCode = Encoding.UTF8.GetString(packet._payload);
+                            LOGGER.Info("Received CountryCode: " + _sessionParent._countryCode);
                             break;
                         case Packet.Type.LicenseVersion:
                             BinaryReader licenseVersion = new BinaryReader(new MemoryStream(packet._payload));
@@ -979,26 +990,26 @@ namespace lib.core
                         case Packet.Type.MercurySub:
                         case Packet.Type.MercuryUnsub:
                         case Packet.Type.MercuryEvent:
-                        /*case Packet.Type.MercuryReq:
-                            mercury().dispatch(packet);
+                        case Packet.Type.MercuryReq:
+                            _sessionParent.GetMercury().Dispatch(packet);
                             break;
-                        case Packet.Type.AesKey:
+                        /*case Packet.Type.AesKey:
                         case Packet.Type.AesKeyError:
                             audioKey().dispatch(packet);
                             break;
                         case Packet.Type.ChannelError:
                         case Packet.Type.StreamChunkRes:
                             channel().dispatch(packet);
-                            break;
+                            break;*/
                         case Packet.Type.ProductInfo:
                             try
                             {
-                                _sessionParent.parseProductInfo(packet.payload);
+                                _sessionParent.ParseProductInfo(packet._payload);
                             }
                             catch (Exception ex) {
                                 LOGGER.Warn("Failed parsing product info!", ex); 
                             }
-                            break;*/
+                            break;
                         default:
                             LOGGER.Info("Skipping " + cmd);
                             break;

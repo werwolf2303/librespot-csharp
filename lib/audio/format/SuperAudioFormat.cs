@@ -6,11 +6,30 @@ namespace lib.audio.format
 {
     public class SuperAudioFormat : Enumeration
     {
-        public static readonly SuperAudioFormat MP3 = new SuperAudioFormat();
-        public static readonly SuperAudioFormat VORBIS = new SuperAudioFormat();
-        public static readonly SuperAudioFormat AAC = new SuperAudioFormat();
+        public static readonly SuperAudioFormat MP3 = new SuperAudioFormat(0);
+        public static readonly SuperAudioFormat VORBIS = new SuperAudioFormat(1);
+        public static readonly SuperAudioFormat AAC = new SuperAudioFormat(2);
         
         private SuperAudioFormat() {}
+        public int Id;
+        
+        private SuperAudioFormat(int id)
+        {
+            Id = id;
+        }
+
+        public static SuperAudioFormat FromId(int id)
+        {
+            switch (id)
+            {
+                case 0:
+                    return MP3;
+                case 1:
+                    return VORBIS;
+                default:
+                    return AAC;
+            }
+        }
 
         public static SuperAudioFormat get(AudioFile.Format format)
         {

@@ -33,6 +33,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="NAudio">
+          <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+        </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
@@ -41,8 +44,6 @@
     <ItemGroup>
         <Compile Include="OutputAudioFormat.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="SinkException.cs" />
-        <Compile Include="SinkOutput.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "decoder-api", "decoder-api\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sink-api", "sink-api\sink-api.csproj", "{ADADB154-ABD1-4EB3-8D8B-B660AF4F496C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deps", "deps\deps.csproj", "{A961C373-4854-47F9-91DF-1AB68479E0C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{ADADB154-ABD1-4EB3-8D8B-B660AF4F496C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADADB154-ABD1-4EB3-8D8B-B660AF4F496C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADADB154-ABD1-4EB3-8D8B-B660AF4F496C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A961C373-4854-47F9-91DF-1AB68479E0C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A961C373-4854-47F9-91DF-1AB68479E0C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A961C373-4854-47F9-91DF-1AB68479E0C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A961C373-4854-47F9-91DF-1AB68479E0C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

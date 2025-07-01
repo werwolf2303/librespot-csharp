@@ -1,27 +1,82 @@
+using System;
 using System.IO;
 using decoder_api;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using sink_api;
 
 namespace lib.audio.decoders
 {
-    public class Mp3Decoder : Decoder
+  public class Mp3Decoder : Decoder
     {
-        public Mp3Decoder(SeekableInputStream audioIn, float normalizationFactor, int duration) : base(audioIn, normalizationFactor, duration)
+        private readonly Mp3FileReader _mp3Reader;
+        private readonly IWaveProvider _pcmProvider;
+
+        public Mp3Decoder(Stream audioIn, float normalizationFactor)
+            : base(audioIn, normalizationFactor, GetDuration(audioIn))
         {
+            this.audioIn.Position = 0;
+
+            // _mp3Reader is the core NAudio component for decoding MP3.
+            _mp3Reader = new Mp3FileReader(this.audioIn);
+
+            // Create the processing pipeline: Volume -> 16-bit PCM conversion.
+            var volumeProvider = new VolumeSampleProvider(_mp3Reader.ToSampleProvider())
+            {
+                Volume = normalizationFactor
+            };
+            _pcmProvider = new SampleToWaveProvider16(volumeProvider);
+
+            // Set the audio format. We are converting to 16-bit signed little-endian PCM.
+            SetAudioFormat(new OutputAudioFormat(
+                _pcmProvider.WaveFormat.SampleRate,
+                _pcmProvider.WaveFormat.BitsPerSample,
+                _pcmProvider.WaveFormat.Channels,
+                true,  // Signed PCM
+                false)); // Little-endian
         }
 
-        protected override int readInternal(Stream stream)
+        // Helper to get duration without leaving a reader open.
+        private static int GetDuration(Stream audioIn)
         {
-            throw new System.NotImplementedException();
+            using (var reader = new Mp3FileReader(audioIn))
+            {
+                return (int)reader.TotalTime.TotalMilliseconds;
+            }
         }
 
-        public override int time()
+        protected override int ReadInternal(Stream stream)
         {
-            throw new System.NotImplementedException();
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int bytesRead = _pcmProvider.Read(buffer, 0, buffer.Length);
+            if (bytesRead > 0)
+            {
+                stream.Write(buffer, 0, bytesRead);
+            }
+            return bytesRead;
         }
 
-        public override void Close()
+        public override int Time()
         {
-            throw new System.NotImplementedException(); 
+            return (int)_mp3Reader.CurrentTime.TotalMilliseconds;
+        }
+
+        public override void Seek(int positionMs)
+        {
+            if (positionMs < 0) positionMs = 0;
+            if (positionMs > duration) positionMs = duration;
+
+            Console.WriteLine($"Seeking to {positionMs}ms...");
+            _mp3Reader.CurrentTime = TimeSpan.FromMilliseconds(positionMs);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _mp3Reader?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

@@ -5,11 +5,11 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{07DC769C-C6EE-4269-AA26-81F031946EF5}</ProjectGuid>
+        <ProjectGuid>{7109F305-EAAE-4AE0-9DF6-B9BCF778C48A}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>decoder_api</RootNamespace>
-        <AssemblyName>decoder_api</AssemblyName>
+        <RootNamespace>playback_ffmpeg</RootNamespace>
+        <AssemblyName>playback_ffmpeg</AssemblyName>
         <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -22,6 +22,7 @@
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,10 +32,11 @@
         <DefineConstants>TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="log4net">
-          <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
+        <Reference Include="FFmpeg.AutoGen, Version=5.1.0.0, Culture=neutral, PublicKeyToken=9b7632533a381715, processorArchitecture=MSIL">
+          <HintPath>..\packages\FFmpeg.AutoGen.5.1.0\lib\net40\FFmpeg.AutoGen.dll</HintPath>
         </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
@@ -42,13 +44,16 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Decoder.cs" />
+        <Compile Include="FFmpeg.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\sink-api\sink-api.csproj">
-        <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>
-        <Name>sink-api</Name>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\lib\lib.csproj">
+        <Project>{1de0fbc2-185c-499d-b691-1ff01fff28f2}</Project>
+        <Name>lib</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>

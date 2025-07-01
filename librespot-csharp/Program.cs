@@ -1,59 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Text;
-using Connectstate;
+using System.Threading;
 using EasyHttp.Http;
 using lib.audio.decoders;
-using lib.common;
-using lib.core;
-using lib.crypto;
-using lib.mercury;
-using lib.metadata;
-using log4net;
-using log4net.Appender;
-using log4net.Core;
-using log4net.Layout;
-using log4net.Repository.Hierarchy;
-using Newtonsoft.Json.Linq;
-using ProtoBuf;
-using Spotify;
-using Tarczynski.NtpDateTime;
-using Version = lib.Version;
+using lib.audio.format;
+using lib.audio.playback;
 
-namespace librespot {
+namespace librespot
+{
     internal class Program
     {
         public static void Main(string[] args)
         {
-            Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
-            ConsoleAppender consoleAppender = new ConsoleAppender();
-            consoleAppender.Name = "librespot-csharp"; 
-            PatternLayout consoleLayout = new PatternLayout();
-            consoleLayout.ConversionPattern = "%date [%thread] %-5level %logger - %message%newline";
-            consoleLayout.ActivateOptions(); 
-            consoleAppender.Layout = consoleLayout;
-            consoleAppender.ActivateOptions();
-            Logger rootLogger = hierarchy.Root;
-            rootLogger.Level = Level.All;
-            rootLogger.AddAppender(consoleAppender);
-            hierarchy.Configured = true;
+            string vorbisInputPath = "test.ogg";
 
-            /*Session.Configuration.Builder configuration = new Session.Configuration.Builder();
-            
-            configuration.setStoreCredentials(true);
-            configuration.setStoredCredentialsFile("credentials.json");
-            
-            Session.Builder builder = new Session.Builder(configuration.build());
-            
-            builder.oauth();
-            builder.create();*/
+            MemoryStream ramAudio = new MemoryStream();
+            using (FileStream fs = new FileStream(vorbisInputPath, FileMode.Open))
+            {
+                fs.CopyTo(ramAudio);
+            }
+            ramAudio.Position = 0;
 
-            
+            float normalizationFactor = 1.0f;
 
-            Console.WriteLine(TrackId.FromUri("spotify:track:73gwUCEJBgLhLzM1WTMBv0").ToSpotifyUri());
+            // Create your VorbisDecoder instance (should implement IDecoder)
+            VorbisDecoder decoder = Decoders.initDecoder(SuperAudioFormat.VORBIS, ramAudio, normalizationFactor) as VorbisDecoder;
+
+            if (decoder == null)
+            {
+                Console.WriteLine("Failed to initialize VorbisDecoder.");
+                return;
+            }
+            
+            BlockingStream audioStream = new BlockingStream();
+
+            Thread decodingThread = new Thread(() =>
+            {
+                while (true)
+                { 
+                    decoder.WriteSomeTo(audioStream);
+                    audioStream.Complete();
+                }
+            });
+            decodingThread.Priority = ThreadPriority.AboveNormal;
+            decodingThread.Start();
+
+            IPlayback playback = new Alsa();
+            playback.Init(audioStream);
+            playback.Play();
         }
     }
-    
 }
