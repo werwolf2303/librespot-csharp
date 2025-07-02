@@ -251,9 +251,9 @@ public class CacheManager : IDisposable
             return journal.hasChunk(streamId, index);
         }
 
-        public void ReadChunk(int index, GeneralWriteableStream stream)
+        public void ReadChunk(int index, IGeneralWriteableStream stream)
         {
-            stream.writeChunk(ReadChunk(index), index, true);
+            stream.WriteChunk(ReadChunk(index), index, true);
         }
 
         public byte[] ReadChunk(int index)

@@ -44,6 +44,7 @@
     <ItemGroup>
         <Compile Include="Decoder.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="SeekableInputStream.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\sink-api\sink-api.csproj">

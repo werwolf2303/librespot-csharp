@@ -58,6 +58,11 @@ namespace lib.common
             _tasks.Add(() => TryExecuteTask(task));
         }
 
+        public void PQueueTask(Task task)
+        {
+            QueueTask(task);
+        }
+
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             return false;

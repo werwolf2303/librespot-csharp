@@ -11,8 +11,13 @@ using System.Xml;
 using Connectstate;
 using EasyHttp.Http;
 using EasyHttp.Http.Injection;
+using lib.audio;
+using lib.audio.cdn;
+using lib.audio.storage;
+using lib.cache;
 using lib.common;
 using lib.crypto;
+using lib.dealer;
 using lib.mercury;
 using log4net;
 using Newtonsoft.Json.Linq;
@@ -63,9 +68,7 @@ namespace lib.core
 
         private ApResolver _apResolver;
         private DiffieHellman _keys;
-
         private Inner _inner;
-
         private ScheduledExecutorService _scheduler = new ScheduledExecutorService();
         private Object _authLock = new Object();
         private bool _authLockState = false;
@@ -79,7 +82,17 @@ namespace lib.core
         private Receiver _receiver;
         private APWelcome _apWelcome;
         private MercuryClient _mercuryClient;
-
+        private AudioKeyManager _audioKeyManager;
+        private ChannelManager _channelManager;
+        private TokenProvider _tokenProvider;
+        private CdnManager _cdnManager;
+        private CacheManager _cacheManager;
+        //private DealerClient _dealer;
+        private ApiClient _api;
+        private SearchManager _search;
+        private PlayableContentFeeder _contentFeeder;
+        private EventService _eventService;
+        
         private String _countryCode = null;
         private volatile bool _closed = false;
         private volatile bool _closing = false;
@@ -463,9 +476,19 @@ namespace lib.core
             return _mercuryClient;
         }
 
+        public TokenProvider GetTokens()
+        {
+            return _tokenProvider;
+        }
+        
         public HttpClient GetClient()
         {
             return _client;
+        }
+
+        public String GetDeviceId()
+        {
+            return _inner.DeviceId;
         }
 
         public RandomNumberGenerator GetRandom()

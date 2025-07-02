@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using JsonFx.Json;
 using lib.json;
@@ -8,9 +9,9 @@ namespace lib.mercury
     public class JsonMercuryRequest<W> where W : JsonWrapper
     {
         public RawMercuryRequest Request;
-        private W _wrapperClass;
+        private Type _wrapperClass;
 
-        internal JsonMercuryRequest(RawMercuryRequest request, W wrapperClass)
+        internal JsonMercuryRequest(RawMercuryRequest request, Type wrapperClass)
         {
             Request = request;
             _wrapperClass = wrapperClass;
@@ -20,7 +21,7 @@ namespace lib.mercury
         {
             BinaryReader reader = new BinaryReader(resp.Payload.Stream());
             JObject elm = JObject.Parse(reader.ReadString());
-            return (W)_wrapperClass.GetType().GetConstructor(new []{typeof(JObject)}).Invoke(new object[]{elm});
+            return (W)_wrapperClass.GetConstructor(new []{typeof(JObject)}).Invoke(new object[]{elm});
         }
     }
 }

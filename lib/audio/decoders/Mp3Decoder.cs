@@ -16,27 +16,20 @@ namespace lib.audio.decoders
             : base(audioIn, normalizationFactor, GetDuration(audioIn))
         {
             this.audioIn.Position = 0;
-
-            // _mp3Reader is the core NAudio component for decoding MP3.
             _mp3Reader = new Mp3FileReader(this.audioIn);
-
-            // Create the processing pipeline: Volume -> 16-bit PCM conversion.
             var volumeProvider = new VolumeSampleProvider(_mp3Reader.ToSampleProvider())
             {
                 Volume = normalizationFactor
             };
             _pcmProvider = new SampleToWaveProvider16(volumeProvider);
-
-            // Set the audio format. We are converting to 16-bit signed little-endian PCM.
             SetAudioFormat(new OutputAudioFormat(
                 _pcmProvider.WaveFormat.SampleRate,
                 _pcmProvider.WaveFormat.BitsPerSample,
                 _pcmProvider.WaveFormat.Channels,
-                true,  // Signed PCM
-                false)); // Little-endian
+                true,
+                false));
         }
-
-        // Helper to get duration without leaving a reader open.
+        
         private static int GetDuration(Stream audioIn)
         {
             using (var reader = new Mp3FileReader(audioIn))

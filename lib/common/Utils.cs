@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
@@ -7,6 +8,7 @@ using System.Text;
 using Base62;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities;
+using ProtoBuf;
 using spotify.metadata.proto;
 
 namespace lib.common
@@ -37,6 +39,43 @@ namespace lib.common
         
         public static String bytesToHex(byte[] bytes, int off, int len) {
             return bytesToHex(bytes, off, len, false, -1);
+        }
+
+        public static String ArtistsToString(List<Artist> artists)
+        {
+            StringBuilder builder = new StringBuilder();
+            bool first = true;
+            foreach (Artist artist in artists)
+            {
+                if (!first) builder.Append(", ");
+                first = false;
+
+                builder.Append(artist.Name);
+            }
+            
+            return builder.ToString();
+        }
+        
+        public static string ByteToHex(byte b)
+        {
+            return b.ToString("X2");
+        }
+
+        public static byte[] ProtoBytes(IExtensible proto)
+        {
+            MemoryStream data = new MemoryStream();
+            Serializer.Serialize(data, proto);
+            return data.ToArray();
+        }
+        
+        public static String truncateMiddle(String str, int length) {
+            if (length <= 1) throw new ArgumentException("Length must be greater than zero.");
+
+            int first = length / 2;
+            String result = str.Substring(0, first);
+            result += "...";
+            result += str.Substring(str.Length - (length - first));
+            return result;
         }
         
         public static String bytesToHex(byte[] bytes, int offset, int length, bool trim, int minLength) {

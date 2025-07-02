@@ -20,7 +20,7 @@ namespace lib.audio.cdn
 
         /*public static LoadedStream loadTrack(@NotNull Session session, Metadata.@NotNull Track track, Metadata.@NotNull
             AudioFile file,
-        @NotNull HttpUrl url, boolean preload, @Nullable HaltListener haltListener) throws
+        @NotNull HttpUrl url, boolean preload, @Nullable IHaltListener haltListener) throws
             IOException, CdnManager.CdnException {
             long start = System.currentTimeMillis();
             byte[] key = session.audioKey().getAudioKey(track.getGid(), file.getFileId());
@@ -36,13 +36,13 @@ namespace lib.audio.cdn
 
         public static @NotNull LoadedStream loadTrack(@NotNull Session session, Metadata.@NotNull
             Track track, Metadata.@NotNull AudioFile file,
-        @NotNull StorageResolveResponse storage, boolean preload, @Nullable HaltListener haltListener) throws
+        @NotNull StorageResolveResponse storage, boolean preload, @Nullable IHaltListener haltListener) throws
             IOException, CdnManager.CdnException {
             return loadTrack(session, track, file, getUrl(session, storage), preload, haltListener);
         }
 
         public static @NotNull LoadedStream loadEpisodeExternal(@NotNull Session session, Metadata.@NotNull
-            Episode episode, @Nullable HaltListener haltListener) throws IOException, CdnManager.CdnException {
+            Episode episode, @Nullable IHaltListener haltListener) throws IOException, CdnManager.CdnException {
             try
 
             (Response resp = session.client().newCall(new Request.Builder().head()
@@ -61,7 +61,7 @@ namespace lib.audio.cdn
 
         public static @NotNull LoadedStream loadEpisode(@NotNull Session session, Metadata.@NotNull
             Episode episode, @NotNull Metadata.AudioFile file, @NotNull HttpUrl url, @Nullable
-            HaltListener haltListener) throws IOException, CdnManager.CdnException {
+            IHaltListener haltListener) throws IOException, CdnManager.CdnException {
             long start = System.currentTimeMillis();
             byte[] key = session.audioKey().getAudioKey(episode.getGid(), file.getFileId());
             int audioKeyTime = (int)(System.currentTimeMillis() - start);
@@ -76,7 +76,7 @@ namespace lib.audio.cdn
 
         public static @NotNull LoadedStream loadEpisode(@NotNull Session session, Metadata.@NotNull
             Episode episode, @NotNull Metadata.AudioFile file, @NotNull StorageResolveResponse storage, @Nullable
-            HaltListener haltListener) throws IOException, CdnManager.CdnException {
+            IHaltListener haltListener) throws IOException, CdnManager.CdnException {
             return loadEpisode(session, episode, file, getUrl(session, storage), haltListener);
         }*/
     }

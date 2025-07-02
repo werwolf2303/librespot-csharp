@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using lib.common;
 using Spotify;
 
@@ -69,6 +70,17 @@ namespace lib.mercury
         public class Builder : Header
         {
             private readonly BytesArrayList _payload = new BytesArrayList();
+
+            public Builder AddUserField(String name, String value)
+            {
+                UserField userField = new UserField();
+                userField.Key = name;
+                userField.Value = Encoding.UTF8.GetBytes(value);
+                
+                UserFields.Add(userField);
+                
+                return this;
+            }
 
             public Builder AddPayloadPart(byte[] part) {
                 _payload.Add(part);

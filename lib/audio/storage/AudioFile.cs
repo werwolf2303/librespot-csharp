@@ -3,14 +3,14 @@ using System.IO;
 
 namespace lib.audio.storage
 {
-    public interface AudioFile : IDisposable, GeneralWriteableStream
+    public interface AudioFile : IDisposable, IGeneralWriteableStream
     {
         /// <exception cref="IOException"></exception>
-        void writeChunk(byte[] chunk, int chunkIndex, bool cached);
+        void WriteChunk(byte[] chunk, int chunkIndex, bool cached);
 
         /// <exception cref="IOException"></exception>
-        void writeHeader(int id, byte[] bytes, bool cached);
+        void WriteHeader(int id, byte[] bytes, bool cached);
 
-        void streamError(int chunkIndex, short code);
+        void StreamError(int chunkIndex, short code);
     }
 }
