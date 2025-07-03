@@ -229,7 +229,7 @@ namespace lib.audio
             }
         }
 
-        public void NotifyCunkError(int index, ChunkException ex)
+        public void NotifyChunkError(int index, ChunkException ex)
         {
             AvailableChunks()[index] = false;
             RequestedChunks()[index] = false;
@@ -258,6 +258,8 @@ namespace lib.audio
         public void StreamReadResumed(int chunk, long time)
         {
         }
+        
+        
         
         public class ChunkException : IOException {
         

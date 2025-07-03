@@ -6,57 +6,86 @@ namespace lib.common
 {
     public class AsyncWorker<T> : IDisposable
     {
-        private Queue<T> _workQueue = new Queue<T>();
+        private readonly Queue<T> _workQueue = new Queue<T>();
         private Thread _workerThread;
-        private bool _shutDown = false;
-        private Handler _handler;
-        private String _threadName;
-        
-        public AsyncWorker(String threadName, Handler handler)
+        private readonly object _lock = new object();
+        private bool _shutDown;
+        private readonly string _threadName;
+        private readonly Handler _handler;
+
+        public AsyncWorker(string threadName, Handler handler)
         {
-            _handler = handler;
-            _threadName = threadName;
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _threadName = threadName ?? "AsyncWorkerThread";
         }
 
         private void Run()
         {
-            while (!_shutDown)
+            while (true)
             {
-                lock (_workQueue)
+                T workItem;
+                lock (_lock)
                 {
-                    _handler(_workQueue.Dequeue());
+                    if (_workQueue.Count == 0 || _shutDown)
+                    {
+                        _workerThread = null;
+                        return;
+                    }
+                    workItem = _workQueue.Dequeue();
+                }
+
+                try
+                {
+                    _handler(workItem);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"AsyncWorker handler error: {ex}");
                 }
             }
         }
 
         public void Submit(T toWorkOn)
         {
-            lock (_workQueue)
+            if (_shutDown)
+                throw new ObjectDisposedException(nameof(AsyncWorker<T>));
+
+            lock (_lock)
             {
                 _workQueue.Enqueue(toWorkOn);
-            }
 
-            if (!_workerThread.IsAlive)
-            {
-                _workerThread = new Thread(Run);
-                _workerThread.IsBackground = true;
-                _workerThread.Name = _threadName;
-                _workerThread.Start();
+                if (_workerThread == null || !_workerThread.IsAlive)
+                {
+                    _workerThread = new Thread(Run)
+                    {
+                        IsBackground = true,
+                        Name = _threadName
+                    };
+                    _workerThread.Start();
+                }
             }
         }
 
-        public void AwaitTermination()
+        private void AwaitTermination()
         {
-            if (_workerThread.IsAlive) _workerThread.Join();
+            Thread workerToJoin;
+            lock (_lock)
+            {
+                workerToJoin = _workerThread;
+            }
+            workerToJoin?.Join();
         }
-        
+
         public delegate void Handler(T workItem);
 
         public void Dispose()
         {
-            _shutDown = true;
-            if (_workerThread.IsAlive) _workerThread.Join();
-            _workQueue.Clear();
+            lock (_lock)
+            {
+                _shutDown = true;
+                _workQueue.Clear();
+            }
+            AwaitTermination();
         }
     }
 }

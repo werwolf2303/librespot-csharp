@@ -1,7 +1,12 @@
 using System;
+using System.IO;
+using System.Net;
+using EasyHttp.Http;
+using lib.common;
 using lib.core;
 using log4net;
 using spotify.download.proto;
+using spotify.metadata.proto;
 
 namespace lib.audio.cdn
 {
@@ -13,71 +18,67 @@ namespace lib.audio.cdn
         {
         }
 
-        private static Uri getUrl(Session session, StorageResolveResponse resp)
+        private static Uri GetUrl(Session session, StorageResolveResponse resp)
         {
             return new Uri(resp.Cdnurls[new Random().Next(0, resp.Cdnurls.Count)]);
         }
 
-        /*public static LoadedStream loadTrack(@NotNull Session session, Metadata.@NotNull Track track, Metadata.@NotNull
-            AudioFile file,
-        @NotNull HttpUrl url, boolean preload, @Nullable IHaltListener haltListener) throws
-            IOException, CdnManager.CdnException {
-            long start = System.currentTimeMillis();
-            byte[] key = session.audioKey().getAudioKey(track.getGid(), file.getFileId());
-            int audioKeyTime = (int)(System.currentTimeMillis() - start);
-
-            CdnManager.Streamer streamer = session.cdn().streamFile(file, key, url, haltListener);
-            InputStream in = streamer.stream();
-            NormalizationData normalizationData = NormalizationData.read(in);
-            if (in.skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
-            return new LoadedStream(track, streamer, normalizationData,
-                new PlayableContentFeeder.Metrics(file.getFileId(), preload, preload ? -1 : audioKeyTime));
+        public static PlayableContentFeeder.LoadedStream LoadTrack(Session session, Track track, AudioFile file,
+            Uri url, bool preload, IHaltListener haltListener)
+        {
+            long start = Utils.getUnixTimeStampInMilliseconds();
+            byte[] key = session.GetAudioKey().GetAudioKey(track.Gid, file.FileId);
+            int audioKeyTime = (int)(Utils.getUnixTimeStampInMilliseconds() - start);
+            
+            CdnManager.Streamer streamer = session.GetCdn().StreamFile(file, key, url, haltListener);
+            AbsChunkedInputStream stream = streamer.Stream();
+            NormalizationData normalizationData = NormalizationData.Read(stream);
+            if (stream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            return new PlayableContentFeeder.LoadedStream(track, streamer, normalizationData,
+                new PlayableContentFeeder.Metrics(file.FileId, preload, preload ? -1 : audioKeyTime));
         }
 
-        public static @NotNull LoadedStream loadTrack(@NotNull Session session, Metadata.@NotNull
-            Track track, Metadata.@NotNull AudioFile file,
-        @NotNull StorageResolveResponse storage, boolean preload, @Nullable IHaltListener haltListener) throws
-            IOException, CdnManager.CdnException {
-            return loadTrack(session, track, file, getUrl(session, storage), preload, haltListener);
+        public static PlayableContentFeeder.LoadedStream LoadTrack(Session session, Track track, AudioFile file,
+            StorageResolveResponse storage, bool preload, IHaltListener haltListener)
+        {
+            return LoadTrack(session, track, file, GetUrl(session, storage), preload, haltListener);
         }
 
-        public static @NotNull LoadedStream loadEpisodeExternal(@NotNull Session session, Metadata.@NotNull
-            Episode episode, @Nullable IHaltListener haltListener) throws IOException, CdnManager.CdnException {
-            try
+        public static PlayableContentFeeder.LoadedStream LoadEpisodeExternal(Session session, Episode episode,
+            IHaltListener haltListener)
+        {
+            HttpResponse resp = session.GetClient().Head(episode.ExternalUrl);
+            
+            if(resp.StatusCode != HttpStatusCode.OK) 
+                LOGGER.Warn("Couldn't resolve redirect!");
 
-            (Response resp = session.client().newCall(new Request.Builder().head()
-                .url(episode.getExternalUrl()).build()).execute()) {
+            Uri url = new Uri(resp.Location);
+            LOGGER.DebugFormat("Fetched external url for {0}: {1}", Utils.bytesToHex(episode.Gid), url);
 
-                if (resp.code() != 200)
-                    LOGGER.warn("Couldn't resolve redirect!");
-
-                HttpUrl url = resp.request().url();
-                LOGGER.debug("Fetched external url for {}: {}", Utils.bytesToHex(episode.getGid()), url);
-
-                CdnManager.Streamer streamer = session.cdn().streamExternalEpisode(episode, url, haltListener);
-                return new LoadedStream(episode, streamer, null, new PlayableContentFeeder.Metrics(null, false, -1));
-            }
+            CdnManager.Streamer streamer = session.GetCdn().StreamExternalEpisode(episode, url, haltListener);
+            return new PlayableContentFeeder.LoadedStream(episode, streamer, null,
+                new PlayableContentFeeder.Metrics(null, false, -1));
         }
 
-        public static @NotNull LoadedStream loadEpisode(@NotNull Session session, Metadata.@NotNull
-            Episode episode, @NotNull Metadata.AudioFile file, @NotNull HttpUrl url, @Nullable
-            IHaltListener haltListener) throws IOException, CdnManager.CdnException {
-            long start = System.currentTimeMillis();
-            byte[] key = session.audioKey().getAudioKey(episode.getGid(), file.getFileId());
-            int audioKeyTime = (int)(System.currentTimeMillis() - start);
-
-            CdnManager.Streamer streamer = session.cdn().streamFile(file, key, url, haltListener);
-            InputStream in = streamer.stream();
-            NormalizationData normalizationData = NormalizationData.read(in);
-            if (in.skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
-            return new LoadedStream(episode, streamer, normalizationData,
-                new PlayableContentFeeder.Metrics(file.getFileId(), false, audioKeyTime));
+        public static PlayableContentFeeder.LoadedStream LoadEpisode(Session session, Episode episode, AudioFile file,
+            Uri url, IHaltListener haltListener)
+        {
+            long start = Utils.getUnixTimeStampInMilliseconds();
+            byte[] key = session.GetAudioKey().GetAudioKey(episode.Gid, file.FileId);
+            int audioKeyTime = (int)(Utils.getUnixTimeStampInMilliseconds() - start);
+            
+            CdnManager.Streamer streamer = session.GetCdn().StreamFile(file, key, url, haltListener);
+            AbsChunkedInputStream stream = streamer.Stream();
+            NormalizationData normalizationData = NormalizationData.Read(stream);
+            if (stream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            return new PlayableContentFeeder.LoadedStream(episode, streamer, normalizationData,
+                new PlayableContentFeeder.Metrics(file.FileId, false, audioKeyTime));
         }
 
-        public static @NotNull LoadedStream loadEpisode(@NotNull Session session, Metadata.@NotNull
-            Episode episode, @NotNull Metadata.AudioFile file, @NotNull StorageResolveResponse storage, @Nullable
-            IHaltListener haltListener) throws IOException, CdnManager.CdnException {
-            return loadEpisode(session, episode, file, getUrl(session, storage), haltListener);
-        }*/
+        public static PlayableContentFeeder.LoadedStream LoadEpisode(Session session, Episode episode, AudioFile file,
+            StorageResolveResponse storage, IHaltListener haltListener)
+        {
+            return LoadEpisode(session, episode, file, GetUrl(session, storage), haltListener);
+        }
     }
 }

@@ -5,7 +5,6 @@ using csharp;
 using lib.common;
 using lib.mercury;
 using log4net;
-using Spotify;
 
 namespace lib.core
 {

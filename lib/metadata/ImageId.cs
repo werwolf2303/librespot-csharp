@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using Connectstate;
 using lib.common;
 using spotify.metadata.proto;
 
@@ -34,8 +35,33 @@ namespace lib.metadata
 
             return biggest == null ? null : FromHex(Utils.bytesToHex(biggest.FileId));
         }
-        
-        // ToDo: public static void PutAsMetadata() needs connectstate.Player
+
+        public static void PutAsMetadata(ProvidedTrack track, ImageGroup group)
+        {
+            foreach (Image image in group.Images)
+            {
+                String key;
+                switch (image.size)
+                {
+                    case Image.Size.Default:
+                        key = "image_url";
+                        break;
+                    case Image.Size.Small:
+                        key = "image_small_url";
+                        break;
+                    case Image.Size.Large:
+                        key = "image_large_url";
+                        break;
+                    case Image.Size.Xlarge:
+                        key = "image_xlarge_url";
+                        break;
+                    default:
+                        continue;
+                }
+                
+                track.Metadatas.Add(key, FromHex(Utils.bytesToHex(image.FileId)).ToSpotifyUri());
+            }
+        }
 
         public string ToSpotifyUri()
         {

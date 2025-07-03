@@ -11,8 +11,8 @@ namespace lib.crypto
         private Type _type = Type.NULL;
 
         public Packet(byte cmd, byte[] payload) {
-            this._cmd = cmd;
-            this._payload = payload;
+            _cmd = cmd;
+            _payload = payload;
         }
         
         public Type GetType() {

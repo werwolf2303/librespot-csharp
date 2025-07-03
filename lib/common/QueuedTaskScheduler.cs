@@ -80,7 +80,7 @@ namespace lib.common
             _tasks.CompleteAdding();
         }
 
-        public bool awaitTermination(TimeSpan timeout)
+        public bool AwaitTermination(TimeSpan timeout)
         {
             if (!_isShutdown)
                 return false;

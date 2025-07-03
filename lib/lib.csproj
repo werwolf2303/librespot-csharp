@@ -72,6 +72,9 @@
         <Reference Include="System.Web" />
         <Reference Include="System.Windows.Forms" />
         <Reference Include="System.Xml"/>
+        <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+          <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="audio\AbsChunkedInputStream.cs" />
@@ -110,8 +113,10 @@
         <Compile Include="common\Base62.cs" />
         <Compile Include="common\BigEndianWriter.cs" />
         <Compile Include="common\BinaryReaderExtension.cs" />
+        <Compile Include="common\ByteBuffer.cs" />
         <Compile Include="common\BytesArrayList.cs" />
         <Compile Include="common\Enumeration.cs" />
+        <Compile Include="common\Headers.cs" />
         <Compile Include="common\Iterator.cs" />
         <Compile Include="common\NameThreadFactory.cs" />
         <Compile Include="common\ProtoUtils.cs" />
@@ -122,7 +127,7 @@
         <Compile Include="core\ApResolver.cs" />
         <Compile Include="core\EventService.cs" />
         <Compile Include="core\OAuth.cs" />
-        <Compile Include="core\PacketsReceiver.cs" />
+        <Compile Include="core\IPacketsReceiver.cs" />
         <Compile Include="core\SearchManager.cs" />
         <Compile Include="core\Session.cs" />
         <Compile Include="core\TimeProvider.cs" />

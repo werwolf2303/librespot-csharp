@@ -17,11 +17,9 @@ namespace lib.cache
 public class CacheManager : IDisposable
 {
     private static readonly long CLEAN_UP_THRESHOLD = 604800000;
-    private static ILog LOGGER = log4net.LogManager.GetLogger(typeof(CacheManager));
-    
+    private static ILog LOGGER = LogManager.GetLogger(typeof(CacheManager));
     private static readonly int HEADER_TIMESTAMP = 254;
     private static readonly int HEADER_HASH = 253;
-
     private readonly String parent;
     private readonly CacheJournal journal;
     private readonly ConcurrentDictionary<string, Handler> fileHandlers = new ConcurrentDictionary<string, Handler>();
@@ -35,11 +33,11 @@ public class CacheManager : IDisposable
             return;
         }
 
-        this.parent = conf.CacheDir;
-        if (!File.Exists(parent))
+        parent = conf.CacheDir;
+        if (!Directory.Exists(parent))
         {
-            File.Create(parent).Close();
-            if (!File.Exists(parent)) new IOException("Couldn't create cache directory!");
+            Directory.CreateDirectory(parent);
+            if (!Directory.Exists(parent)) new IOException("Couldn't create cache directory!");
         }
 
         journal = new CacheJournal(parent);

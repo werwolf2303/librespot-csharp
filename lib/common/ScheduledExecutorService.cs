@@ -9,6 +9,7 @@ namespace lib.common
         private List<IScheduledFuture> _scheduledFutures = new List<IScheduledFuture>();
         private Object _scheduledFuturesLock = new Object();
         private Timer _timer;
+        private bool _isRunning = false;
         
         public ScheduledExecutorService()
         {
@@ -22,6 +23,7 @@ namespace lib.common
                         _scheduledFutures[i].ExecuteIfNeeded(Utils.getUnixTimeStampInMilliseconds());
                         if (_scheduledFutures[i].WasExecuted() || _scheduledFutures[i].IsExecuting())
                         {
+                            if(_scheduledFutures[i].IsInfinite()) continue;
                             removals.Add(i);
                         }
                     }
@@ -32,6 +34,7 @@ namespace lib.common
                     }
                 }
             }, null, 0, 500);
+            _isRunning = true;
         }
 
         public enum TimeUnit
@@ -49,6 +52,8 @@ namespace lib.common
             bool WasExecuted(); 
             bool IsExecuting();
             void Reset();
+            void SetInfinite(bool value);
+            bool IsInfinite();
         }
 
         public class ScheduledFuture<T> : IScheduledFuture
@@ -62,35 +67,35 @@ namespace lib.common
             private bool _executed;
             private bool _executing;
             private TimeUnit _unit;
+            private bool _infinite;
+            private long _delay;
+            private bool _isCancelled;
 
             public ScheduledFuture(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS)
             {
-                init(func, delay, unit);
+                Init(func, delay, unit);
             }
-            
-            private void init(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS)
+
+            private void Reschedule()
             {
-                _function = func;
-                _unit = unit;
-                
                 long systemMilliseconds = Utils.getUnixTimeStampInMilliseconds();
                 
-                switch (unit) 
+                switch (_unit) 
                 {
                     case TimeUnit.HOURS:
-                        _executionTime = systemMilliseconds + (long)TimeSpan.FromHours(delay).TotalMilliseconds;
+                        _executionTime = systemMilliseconds + (long)TimeSpan.FromHours(_delay).TotalMilliseconds;
                         break;
                     case TimeUnit.MINUTES:
-                        _executionTime = systemMilliseconds + (long)TimeSpan.FromMinutes(delay).TotalMilliseconds;
+                        _executionTime = systemMilliseconds + (long)TimeSpan.FromMinutes(_delay).TotalMilliseconds;
                         break;
                     case TimeUnit.MILLISECONDS:
-                        _executionTime = systemMilliseconds + delay;
+                        _executionTime = systemMilliseconds + _delay;
                         break;
                     case TimeUnit.SECONDS:
-                        _executionTime = systemMilliseconds + (long)TimeSpan.FromSeconds(delay).TotalMilliseconds;
+                        _executionTime = systemMilliseconds + (long)TimeSpan.FromSeconds(_delay).TotalMilliseconds;
                         break;
                 }
-
+                
                 _thread = new Thread(o =>
                 {
                     lock (_executionLock)
@@ -103,6 +108,22 @@ namespace lib.common
                     }
                 });
                 _thread.Name = "ScheduledFuture";
+                
+                _executing = false;
+                _executed = false;
+            }
+
+            public bool IsInfinite()
+            {
+                return _infinite;
+            }
+            
+            private void Init(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS)
+            {
+                _delay = delay;
+                _function = func;
+                _unit = unit;
+                Reschedule();
             }
 
             public void ExecuteIfNeeded(long currentTimeMilliseconds)
@@ -110,7 +131,10 @@ namespace lib.common
                 if (_executed || _executing) return;
                 if (currentTimeMilliseconds >= _executionTime)
                 {
+                    _executing = true;
                     _value = Execute();
+                    _executing = false;
+                    if(_infinite) Reschedule();
                 }
             }
             
@@ -128,7 +152,10 @@ namespace lib.common
                 if (!_executing) return;
                 if (!interruptIfRunning && _executing) return;
                 _thread.Interrupt();
+                _isCancelled = true;
             }
+            
+            public bool IsCancelled => _isCancelled;
 
             public bool WasExecuted()
             {
@@ -144,10 +171,15 @@ namespace lib.common
             {
                 _executed = false;
                 _executing = false;
-                init(_function, _executionTime, _unit);
+                Init(_function, _executionTime, _unit);
+            }
+
+            public void SetInfinite(bool value)
+            {
+                _infinite = value;
             }
             
-            public T get()
+            public T Get()
             {
                 if (_executed) return _value;
                 lock (_valueLock)
@@ -172,6 +204,17 @@ namespace lib.common
             }
         }
 
+        public void scheduleAtFixedRate(IScheduledFuture future)
+        {
+            future.SetInfinite(true);
+            schedule(future);
+        }
+        
+        public bool IsShutdown
+        {
+            get => !_isRunning;
+        }
+
         public void Dispose()
         {
             _timer.Dispose();
@@ -187,6 +230,7 @@ namespace lib.common
             }
             _timer = null;
             _scheduledFuturesLock = null;
+            _isRunning = false;
         }
     }
 }

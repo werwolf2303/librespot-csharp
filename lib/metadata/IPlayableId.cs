@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using Connectstate;
 using spotify.player.proto;
 using lib.common;
 using spotify.metadata.proto;
@@ -83,8 +84,11 @@ namespace lib.metadata
             
             return -1;
         }
-        
-        //ToDo: internal static IPlayableId From() Needs connectstate.player
+
+        internal static IPlayableId From(ProvidedTrack track)
+        {
+            return track.Uri.Equals("") ? null : FromUri(track.Uri);
+        }
 
         internal static bool IsDelimiter(String uri)
         {

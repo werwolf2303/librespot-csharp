@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Org.BouncyCastle.Utilities;
@@ -6,11 +8,10 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace lib.common
 {
-    public class BytesArrayList : Iterator<byte[]>
+    public class BytesArrayList : IEnumerable<byte[]>
     {
         private byte[][] _elementData;
         private int _size;
-        private int _cursor = 0;
 
         public BytesArrayList()
         {
@@ -24,17 +25,19 @@ namespace lib.common
             _size = buffer.Length;
         }
 
-        public static MemoryStream StreamBase64(String[] payloads)
+        public static MemoryStream StreamBase64(string[] payloads)
         {
             byte[][] decoded = new byte[payloads.Length][];
-            for (int i = 0; i < decoded.Length; i++) decoded[i] = Base64.Decode(payloads[i]);
+            for (int i = 0; i < decoded.Length; i++)
+                decoded[i] = Base64.Decode(payloads[i]);
             return new BytesArrayList(decoded).Stream();
         }
 
-        public static MemoryStream Stream(String[] payloads)
+        public static MemoryStream Stream(string[] payloads)
         {
             byte[][] bytes = new byte[payloads.Length][];
-            for (int i = 0; i < bytes.Length; i++) bytes[i] = Encoding.UTF8.GetBytes(payloads[i]);
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = Encoding.UTF8.GetBytes(payloads[i]);
             return new BytesArrayList(bytes).Stream();
         }
 
@@ -51,22 +54,28 @@ namespace lib.common
         }
 
         public byte[] Get(int index)
-        { 
-            if (index >= _size) throw new IndexOutOfRangeException(String.Format("size: {0}, index: {1}", _size, index));
+        {
+            if (index >= _size)
+                throw new IndexOutOfRangeException(string.Format("size: {0}, index: {1}", _size, index));
             return _elementData[index];
         }
 
         public byte[][] ToArray()
         {
-            return _elementData;
+            byte[][] result = new byte[_size][];
+            Array.Copy(_elementData, result, _size);
+            return result;
         }
 
         private void Grow(int minCapacity)
         {
             int oldCapacity = _elementData.Length;
             int newCapacity = oldCapacity + (oldCapacity >> 1);
-            if (newCapacity - minCapacity < 0) newCapacity = minCapacity;
-            Array.Copy(_elementData, _elementData, newCapacity);
+            if (newCapacity - minCapacity < 0)
+                newCapacity = minCapacity;
+            byte[][] newData = new byte[newCapacity][];
+            Array.Copy(_elementData, newData, _size);
+            _elementData = newData;
         }
 
         public BytesArrayList CopyOfRange(int from, int to)
@@ -87,11 +96,12 @@ namespace lib.common
             return ToHex();
         }
 
-        public String ToHex()
+        public string ToHex()
         {
-            String[] array = new String[_size];
+            string[] array = new string[_size];
             byte[][] copy = ToArray();
-            for (int i = 0; i < copy.Length; i++) array[i] = Utils.bytesToHex(copy[i]);
+            for (int i = 0; i < copy.Length; i++)
+                array[i] = Utils.bytesToHex(copy[i]);
             return Arrays.ToString(array);
         }
 
@@ -100,35 +110,30 @@ namespace lib.common
             return new InternalStream(this);
         }
 
-        public String ReadIntoStirng(int index)
+        public string ReadIntoString(int index)
         {
             byte[] b = Get(index);
-            return Encoding.UTF8.GetString(b);
+            return Encoding.UTF8.GetString(b, 0, b.Length);
         }
 
-        protected class InternalStream : MemoryStream
+        private class InternalStream : MemoryStream
         {
             private int _offset = 0;
             private int _sub = 0;
-            private BytesArrayList _parent;
+            private readonly BytesArrayList _parent;
 
             public InternalStream(BytesArrayList parent)
             {
                 _parent = parent;
             }
 
-            public int Read(byte[] b, int off, int len)
+            public override int Read(byte[] b, int off, int len)
             {
                 if (off < 0 || len < 0 || len > b.Length - off)
-                {
                     throw new IndexOutOfRangeException();
-                }
-                else if (len == 0)
-                {
+                if (len == 0)
                     return 0;
-                }
-
-                if (_sub >= _parent._elementData.Length)
+                if (_sub >= _parent._size)
                     return -1;
 
                 int i = 0;
@@ -145,21 +150,21 @@ namespace lib.common
                     if (_offset >= _parent._elementData[_sub].Length)
                     {
                         _offset = 0;
-                        if (++_sub >= _parent._elementData.Length)
+                        if (++_sub >= _parent._size)
                             return i == 0 ? -1 : i;
                     }
                 }
             }
 
-            public int Read()
+            public override int ReadByte()
             {
-                if (_sub >= _parent._elementData.Length)
+                if (_sub >= _parent._size)
                     return -1;
 
                 if (_offset >= _parent._elementData[_sub].Length)
                 {
                     _offset = 0;
-                    if (++_sub >= _parent._elementData.Length)
+                    if (++_sub >= _parent._size)
                         return -1;
                 }
 
@@ -167,17 +172,15 @@ namespace lib.common
             }
         }
 
-        public bool HasNext()
+        public IEnumerator<byte[]> GetEnumerator()
         {
-            return _cursor != Size();
+            for (int i = 0; i < _size; i++)
+                yield return _elementData[i];
         }
 
-        public byte[] Next()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            int i = _cursor;
-            byte[] next = Get(i);
-            _cursor = i + 1;
-            return next;
+            return GetEnumerator();
         }
     }
 }

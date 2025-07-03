@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using lib.common;
 using Spotify;
@@ -58,7 +59,6 @@ namespace lib.mercury
             {
                 Uri = uri,
                 Method = "POST",
-                
             }.AddPayloadPart(part).Build();
         }
         
@@ -67,9 +67,15 @@ namespace lib.mercury
             return new Builder();
         }
 
-        public class Builder : Header
+        public class Builder
         {
             private readonly BytesArrayList _payload = new BytesArrayList();
+            private List<UserField> _userFields = new List<UserField>();
+            
+            public String Uri { get; set; }
+            public String Method { get; set; }
+            public int StatusCode { get; set; }
+            public String ContentType { get; set; }
 
             public Builder AddUserField(String name, String value)
             {
@@ -77,7 +83,7 @@ namespace lib.mercury
                 userField.Key = name;
                 userField.Value = Encoding.UTF8.GetBytes(value);
                 
-                UserFields.Add(userField);
+                _userFields.Add(userField);
                 
                 return this;
             }
@@ -89,7 +95,15 @@ namespace lib.mercury
 
             public RawMercuryRequest Build()
             {
-                return new RawMercuryRequest(this, _payload.ToArray());
+                Header header = new Header
+                {
+                    ContentType = ContentType,
+                    Method = Method,
+                    Uri = Uri,
+                    StatusCode = StatusCode,
+                };
+                header.UserFields.AddRange(_userFields);
+                return new RawMercuryRequest(header, _payload.ToArray());
             }
         }
     }

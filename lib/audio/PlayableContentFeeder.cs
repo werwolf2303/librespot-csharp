@@ -110,7 +110,7 @@ namespace lib.audio
                         }
                         catch (IOException ex)
                         {
-                            NotifyCunkError(index, new ChunkException(ex.Message));
+                            NotifyChunkError(index, new ChunkException(ex.Message));
                         }
                         return false;
                     }, 0));

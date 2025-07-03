@@ -19,11 +19,11 @@ namespace lib.mercury
         }
 
         public static JsonMercuryRequest<ResolvedContextWrapper> ResolveContext(String uri) {
-            return new JsonMercuryRequest<ResolvedContextWrapper>(RawMercuryRequest.Get(String.Format("hm://context-resolve/v1/%s", uri)), typeof(ResolvedContextWrapper));
+            return new JsonMercuryRequest<ResolvedContextWrapper>(RawMercuryRequest.Get(String.Format("hm://context-resolve/v1/{0}", uri)), typeof(ResolvedContextWrapper));
         }
         
         public static JsonMercuryRequest<GenericJson> RequestToken(String deviceId, String scope) {
-            return new JsonMercuryRequest<GenericJson>(RawMercuryRequest.Get(String.Format("hm://keymaster/token/authenticated?scope=%s&client_id=%s&device_id=%s", scope, KEYMASTER_CLIENT_ID, deviceId)), typeof(GenericJson));
+            return new JsonMercuryRequest<GenericJson>(RawMercuryRequest.Get(String.Format("hm://keymaster/token/authenticated?scope={0}&client_id={1}&device_id={2}", scope, KEYMASTER_CLIENT_ID, deviceId)), typeof(GenericJson));
         }
     }
 }

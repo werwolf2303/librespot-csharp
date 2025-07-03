@@ -1,7 +1,12 @@
 using System;
 using System.IO;
+using System.Net;
+using EasyHttp.Http;
 using lib.common;
+using lib.dealer;
+using lib.mercury;
 using log4net;
+using Newtonsoft.Json.Linq;
 using Tarczynski.NtpDateTime;
 
 namespace lib.core
@@ -68,9 +73,54 @@ namespace lib.core
 
         private static void updateMelody(Session session)
         {
-            // Needs the whole api class implemented
-            //ToDo: Implement 
-            throw new NotImplementedException();
+            try
+            {
+                HttpResponse resp = session.GetApi().Send(ApiClient.RequestMethod.OPTIONS, "/melody/v1/time");
+                if (resp.StatusCode != HttpStatusCode.OK)
+                {
+                    LOGGER.ErrorFormat("Failed notifying server of time request! (code: {0}, msg: {1})",
+                        (int)resp.StatusCode, resp.RawText);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is IOException || ex is MercuryClient.MercuryException)
+                {
+                    LOGGER.Error("Failed notifying server of time request!", ex);
+                    return;
+                }
+
+                throw;
+            }
+
+            try
+            {
+                HttpResponse resp = session.GetApi().Send(ApiClient.RequestMethod.GET, "/melody/v1/time");
+                if (resp.StatusCode != HttpStatusCode.OK)
+                {
+                    LOGGER.ErrorFormat("Failed requesting time! (code: {0}, msg: {1})",
+                        (int)resp.StatusCode, resp.RawText);
+                    return;
+                }
+
+                if (resp.ResponseStream == null)
+                    throw new Exception("Illegal state!");
+                Stream stram = resp.ResponseStream;
+
+                JObject obj = JObject.Parse(resp.RawText);
+                long diff = obj["timestamp"].ToObject<long>() - Utils.getUnixTimeStampInMilliseconds();
+                lock (_offsetLock)
+                {
+                    _offset = diff;
+                }
+
+                LOGGER.Info("Loaded time offset from melody: " + diff + "ms");
+            }
+            catch (Exception ex)
+            {
+                LOGGER.Error("Failed requesting time!", ex);
+            }
         }
 
         public static void updateWithPing(byte[] pingPayload)

@@ -68,6 +68,29 @@ namespace lib.common
             return data.ToArray();
         }
         
+        public static String[] split(String str, char c) {
+            if (str.Equals("")) return new String[0];
+
+            int size = 1;
+            for (int i = 0; i < str.Length; i++) {
+                if (str.ToCharArray()[i] == c) size++;
+            }
+
+            String tmp = str;
+            String[] split = new String[size];
+            for (int j = size - 1; j >= 0; j--) {
+                int i = tmp.LastIndexOf(c);
+                if (i == -1) {
+                    split[j] = tmp;
+                } else {
+                    split[j] = tmp.Substring(i + 1);
+                    tmp = tmp.Substring(0, i);
+                }
+            }
+
+            return split;
+        }
+        
         public static String truncateMiddle(String str, int length) {
             if (length <= 1) throw new ArgumentException("Length must be greater than zero.");
 

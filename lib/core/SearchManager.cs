@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Text;
 using System.Web;
+using lib.mercury;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace lib.core
@@ -16,6 +18,19 @@ namespace lib.core
             _session = session;
         }
 
+        public JObject Request(SearchRequest request)
+        {
+            if (request._username.Equals("")) request._username = _session.Username();
+            if (request._country.Equals("")) request._country = _session.GetCountryCode();
+            if (request._locale.Equals("")) request._locale = _session.GetPreferredLocale();
+
+            MercuryClient.Response resp = _session.GetMercury().SendSync(RawMercuryRequest.Get(request.BuildUrl()));
+
+            if (resp.StatusCode != 200) throw new SearchException(resp.StatusCode);
+
+            return JObject.Load(new JsonTextReader(new StreamReader(resp.Payload.Stream())));
+        }
+
         public class SearchException : IOException
         {
             internal SearchException(int statusCode) : base("Search failed with code " + statusCode + ".")
@@ -25,13 +40,13 @@ namespace lib.core
 
         public class SearchRequest
         {
-            private String _query;
-            private int _limit = 10;
-            private String _imageSize = "";
-            private String _catalogue = "";
-            private String _country = "";
-            private String _locale = "";
-            private String _username = "";
+            internal String _query;
+            internal int _limit = 10;
+            internal String _imageSize = "";
+            internal String _catalogue = "";
+            internal String _country = "";
+            internal String _locale = "";
+            internal String _username = "";
 
             public SearchRequest(String query)
             {
@@ -40,7 +55,7 @@ namespace lib.core
                 if (_query.Equals("")) throw new ArgumentException("Search query is empty.");
             }
 
-            private String BuildUrl()
+            internal String BuildUrl()
             {
                 StringBuilder url = new StringBuilder(BASE_URL);
                 url.Append(HttpUtility.UrlEncode(_query));

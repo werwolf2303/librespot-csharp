@@ -35,9 +35,6 @@ namespace lib.crypto
             {
                 sendCipher.Nonce(Utils.toByteArray(sendNonce));
                 sendNonce++;
-                
-                Console.WriteLine(Enum.Parse(typeof(Packet.Type), cmd.ToString()));
-                Console.WriteLine("Len: " + payload.Length);
 
                 MemoryStream buffer = new MemoryStream(1 + 2 + payload.Length);
                 BinaryWriter bufferWriter = new BinaryWriter(buffer);

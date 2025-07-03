@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using lib.common;
 using lib.core;
@@ -38,9 +39,9 @@ namespace lib.mercury
 
             if (response.Payload.Size() > 0)
             {
-                while (response.Payload.HasNext())
+                foreach (byte[] payload in response.Payload)
                 {
-                    Subscription sub = Serializer.Deserialize<Subscription>(new MemoryStream(response.Payload.Next()));
+                    Subscription sub = Serializer.Deserialize<Subscription>(new MemoryStream(payload));
                     _subscriptions.Add(new InternalSubListener(sub.Uri, listener, true));
                 }
             }
@@ -124,7 +125,7 @@ namespace lib.mercury
                 _seqHolder++;
             }
             
-            LOGGER.DebugFormat("Send Mercury requst, seq: {0}, uri: {1}, method: {2}", seq, request._header.Uri, request._header.Method);
+            LOGGER.DebugFormat("Send Mercury request, seq: {0}, uri: {1}, method: {2}", seq, request._header.Uri, request._header.Method);
             
             outWriter.WriteBigEndian((short) 4); // Seq length
             outWriter.WriteBigEndian(seq); // Seq
@@ -154,18 +155,21 @@ namespace lib.mercury
 
         public void Dispatch(Packet packet)
         {
-            BinaryReader payload = new BinaryReader(new MemoryStream(packet._payload));
-            int seqLength = payload.ReadInt16();
+            ByteBuffer payload = ByteBuffer.Wrap(packet._payload);
+            int seqLength = payload.GetShort();
             long seq;
-            if (seqLength == 2) seq = payload.ReadInt16();
-            else if (seqLength == 4) seq = payload.ReadInt32();
-            else if (seqLength == 8) seq = payload.ReadInt64();
-            else throw new InvalidOperationException("Unknown seq length: " + seqLength);
+            if (seqLength == 2) seq = payload.GetShort();
+            else if (seqLength == 4) seq = payload.GetInt();
+            else if (seqLength == 8) seq = payload.GetLong();
+            else
+            {
+                throw new InvalidOperationException("Unknown seq length: " + seqLength);
+            }
 
             byte flags = payload.ReadByte();
-            short parts = payload.ReadInt16();
+            short parts = payload.GetShort();
 
-            BytesArrayList partial = _partials[seq];
+            BytesArrayList partial = _partials.TryGetValue(seq, out BytesArrayList partials) ? partials : null;
             if (partial == null || flags == 0)
             {
                 partial = new BytesArrayList();
@@ -176,7 +180,7 @@ namespace lib.mercury
 
             for (int i = 0; i < parts; i++)
             {
-                short size = payload.ReadInt16();
+                short size = payload.GetShort();
                 byte[] buffer = new byte[size];
                 payload.Read(buffer, 0, buffer.Length);
                 partial.Add(buffer);
@@ -320,7 +324,10 @@ namespace lib.mercury
             {
                 lock (_referenceLock)
                 {
-                    Monitor.Wait(_referenceLock);
+                    while (_reference == null)
+                    {
+                        Monitor.Wait(_referenceLock);
+                    }
                     return _reference;
                 }
             }

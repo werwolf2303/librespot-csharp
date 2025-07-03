@@ -37,7 +37,8 @@ namespace lib.dealer
         {
             GET,
             POST,
-            PUT
+            PUT,
+            OPTIONS
         };
 
         public ApiClient(Session session)
@@ -46,7 +47,7 @@ namespace lib.dealer
             _baseUrl = "https://" + session.GetAPResolver().getRandomSpclient();
         }
 
-        private HttpResponse Send(RequestMethod method, String suffix, Headers headers = null, byte[] body = null,
+        public HttpResponse Send(RequestMethod method, String suffix, Headers headers = null, byte[] body = null,
             String requestBodyType = "application/x-protobuf")
         {
             if (_clientToken == null)
@@ -78,6 +79,9 @@ namespace lib.dealer
                     break;
                 case RequestMethod.PUT:
                     response = _session.GetClient().Put(_baseUrl + suffix, body, requestBodyType);
+                    break;
+                case RequestMethod.OPTIONS:
+                    response = _session.GetClient().Options(_baseUrl + suffix);
                     break;
             }
             
@@ -295,41 +299,16 @@ namespace lib.dealer
             internal StatusCodeException(HttpResponse resp) :
                 base(String.Format("{0}: {1}", (int)resp.StatusCode, resp.RawText))
             {
-                code = (int) resp.StatusCode;
+                code = (int)resp.StatusCode;
             }
 
             internal static void CheckStatus(HttpResponse resp)
             {
                 if (resp.ResponseStream == null) throw new StatusCodeException(resp);
-                if ((int) resp.StatusCode != 200) throw new StatusCodeException(resp);
+                if ((int)resp.StatusCode != 200) throw new StatusCodeException(resp);
             }
         }
 
-        public class Headers : Dictionary<String, String>
-        {
-            private Headers(Dictionary<String, String> headers)
-            {
-                foreach (String key in headers.Keys) 
-                    Add(key, headers[key]);
-            }
-            
-            public class Builder
-            {
-                private Dictionary<String, String> _headers = new Dictionary<string, string>();
-
-                public Builder Add(String key, String value)
-                {
-                    _headers.Add(key, value);
-                    return this;
-                }
-
-                public Headers Build()
-                {
-                    return new Headers(_headers);
-                }
-            }
-        }
-        
         public delegate void AsyncRequestResponse(HttpResponse resp, StatusCodeException optionalException = null);
     }
 }

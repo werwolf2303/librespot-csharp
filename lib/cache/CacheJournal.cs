@@ -74,9 +74,9 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            // synchronized (io) {
-            return entry.hasChunk(index);
-            // }
+            lock (io) { 
+                return entry.hasChunk(index);
+            }
         }
 
         /// <exception cref="IOException"></exception>
@@ -87,9 +87,9 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            // synchronized (io) {
-            entry.setChunk(index, val);
-            // }
+            lock (io) { 
+                entry.setChunk(index, val);
+            }
         }
 
         /// <exception cref="IOException"></exception>
@@ -98,9 +98,10 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            // synchronized (io) {
-            return entry.getHeaders();
-            // }
+            lock (io)
+            {
+                return entry.getHeaders();
+            }
         }
 
         /// <exception cref="IOException"></exception>
@@ -109,9 +110,10 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            // synchronized (io) {
-            return entry.getHeader(id);
-            // }
+            lock (io)
+            {
+                return entry.getHeader(id);
+            }
         }
 
         /// <exception cref="IOException"></exception>
@@ -125,9 +127,10 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            // synchronized (io) {
-            entry.setHeader(headerId, strValue);
-            // }
+            lock (io)
+            {
+                entry.setHeader(headerId, strValue);
+            }
         }
 
         /// <exception cref="IOException"></exception>
@@ -136,9 +139,10 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) return;
 
-            // synchronized (io) {
-            entry.remove();
-            // }
+            lock (io)
+            {
+                entry.remove();
+            }
 
             entries.Remove(streamId);
         }
@@ -147,38 +151,39 @@ namespace lib.cache
         public List<string> getEntries()
         {
             List<string> list = new List<string>(1024);
-            
-            // synchronized (io) {
-            io.Seek(0, SeekOrigin.Begin);
-            
-            int i = 0;
-            while (true)
+
+            lock (io)
             {
-                io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                io.Seek(0, SeekOrigin.Begin);
 
-                int first = io.ReadByte();
-                if (first == -1) // EOF
-                    break;
-
-                if (first == 0)
+                int i = 0;
+                while (true)
                 {
-                    // Empty spot
+                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+
+                    int first = io.ReadByte();
+                    if (first == -1) // EOF
+                        break;
+
+                    if (first == 0)
+                    {
+                        // Empty spot
+                        i++;
+                        continue;
+                    }
+
+                    byte[] id = new byte[MAX_ID_LENGTH];
+                    id[0] = (byte)first;
+                    io.Read(id, 1, MAX_ID_LENGTH - 1);
+
+                    String idStr = trimArrayToNullTerminator(id);
+                    Entry entry = new Entry(idStr, i * JOURNAL_ENTRY_SIZE);
+                    entries.Add(idStr, entry);
+                    list.Add(idStr);
+
                     i++;
-                    continue;
                 }
-
-                byte[] id = new byte[MAX_ID_LENGTH];
-                id[0] = (byte)first;
-                io.Read(id, 1, MAX_ID_LENGTH - 1);
-
-                String idStr = trimArrayToNullTerminator(id);
-                Entry entry = new Entry(idStr, i * JOURNAL_ENTRY_SIZE);
-                entries.Add(idStr, entry);
-                list.Add(idStr);
-
-                i++;
             }
-            // }
 
             return list;
         }
@@ -192,36 +197,37 @@ namespace lib.cache
             if (entry != null) return entry;
 
             byte[] idBytes = Encoding.ASCII.GetBytes(id);
-            
-            // synchronized (io) {
-            io.Seek(0, SeekOrigin.Begin);
 
-            int i = 0;
-            while (true)
+            lock (io)
             {
-                io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                io.Seek(0, SeekOrigin.Begin);
 
-                int first = io.ReadByte();
-                if (first == -1) // EOF
-                    return null;
-
-                if (first == 0)
+                int i = 0;
+                while (true)
                 {
-                    // Empty spot
+                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+
+                    int first = io.ReadByte();
+                    if (first == -1) // EOF
+                        return null;
+
+                    if (first == 0)
+                    {
+                        // Empty spot
+                        i++;
+                        continue;
+                    }
+
+                    if (checkId(io, first, idBytes))
+                    {
+                        entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
+                        entries.Add(id, entry);
+                        return entry;
+                    }
+
                     i++;
-                    continue;
                 }
-
-                if (checkId(io, first, idBytes))
-                {
-                    entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
-                    entries.Add(id, entry);
-                    return entry;
-                }
-
-                i++;
             }
-            // }
         }
 
         /// <exception cref="IOException"></exception>
@@ -229,35 +235,37 @@ namespace lib.cache
         {
             if (find(id) != null) return;
 
-            // synchronized (io) {
-            io.Seek(0, SeekOrigin.Begin);
-
-            int i = 0;
-            while (true)
+            lock (io)
             {
-                io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                io.Seek(0, SeekOrigin.Begin);
 
-                int first = io.ReadByte();
-                if (first == 0 || first == -1)
+                int i = 0;
+                while (true)
                 {
-                    // First empty spot or EOF
-                    Entry entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
-                    entry.writeId();
-                    entries.Add(id, entry);
-                    return;
-                }
+                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
 
-                i++;
+                    int first = io.ReadByte();
+                    if (first == 0 || first == -1)
+                    {
+                        // First empty spot or EOF
+                        Entry entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
+                        entry.writeId();
+                        entries.Add(id, entry);
+                        return;
+                    }
+
+                    i++;
+                }
             }
-            // }
         }
 
         /// <exception cref="IOException"></exception>
         public void close()
         {
-            // synchronized (io) {
-            io.Close();
-            // }
+            lock (io)
+            {
+                io.Close();
+            }
         }
 
         /// <exception cref="IOException"></exception>

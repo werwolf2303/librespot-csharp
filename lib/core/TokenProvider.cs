@@ -43,7 +43,7 @@ namespace lib.core
                     return token;
                 }
                 
-                LOGGER.DebugFormat("Token expired or not suitable, requesting agin. (scopes: {0}, oldToken: {1})", Arrays.ToString(scopes), token);
+                LOGGER.DebugFormat("Token expired or not suitable, requesting again. (scopes: {0}, oldToken: {1})", Arrays.ToString(scopes), token);
                 GenericJson resp = _session.GetMercury()
                     .SendSync(MercuryRequests.RequestToken(_session.GetDeviceId(), String.Join(",", scopes)));
                 token = new StoredToken(resp.Obj);

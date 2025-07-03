@@ -23,6 +23,7 @@ using log4net;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -32,6 +33,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using ProtoBuf;
 using Spotify;
+using spotify.explicitcontent.proto;
 using ClientHello = Spotify.ClientHello;
 
 namespace lib.core
@@ -65,18 +67,17 @@ namespace lib.core
             0xeb, 0x00, 0x06, 0xa2, 0x5a, 0xee, 0xa1, 0x1b, 0x13, 0x87, 0x3c, 0xd7,
             0x19, 0xe6, 0x55, 0xbd
         };
-
         private ApResolver _apResolver;
         private DiffieHellman _keys;
         private Inner _inner;
         private ScheduledExecutorService _scheduler = new ScheduledExecutorService();
         private Object _authLock = new Object();
-        private bool _authLockState = false;
+        private bool _authLockState;
         private HttpClient _client;
         private List<CloseListener> _closeListeners = new List<CloseListener>();
         private List<ReconnectionListener> _reconnectionListeners = new List<ReconnectionListener>();
         private Object _reconnectionListenersLock = new Object();
-        private Dictionary<String, String> _userAttributtes = new Dictionary<String, String>();
+        private Dictionary<String, String> _userAttributes = new Dictionary<String, String>();
         private ConnectionHolder _conn;
         private volatile CipherPair _cipherPair;
         private Receiver _receiver;
@@ -87,15 +88,14 @@ namespace lib.core
         private TokenProvider _tokenProvider;
         private CdnManager _cdnManager;
         private CacheManager _cacheManager;
-        //private DealerClient _dealer;
+        private DealerClient _dealer;
         private ApiClient _api;
         private SearchManager _search;
         private PlayableContentFeeder _contentFeeder;
         private EventService _eventService;
-        
-        private String _countryCode = null;
-        private volatile bool _closed = false;
-        private volatile bool _closing = false;
+        private String _countryCode;
+        private volatile bool _closed;
+        private volatile bool _closing;
         private volatile ScheduledExecutorService.ScheduledFuture<int> _scheduledReconnect;
 
         private Session(Inner inner)
@@ -136,14 +136,17 @@ namespace lib.core
             return client;
         }
 
-        private static int ReadBlobInt(byte[] buffer)
+        private static int ReadBlobInt(ByteBuffer buffer)
         {
-            int pos = 0;
-            int lo = buffer[pos];
-            pos++;
+            int lo = buffer.ReadByte();
             if ((lo & 0x80) == 0) return lo;
-            int hi = buffer[pos];
+            int hi = buffer.ReadByte();
             return lo & 0x7f | hi << 7;
+        }
+        
+        public HttpClient GetClient()
+        {
+            return _client;
         }
 
         private void Connect()
@@ -244,9 +247,7 @@ namespace lib.core
 
             byte[] challenge = new byte[mac.GetMacSize()];
             mac.DoFinal(challenge, 0);
-            
-            Console.WriteLine(challenge.Length);
-            
+
             ClientResponsePlaintext clientResponsePlaintext = new ClientResponsePlaintext
             {
                 LoginCryptoResponse = new LoginCryptoResponseUnion
@@ -319,13 +320,85 @@ namespace lib.core
             AuthenticatePartial(credentials, false);
 
             if (credentials.GetType() == AuthenticationType.AuthenticationSpotifyToken.GetType())
-            {
                 Reconnect();
-            }
 
             lock (_authLock)
             {
                 _mercuryClient = new MercuryClient(this);
+                _tokenProvider = new TokenProvider(this);
+                _audioKeyManager = new AudioKeyManager(this);
+                _channelManager = new ChannelManager(this);
+                _api = new ApiClient(this);
+                _cdnManager = new CdnManager(this);
+                _contentFeeder = new PlayableContentFeeder(this);
+                _cacheManager = new CacheManager(_inner.Conf);
+                _dealer = new DealerClient(this);
+                _search = new SearchManager(this);
+                _eventService = new EventService(this);
+
+                _authLockState = false;
+                Monitor.PulseAll(_authLock);
+            }
+            
+            TimeProvider.init(this);
+            _dealer.Connect();
+            
+            
+            LOGGER.InfoFormat("Authenticated as {0}!", _apWelcome.CanonicalUsername);
+            GetMercury().InterestedIn(new MercuryAttributesUpdate(this), "spotify:user:attributes:update");
+            GetDealer().AddMessageListener(new DealerConnectLogout(this), "hm://connect-state/v1/connect/logout");
+        }
+        
+        private class DealerConnectLogout : DealerClient.MessageListener
+        {
+            private Session _session;
+
+            internal DealerConnectLogout(Session session)
+            {
+                _session = session;
+            }
+            
+            public void OnMessage(string uri, Dictionary<string, string> headers, byte[] payload)
+            {
+                if (uri.Equals("hm://connect-state/v1/connect/logout"))
+                {
+                    try
+                    {
+                        _session.Dispose();
+                    }
+                    catch (IOException ex)
+                    {
+                        LOGGER.Error("Failed closing session due to logout.", ex);
+                    }
+                }
+            }
+        }
+
+        private class MercuryAttributesUpdate : ISubListener
+        {
+            private Session _session;
+
+            internal MercuryAttributesUpdate(Session session)
+            {
+                _session = session;
+            }
+            
+            public void Event(MercuryClient.Response resp)
+            {
+                if (resp.Uri.Equals("spotify:user:attributes:update")) {
+                    UserAttributesUpdate attributesUpdate;
+                    try {
+                        attributesUpdate = Serializer.Deserialize<UserAttributesUpdate>(resp.Payload.Stream());
+                    } catch (IOException ex) {
+                        LOGGER.Warn("Failed parsing user attributes update.", ex);
+                        return;
+                    }
+
+                    foreach (KeyValuePair pair in attributesUpdate.Pairs) {
+                        _session._userAttributes.Add(pair.Key, pair.Value);
+                        LOGGER.DebugFormat("Updated user attribute: {0} -> {1}", pair.Key, pair.Value);
+                    }
+                }
             }
         }
 
@@ -412,15 +485,72 @@ namespace lib.core
 
             if (_scheduledReconnect != null) _scheduledReconnect.Cancel(true);
 
+            _closing = true;
             
-            //ToDo: Implement this fully
+            _scheduler.Dispose();
+
+            if (_dealer != null)
+            {
+                _dealer.Dispose();
+                _dealer = null;
+            }
+
+            _audioKeyManager = null;
+
+            if (_channelManager != null) {
+                _channelManager.Dispose();
+                _channelManager = null;
+            }
+
+            if (_eventService != null) {
+                _eventService.Dispose();
+                _eventService = null;
+            }
+
+            if (_mercuryClient != null) {
+                _mercuryClient.Dispose();
+                _mercuryClient = null;
+            }
+
+            if (_receiver != null) {
+                _receiver.Stop();
+                _receiver = null;
+            }
+
+            _client = null;
+
+            if (_conn != null)
+            {
+                _conn.Socket.Close();
+                _conn = null;
+            }
+
+            lock (_authLock)
+            {
+                _apWelcome = null;
+                _cipherPair = null;
+                _closed = true;
+            }
+
+            lock (_closeListeners)
+            {
+                foreach (var listener in _closeListeners)
+                {
+                    listener.OnClose();
+                }
+                
+                _closeListeners.Clear();
+            }
             
+            _reconnectionListeners.Clear();
             
+            LOGGER.InfoFormat("Closed session. (deviceId: {0})", _inner.DeviceId);
         }
 
         private void SendUnchecked(Packet.Type cmd, byte[] payload)
         {
-            if (_conn == null) throw new Exception("Illegal state! Cannot write to missing connection.");
+            if (_conn == null) 
+                throw new Exception("Illegal state! Cannot write to missing connection.");
 
             _cipherPair.SendEncoded(_conn.Out, (byte)cmd, payload);
         }
@@ -473,29 +603,135 @@ namespace lib.core
         public MercuryClient GetMercury()
         {
             WaitAuthLock();
+            if (_mercuryClient == null) throw new Exception("Session isn't authenticated!");
             return _mercuryClient;
+        }
+        
+        public AudioKeyManager GetAudioKey()
+        {
+            WaitAuthLock();
+            if (_audioKeyManager == null) throw new Exception("Session isn't authenticated!");
+            return _audioKeyManager;
+        }
+
+        public CacheManager GetCache()
+        {
+            WaitAuthLock();
+            if (_cacheManager == null) throw new Exception("Session isn't authenticated!");
+            return _cacheManager;
+        }
+
+        public CdnManager GetCdn()
+        {
+            WaitAuthLock();
+            if (_cdnManager == null) throw new Exception("Session isn't authenticated!");
+            return _cdnManager;
+        }
+
+        public ChannelManager GetChannel()
+        {
+            WaitAuthLock();
+            if (_channelManager == null) throw new Exception("Session isn't authenticated!");
+            return _channelManager;
         }
 
         public TokenProvider GetTokens()
         {
+            WaitAuthLock();
+            if (_tokenProvider == null) throw new Exception("Session isn't authenticated!");
             return _tokenProvider;
         }
-        
-        public HttpClient GetClient()
+
+        public DealerClient GetDealer()
         {
-            return _client;
+            WaitAuthLock();
+            if (_dealer == null) throw new Exception("Session isn't authenticated!");
+            return _dealer;
         }
 
+        public ApiClient GetApi()
+        {
+            WaitAuthLock();
+            if (_api == null) throw new Exception("Session isn't authenticated!");
+            return _api;
+        }
+
+        public PlayableContentFeeder GetContentFeeder()
+        {
+            WaitAuthLock();
+            if (_contentFeeder == null) throw new Exception("Session isn't authenticated!");
+            return _contentFeeder;
+        }
+
+        public SearchManager GetSearch()
+        {
+            WaitAuthLock();
+            if (_search == null) throw new Exception("Session isn't authenticated!");
+            return _search;
+        }
+
+        public EventService GetEventService()
+        {
+            WaitAuthLock();
+            if (_eventService == null) throw new Exception("Session isn't authenticated!");
+            return _eventService;
+        }
+
+        public String Username()
+        {
+            return _apWelcome.CanonicalUsername;
+        }
+
+        public APWelcome GetAPWelcome()
+        {
+            WaitAuthLock();
+            if (_apWelcome == null) throw new Exception("Session isn't authenticated!");
+            return _apWelcome;
+        }
+
+        public bool IsValid()
+        {
+            if (_closed) return false;
+            
+            WaitAuthLock();
+            return _apWelcome != null && _conn != null && _conn.Socket.Connected;
+        }
+
+        public bool Reconnecting()
+        {
+            return !_closing && !_closed && _conn == null;
+        }
+
+        public String GetCountryCode()
+        {
+            return _countryCode;
+        }
+        
         public String GetDeviceId()
         {
             return _inner.DeviceId;
         }
 
+        public String GetPreferredLocale()
+        {
+            return _inner.PreferredLocale;
+        }
+
+        public DeviceType GetDeviceType()
+        {
+            return _inner.DeviceType;
+        }
+
+        public String GetDeviceName()
+        {
+            return _inner.DeviceName;
+        }
+        
         public RandomNumberGenerator GetRandom()
         {
             return _inner.Random;
         }
-
+        
         public Configuration GetConfiguration()
         {
             return _inner.Conf;
@@ -568,19 +804,30 @@ namespace lib.core
             XmlNode products = doc.GetElementsByTagName("products")[0];
 
             if (doc.ChildNodes.Count == 0) return;
-            XmlNode product = doc.ChildNodes[0];
+            XmlNode product = products.ChildNodes[0];
 
             XmlNodeList properties = product.ChildNodes;
-            for (int i = 0; i < products.ChildNodes.Count; i++)
+            
+            for (int i = 0; i < properties.Count; i++)
             {
                 XmlNode node = properties[i];
-                _userAttributtes.Add(node.Name, node.InnerText);
+                _userAttributes.Add(node.Name, node.InnerText);
             }
             
-            String userAttributesDebugString = "{" + string.Join(",", _userAttributtes.Select(kv => kv.Key + "=" + kv.Value).ToArray()) + "}";
+            String userAttributesDebugString = "{" + string.Join(",", _userAttributes.Select(kv => kv.Key + "=" + kv.Value).ToArray()) + "}";
             LOGGER.Debug("Parsed product info: " + userAttributesDebugString);
         }
 
+        public String GetUserAttribute(String key)
+        {
+            return _userAttributes[key];
+        }
+
+        public String GetUserAttribute(String key, String fallback)
+        {
+            return _userAttributes.TryGetValue(key, out String value) ? value : fallback;
+        }
+        
         public interface ReconnectionListener
         {
             void OnConnectionDropped();
@@ -599,13 +846,13 @@ namespace lib.core
             public String DeviceName;
             public RandomNumberGenerator Random;
             public String DeviceId;
-            public Session.Configuration Conf;
+            public Configuration Conf;
             public String PreferredLocale;
 
             public Inner(DeviceType deviceType, String deviceName, String deviceId, String preferredLocale, Configuration conf)
             {
                 Random = RandomNumberGenerator.Create();
-                preferredLocale = preferredLocale;
+                PreferredLocale = preferredLocale;
                 Conf = conf;
                 DeviceType = deviceType;
                 DeviceName = deviceName; 
@@ -705,6 +952,85 @@ namespace lib.core
             {
             }
 
+            private static LoginCredentials DecryptBlob(String deviceId, String username, byte[] encryptedBlob)
+            {
+                encryptedBlob = Base64.Decode(encryptedBlob);
+                
+                Sha1Digest sha1 = new Sha1Digest();
+                byte[] deviceIdBytes = Encoding.UTF8.GetBytes(deviceId);
+                byte[] secret = new byte[sha1.GetDigestSize()];
+                sha1.BlockUpdate(deviceIdBytes, 0, deviceIdBytes.Length);
+                sha1.DoFinal(secret, 0);
+
+                Pkcs5S2ParametersGenerator gen = new Pkcs5S2ParametersGenerator(new Sha1Digest());
+                gen.Init(secret, Encoding.UTF8.GetBytes(username), 0x100);
+                byte[] baseKey = ((KeyParameter)gen.GenerateDerivedParameters(160)).GetKey(); 
+
+                sha1 = new Sha1Digest();
+                byte[] digest = new byte[sha1.GetDigestSize()];
+                sha1.BlockUpdate(baseKey, 0, baseKey.Length);
+                sha1.DoFinal(digest, 0);
+
+                byte[] key = new byte[24];
+                Array.Copy(digest, 0, key, 0, 20);
+                byte[] int20 = BitConverter.GetBytes(20);
+                if (BitConverter.IsLittleEndian)
+                    Array.Reverse(int20);
+                Array.Copy(int20, 0, key, 20, 4);
+
+                IBufferedCipher cipher = CipherUtilities.GetCipher("AES/ECB/NoPadding");
+                cipher.Init(false, new KeyParameter(key)); 
+                byte[] decryptedBlob = cipher.DoFinal(encryptedBlob);
+
+                int l = decryptedBlob.Length;
+                for (int i = 0; i < l - 0x10; i++)
+                    decryptedBlob[l - i - 1] ^= decryptedBlob[l - i - 0x11];
+                
+                ByteBuffer blob = ByteBuffer.Wrap(decryptedBlob);
+                blob.ReadByte();
+                int len = ReadBlobInt(blob);
+                byte[] lenBytes = new byte[len];
+                blob.Read(lenBytes, 0, lenBytes.Length);
+                blob.ReadByte();
+
+                int typeInt = ReadBlobInt(blob);
+                AuthenticationType type = AuthenticationType.AuthenticationFacebookToken;
+                bool foundType = false;
+                foreach (AuthenticationType t in Enum.GetValues(typeof(AuthenticationType)))
+                    if ((int)t == typeInt)
+                    {
+                        type = t;
+                        foundType = true;
+                        break;
+                    }
+                if (!foundType)
+                    throw new IOException("Unknown AuthenticationType: " + typeInt);
+
+                blob.ReadByte();
+
+                len = ReadBlobInt(blob);
+                byte[] authData = new byte[len];
+                blob.Read(authData, 0, len);
+
+                return new LoginCredentials
+                {
+                    Username = username,
+                    Typ = type,
+                    AuthData = authData
+                };
+            }
+
+            public LoginCredentials GetCredentials()
+            {
+                return _loginCredentials;
+            }
+
+            public Builder Credentials(LoginCredentials credentials)
+            {
+                _loginCredentials = credentials;
+                return this;
+            }
+
             public Builder Stored()
             {
                 if (!Conf.StoreCredentials) throw new Exception("Illegal state! Credentials storing not enabled!");
@@ -740,6 +1066,15 @@ namespace lib.core
                 return this;
             }
 
+            public Builder Blob(String username, byte[] blob)
+            {
+                if (DeviceId == null)
+                    throw new Exception("You must specify the device ID first.");
+                
+                _loginCredentials = DecryptBlob(DeviceId, username, blob);
+                return this;
+            }
+
             public Session Create()
             {
                 if (_loginCredentials == null)
@@ -750,7 +1085,7 @@ namespace lib.core
                 Session session = new Session(new Inner(DeviceType, DeviceName, DeviceId, PreferredLocale, Conf));
                 session.Connect();
                 session.Authenticate(_loginCredentials);
-                //ToDo: session.api().setClientToken(clientToken);
+                session.GetApi().SetClientToken(ClientToken);
                 return session;
             }
         }
@@ -966,6 +1301,8 @@ namespace lib.core
                     }
 
                     if (!_running) break;
+                    
+                    Console.Error.WriteLine(cmd);
 
                     switch (cmd)
                     {
@@ -1016,21 +1353,21 @@ namespace lib.core
                         case Packet.Type.MercuryReq:
                             _sessionParent.GetMercury().Dispatch(packet);
                             break;
-                        /*case Packet.Type.AesKey:
+                        case Packet.Type.AesKey:
                         case Packet.Type.AesKeyError:
-                            audioKey().dispatch(packet);
+                            _sessionParent.GetAudioKey().Dispatch(packet);
                             break;
                         case Packet.Type.ChannelError:
                         case Packet.Type.StreamChunkRes:
-                            channel().dispatch(packet);
-                            break;*/
+                            _sessionParent.GetChannel().Dispatch(packet);
+                            break;
                         case Packet.Type.ProductInfo:
                             try
                             {
                                 _sessionParent.ParseProductInfo(packet._payload);
                             }
-                            catch (Exception ex) {
-                                LOGGER.Warn("Failed parsing product info!", ex); 
+                            catch (IOException ex) {
+                                LOGGER.Warn("Failed parsing product info!", ex);
                             }
                             break;
                         default:

@@ -16,9 +16,10 @@ namespace lib.audio.storage
         private CacheManager.Handler _cache;
         private int _size = -1;
         private int _chunks = -1;
-        private volatile bool _closed = false;
-        private AbsChunkedInputStream.ChunkException _exception = null;
-
+        private volatile bool _closed;
+        private AbsChunkedInputStream.ChunkException _exception;
+        private readonly Object _lock = new Object();
+        
         internal AudioFileFetch(CacheManager.Handler cache)
         {
             _cache = cache;
@@ -32,7 +33,7 @@ namespace lib.audio.storage
 
         public void WriteHeader(int id, byte[] bytes, bool cached)
         {
-            lock (this)
+            lock (_lock)
             {
                 if (_closed) return;
 
@@ -56,7 +57,7 @@ namespace lib.audio.storage
                     _chunks = (_size + ChannelManager.CHUNK_SIZE - 1) / ChannelManager.CHUNK_SIZE;
 
                     _exception = null;
-                    Monitor.PulseAll(this);
+                    Monitor.PulseAll(_lock);
                 }
                 else
                 {
@@ -67,23 +68,25 @@ namespace lib.audio.storage
 
         public void StreamError(int chunkIndex, short code)
         {
-            lock (this)
+            lock (_lock)
             {
                 LOGGER.ErrorFormat("Stream error, index: {0}, code: {1}", chunkIndex, code);
                 
                 _exception = AbsChunkedInputStream.ChunkException.FromStreamError(code);
-                Monitor.PulseAll(this);
+                Monitor.PulseAll(_lock);
             }
         }
 
-        void WaitChunk()
+        internal void WaitChunk()
         {
-            lock (this)
+            lock (_lock)
             {
-                if (_size != -1) return;
-
+                while (_size == -1 && _exception == null)
+                {
+                    Monitor.Wait(_lock);
+                }
+                
                 _exception = null;
-                Monitor.Wait(this);
 
                 if (_exception != null)
                     throw _exception;

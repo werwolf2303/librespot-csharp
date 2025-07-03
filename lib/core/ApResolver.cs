@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using EasyHttp.Http;
 using lib.common;
 using log4net;
@@ -62,15 +63,17 @@ namespace lib.core
             foreach (String type in types)
                 map.Add(type, getUrls(response, type));
 
-            // synchronized (pool) {
-            foreach (KeyValuePair<String, List<String>> pair in map)
+            lock (pool)
             {
-                pool.Add(pair.Key, pair.Value);
+                foreach (KeyValuePair<String, List<String>> pair in map)
+                {
+                    pool.Add(pair.Key, pair.Value);
+                }
+
+                poolReady = true;
+                Monitor.PulseAll(pool);
             }
-            poolReady = true;
-            // pool.notifyAll();
-            // }
-            
+
             LOGGER.Info("Loaded aps into pool: " + Utils.ConvertApsToString(pool));
         }
 
@@ -78,13 +81,10 @@ namespace lib.core
         {
             if (!poolReady)
             {
-                //synchronized (pool) {
-                //    try {
-                //        pool.wait();
-                //    } catch (InterruptedException ex) {
-                //        throw new IllegalStateException(ex);
-                //    }
-                //}
+                lock (pool)
+                {
+                    Monitor.Wait(pool);
+                }
             }
         }
 
@@ -94,10 +94,6 @@ namespace lib.core
 
             List<String> urls = pool[type];
             if (urls == null || urls.Count == 0) throw new Exception("Illegal state");
-            if (type == "accesspoint")
-            {
-                return "ap-gew4.spotify.com:80";
-            }
             return urls[new Random().Next(0, urls.Count - 1)];
         }
 

@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using decoder_api;
 using lib.audio.format;
-using lib.common;
-using log4net;
 
 namespace lib.audio.decoders
 {
     public class Decoders
     {
         private static Dictionary<int, Type> decoders = new Dictionary<int, Type>();
-        private static ILog LOGGER = LogManager.GetLogger(typeof(Decoders));
 
         static Decoders()
         {
@@ -23,7 +20,7 @@ namespace lib.audio.decoders
         {
         }
 
-        public static Decoder initDecoder(SuperAudioFormat format, Stream audioIn,
+        public static Decoder InitDecoder(SuperAudioFormat format, Stream audioIn,
             float normalizationFactor)
         {
             audioIn.Seek((int)audioIn.Position, SeekOrigin.Begin);
