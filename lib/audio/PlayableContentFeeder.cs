@@ -1,26 +1,34 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using deps.HttpSharp;
+using lib.audio.cdn;
 using lib.audio.format;
 using lib.audio.storage;
 using lib.common;
 using lib.core;
+using lib.dealer;
 using lib.metadata;
 using log4net;
+using Newtonsoft.Json.Linq;
+using ProtoBuf;
+using spotify.download.proto;
 using spotify.metadata.proto;
+using AudioFile = spotify.metadata.proto.AudioFile;
 
 namespace lib.audio
 {
     public class PlayableContentFeeder
     {
         private static ILog LOGGER = LogManager.GetLogger(typeof(PlayableContentFeeder));
-        private static String STORAGE_RESOLVE_INTERACTIVE = "/storage-resolve/files/audio/interactive/%s";
-        private static String STORAGE_RESOLVE_INTERACTIVE_PREFETCH = "/storage-resolve/files/audio/interactive_prefetch/%s";
-        protected Session Session;
+        private static String STORAGE_RESOLVE_INTERACTIVE = "/storage-resolve/files/audio/interactive/{0}";
+        private static String STORAGE_RESOLVE_INTERACTIVE_PREFETCH = "/storage-resolve/files/audio/interactive_prefetch/{0}";
+        private Session _session;
 
         public PlayableContentFeeder(Session session)
         {
-            Session = session;
+            _session = session;
         }
 
         private static Track PickAlternativeIfNecessary(Track track)
@@ -37,6 +45,124 @@ namespace lib.audio
             }
 
             return null;
+        }
+
+        public LoadedStream Load(IPlayableId id, AudioQualityPicker audioQualityPicker, bool preload,
+            IHaltListener haltListener)
+        {
+            if (id is TrackId)
+            {
+                return LoadTrack((TrackId) id, audioQualityPicker, preload, haltListener);
+            } 
+            if (id is EpisodeId)
+            {
+                return LoadEpisode((EpisodeId) id, audioQualityPicker, preload, haltListener);
+            }
+
+            throw new Exception("Unknown content: " + id);
+        }
+
+        private StorageResolveResponse ResolveStorageInteractive(byte[] fileId, bool preload)
+        {
+            HttpResponse resp = _session.GetApi().Send(ApiClient.RequestMethod.GET,
+                String.Format(preload ? STORAGE_RESOLVE_INTERACTIVE_PREFETCH : STORAGE_RESOLVE_INTERACTIVE,
+                    Utils.bytesToHex(fileId)));
+
+            if (resp.StatusCode != HttpStatusCode.OK)
+                throw new IOException(resp.StatusCode + ": " + resp.StatusDescription);
+            
+            Stream body = resp.GetResponseStream();
+            return Serializer.Deserialize<StorageResolveResponse>(body);
+        }
+
+        private LoadedStream LoadTrack(TrackId id, AudioQualityPicker audioQualityPicker, bool preload,
+            IHaltListener haltListener)
+        {
+            Track original = _session.GetApi().GetMetadata4Track(id);
+            Track track = PickAlternativeIfNecessary(original);
+            if (track == null)
+            {
+                String country = _session.GetCountryCode();
+                if (country != null) FileAudioStream.ContentRestrictedException.CheckRestrictions(country, original.Restrictions);
+                
+                LOGGER.Error("Couldn't find playable track: " + id.ToSpotifyUri());
+                throw new FileAudioStream.FeederException();
+            }
+            
+            return LoadTrack(track, audioQualityPicker, preload, haltListener);
+        }
+
+        private LoadedStream LoadCdnStream(AudioFile file, Track track, Episode episode, String urlStr, bool preload,
+            IHaltListener haltListener)
+        {
+            if (track == null && episode == null)
+                throw new Exception();
+            
+            Uri url = new Uri(urlStr);
+            if (track != null) return CdnFeedHelper.LoadTrack(_session, track, file, url, preload, haltListener);
+            return CdnFeedHelper.LoadEpisode(_session, episode, file, url, haltListener);
+        }
+
+        private LoadedStream LoadStream(AudioFile file, Track track, Episode episode, bool preload,
+            IHaltListener haltListener)
+        {
+            if (track == null && episode == null)
+                throw new Exception();
+            
+            StorageResolveResponse resp = ResolveStorageInteractive(file.FileId, preload);
+            switch (resp.result)
+            {
+                case StorageResolveResponse.Result.Cdn:
+                    if (track != null)
+                        return CdnFeedHelper.LoadTrack(_session, track, file, resp, preload, haltListener);
+                    return CdnFeedHelper.LoadEpisode(_session, episode, file, resp, haltListener);
+                case StorageResolveResponse.Result.Storage:
+                    try
+                    {
+                        if (track != null)
+                            return StorageFeedHelper.LoadTrack(_session, track, file, preload, haltListener);
+                        return StorageFeedHelper.LoadEpisode(_session, episode, file, preload, haltListener);
+                    }
+                    catch (AudioFileFetch.StorageNotAvailable ex)
+                    {
+                        LOGGER.Info("Storage is not available. Going CDN: " + ex._cdnUrl);
+                        return LoadCdnStream(file, track, episode, ex._cdnUrl, preload, haltListener);
+                    }
+                case StorageResolveResponse.Result.Restricted:
+                    throw new Exception("Content is restricted!");
+                default:
+                    throw new Exception("Unknown result: " + resp.result);
+            }
+        }
+
+        private LoadedStream LoadTrack(Track track, AudioQualityPicker audioQualityPicker, bool preload,
+            IHaltListener haltListener)
+        {
+            AudioFile file = audioQualityPicker.getFile(track.Files);
+            if (file == null)
+            {
+                LOGGER.Error("Couldn't find any suitable audio file, available " + Utils.formatsToString(track.Files));
+                throw new FileAudioStream.FeederException();
+            }
+
+            return LoadStream(file, track, null, preload, haltListener);
+        }
+
+        private LoadedStream LoadEpisode(EpisodeId id, AudioQualityPicker audioQualityPicker, bool preload,
+            IHaltListener haltListener)
+        {
+            Episode episode = _session.GetApi().GetMetadata4Episode(id);
+            
+            if(!episode.ExternalUrl.Equals("")) 
+                return CdnFeedHelper.LoadEpisodeExternal(_session, episode, haltListener);
+            AudioFile file = audioQualityPicker.getFile(episode.Audioes);
+            if (file == null)
+            {
+                LOGGER.Error("Couldn't find any suitable audio file, available: " + Utils.formatsToString(episode.Audioes));
+                throw new FileAudioStream.FeederException();
+            }
+
+            return LoadStream(file, null, episode, preload, haltListener);
         }
 
         private class FileAudioStream : IDecodedAudioStream
@@ -67,7 +193,7 @@ namespace lib.audio
             {
                 private FileAudioStream _fileAudioStream;
                 
-                public AbsChunkedInputStreamImpl(bool retryOnChunkError, FileAudioStream fileAudioStream) : base(retryOnChunkError, null)
+                public AbsChunkedInputStreamImpl(bool retryOnChunkError, FileAudioStream fileAudioStream) : base(retryOnChunkError)
                 {
                     _fileAudioStream = fileAudioStream;
                 }
@@ -148,7 +274,9 @@ namespace lib.audio
             
             public AbsChunkedInputStream Stream()
             {
-                return new AbsChunkedInputStreamImpl(true, this);
+                AbsChunkedInputStream stream = new AbsChunkedInputStreamImpl(true, this);
+                stream.Initialize();
+                return stream;
             }
 
             public SuperAudioFormat Codec()
@@ -222,7 +350,7 @@ namespace lib.audio
                 PreloadedAudioKey = preloadedAudioKey;
                 AudioKeyTime = audioKeyTime;
 
-                if (preloadedAudioKey && audioKeyTime != 0)
+                if (preloadedAudioKey && audioKeyTime != -1)
                     throw new Exception("Illegal state!");
             }
         }

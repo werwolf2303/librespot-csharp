@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
-using EasyHttp.Http;
+using deps.HttpSharp;
 using lib.common;
 using lib.core;
 using log4net;
@@ -32,8 +32,12 @@ namespace lib.audio.cdn
             
             CdnManager.Streamer streamer = session.GetCdn().StreamFile(file, key, url, haltListener);
             AbsChunkedInputStream stream = streamer.Stream();
+            stream.Initialize();
             NormalizationData normalizationData = NormalizationData.Read(stream);
-            if (stream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            if (stream.Seek(0xa7, SeekOrigin.Begin) != 0xa7)
+            {
+                throw new IOException("Couldn't skip 0xa7 bytes!");
+            }
             return new PlayableContentFeeder.LoadedStream(track, streamer, normalizationData,
                 new PlayableContentFeeder.Metrics(file.FileId, preload, preload ? -1 : audioKeyTime));
         }
@@ -47,7 +51,7 @@ namespace lib.audio.cdn
         public static PlayableContentFeeder.LoadedStream LoadEpisodeExternal(Session session, Episode episode,
             IHaltListener haltListener)
         {
-            HttpResponse resp = session.GetClient().Head(episode.ExternalUrl);
+            HttpResponse resp = session.GetClient().NewCall(new HttpRequest(episode.ExternalUrl, HttpMethod.Head));
             
             if(resp.StatusCode != HttpStatusCode.OK) 
                 LOGGER.Warn("Couldn't resolve redirect!");
@@ -69,8 +73,12 @@ namespace lib.audio.cdn
             
             CdnManager.Streamer streamer = session.GetCdn().StreamFile(file, key, url, haltListener);
             AbsChunkedInputStream stream = streamer.Stream();
+            stream.Initialize();
             NormalizationData normalizationData = NormalizationData.Read(stream);
-            if (stream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            if (stream.Seek(0xa7, SeekOrigin.Begin) != 0xa7)
+            {
+                throw new IOException("Couldn't skip 0xa7 bytes!");
+            }
             return new PlayableContentFeeder.LoadedStream(episode, streamer, normalizationData,
                 new PlayableContentFeeder.Metrics(file.FileId, false, audioKeyTime));
         }

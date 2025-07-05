@@ -23,10 +23,14 @@ namespace lib.dealer
 
         public static MessageType Parse(String type)
         {
-            foreach (MessageType msg in Enum.GetValues(typeof(MessageType)))
-                if (msg._val.Equals(type))
-                    return msg;
-
+            if (type.Equals("ping"))
+                return Ping;
+            if (type.Equals("pong"))
+                return Pong;
+            if (type.Equals("message")) 
+                return Message;
+            if (type.Equals("request"))
+                return Request;
             throw new Exception("Invalid MessageType: " + type);
         }
         

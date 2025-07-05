@@ -1,5 +1,6 @@
 using System;
 using csharp;
+using log4net;
 using spotify.metadata.proto;
 
 namespace lib.audio.format
@@ -9,6 +10,8 @@ namespace lib.audio.format
         public static readonly SuperAudioFormat MP3 = new SuperAudioFormat(0);
         public static readonly SuperAudioFormat VORBIS = new SuperAudioFormat(1);
         public static readonly SuperAudioFormat AAC = new SuperAudioFormat(2);
+        
+        private static ILog LOGGER = log4net.LogManager.GetLogger(typeof(SuperAudioFormat));
         
         private SuperAudioFormat() {}
         public int Id;
@@ -49,7 +52,8 @@ namespace lib.audio.format
                 case AudioFile.Format.Aac24Norm:
                     return AAC;
                 default:
-                    throw new Exception("Unknown audio format: " + format);
+                    LOGGER.Warn("Unsupported audio format '" + format + "'");
+                    return null;
             }
         }
     }

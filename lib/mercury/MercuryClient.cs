@@ -124,18 +124,17 @@ namespace lib.mercury
                 seq = _seqHolder;
                 _seqHolder++;
             }
-            
-            LOGGER.DebugFormat("Send Mercury request, seq: {0}, uri: {1}, method: {2}", seq, request._header.Uri, request._header.Method);
-            
+
+            LOGGER.DebugFormat("Sending Mercury request, seq: {0}, uri: {1}, method: {2}", seq, request._header.Uri, request._header.Method);
+  
             outWriter.WriteBigEndian((short) 4); // Seq length
             outWriter.WriteBigEndian(seq); // Seq
             
             outWriter.Write((byte) 1); // Flags
-            outWriter.WriteBigEndian(1 + request._payload.Length); // Parts count
+            outWriter.WriteBigEndian((short) (1 + request._payload.Length)); // Parts count
             
             MemoryStream headerStream = new MemoryStream();
             Serializer.Serialize(headerStream, request._header);
-            headerStream.Position = 0;
             byte[] headerBytes = headerStream.ToArray();
             outWriter.WriteBigEndian((short) headerBytes.Length); // Header length
             outWriter.Write(headerBytes); // Header

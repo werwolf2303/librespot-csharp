@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using deps.WebSocketSharp;
 using lib.common;
 using lib.core;
 using lib.mercury;
@@ -13,9 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using spotify.clienttoken.http.v0;
-using WebSocketSharp;
-using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
+using ErrorEventArgs = deps.WebSocketSharp.ErrorEventArgs;
 
 namespace lib.dealer
 {
@@ -30,6 +29,7 @@ namespace lib.dealer
         private ScheduledExecutorService _scheduler = new ScheduledExecutorService();
         private volatile ConnectionHolder _conn;
         private ScheduledExecutorService.ScheduledFuture<int> _lastScheduledReconnection;
+        private Object _lock = new Object();
 
         public DealerClient(Session session)
         {
@@ -54,7 +54,7 @@ namespace lib.dealer
 
         public void Connect()
         {
-            lock (this)
+            lock (_lock)
             {
                 _conn = new ConnectionHolder(this,
                     String.Format("wss://{0}/?access_token={1}", _session.GetAPResolver().getRandomDealer(),
@@ -136,7 +136,7 @@ namespace lib.dealer
             String uri = obj["uri"].ToObject<string>();
             
             Dictionary<String, String> headers = GetHeaders(obj);
-            JArray payloads = obj["payloads"].ToObject<JArray>();
+            JArray payloads = obj.TryGetValue("payloads", out JToken optPayloads) ? optPayloads.ToObject<JArray>() : null;
             byte[] decodedPayload;
             if (payloads != null)
             {
@@ -284,7 +284,7 @@ namespace lib.dealer
 
         private void ConnectionInvalidated()
         {
-            lock (this)
+            lock (_lock)
             {
                 if (_lastScheduledReconnection != null && !_lastScheduledReconnection.WasExecuted())
                     throw new Exception("Illegal state!");

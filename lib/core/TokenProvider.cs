@@ -73,7 +73,7 @@ namespace lib.core
                 ExpiresIn = obj["expiresIn"].ToObject<int>();
                 AccessToken = obj["accessToken"].ToObject<string>();
                 
-                JArray scopesArray = obj["scopes"] as JArray;
+                JArray scopesArray = obj["scope"] as JArray;
                 Scopes = new String[scopesArray.Count];
                 for (int i = 0; i < scopesArray.Count; i++)
                     Scopes[i] = scopesArray[i].ToObject<string>();

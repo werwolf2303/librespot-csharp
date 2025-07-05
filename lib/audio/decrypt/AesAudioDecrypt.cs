@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Numerics;
-
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using lib.audio.storage;
 
 namespace lib.audio.decrypt
 {
@@ -18,8 +18,10 @@ namespace lib.audio.decrypt
         };
         private static readonly BigInteger INITIAL_IV_INT;
         private static readonly BigInteger IV_INCREMENT_VALUE = new BigInteger(0x100);
+
         private readonly byte[] _secretKey;
-        private readonly BufferedBlockCipher _bufferedCipher; 
+        private readonly BufferedBlockCipher _bufferedCipher;
+        private readonly object _lock = new object();
         private int _decryptCount = 0;
         private long _decryptTotalTime = 0;
         
@@ -33,9 +35,9 @@ namespace lib.audio.decrypt
         public AesAudioDecrypt(byte[] key)
         {
             if (key == null)
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
 
-            this._secretKey = key;
+            _secretKey = key;
 
             try
             {
@@ -50,67 +52,63 @@ namespace lib.audio.decrypt
         public void decryptChunk(int chunkIndex, byte[] buffer)
         {
             if (buffer == null)
-                throw new ArgumentNullException("buffer");
-            
-            const int CHUNK_SIZE = 409600;
-            const int AES_BLOCK_SIZE_BYTES = 16;
+                throw new ArgumentNullException(nameof(buffer));
 
-            BigInteger currentCounter =
-                INITIAL_IV_INT + new BigInteger((long)CHUNK_SIZE * chunkIndex / AES_BLOCK_SIZE_BYTES);
-
-            try
+            lock (_lock)
             {
-                System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                const int AES_BLOCK_SIZE_BYTES = 16;
+                BigInteger currentCounter =
+                    INITIAL_IV_INT + new BigInteger((long)ChannelManager.CHUNK_SIZE * chunkIndex / AES_BLOCK_SIZE_BYTES);
 
-                for (int i = 0; i < buffer.Length; i += 4096)
+                try
                 {
-                    byte[] ivBytes = currentCounter.ToByteArray(); 
-                    Array.Reverse(ivBytes); 
+                    System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-                    byte[] paddedIvBytes = new byte[AES_BLOCK_SIZE_BYTES];
-                    int copyLen = Math.Min(ivBytes.Length, AES_BLOCK_SIZE_BYTES);
-                    Buffer.BlockCopy(ivBytes, 0, paddedIvBytes, AES_BLOCK_SIZE_BYTES - copyLen, copyLen);
+                    for (int i = 0; i < buffer.Length; i += 4096)
+                    {
+                        byte[] ivBytes = currentCounter.ToByteArray();
+                        Array.Reverse(ivBytes);
 
-                    ParametersWithIV keyAndIV = new ParametersWithIV(new KeyParameter(_secretKey), paddedIvBytes);
+                        byte[] paddedIvBytes = new byte[AES_BLOCK_SIZE_BYTES];
+                        int copyLen = Math.Min(ivBytes.Length, AES_BLOCK_SIZE_BYTES);
+                        Buffer.BlockCopy(ivBytes, 0, paddedIvBytes, AES_BLOCK_SIZE_BYTES - copyLen, copyLen);
 
-                    _bufferedCipher.Init(true, keyAndIV);
+                        ParametersWithIV keyAndIV = new ParametersWithIV(new KeyParameter(_secretKey), paddedIvBytes);
+                        _bufferedCipher.Init(true, keyAndIV);
 
-                    int count = Math.Min(4096, buffer.Length - i);
+                        int count = Math.Min(4096, buffer.Length - i);
+                        int bytesProcessed = _bufferedCipher.ProcessBytes(buffer, i, count, buffer, i);
 
-                    int bytesProcessed = _bufferedCipher.ProcessBytes(buffer, i, count, buffer, i);
+                        if (count != bytesProcessed)
+                            throw new IOException(
+                                $"Bouncy Castle ProcessBytes did not process all data. Actual: {bytesProcessed}, Expected: {count}");
 
-                    if (count != bytesProcessed)
-                        throw new IOException(string.Format(
-                            "Bouncy Castle ProcessBytes did not process all data. Actual: {0}, Expected: {1}",
-                            bytesProcessed, count));
+                        currentCounter += IV_INCREMENT_VALUE;
+                    }
 
-                    currentCounter = currentCounter + IV_INCREMENT_VALUE;
+                    stopwatch.Stop();
+                    _decryptTotalTime += stopwatch.ElapsedTicks;
+                    _decryptCount++;
                 }
-
-                stopwatch.Stop();
-                _decryptTotalTime += stopwatch.ElapsedTicks;
-                _decryptCount++;
-            }
-            catch (DataLengthException ex)
-            {
-                throw new IOException("Cryptographic data length error.", ex);
-            }
-            catch (InvalidCipherTextException ex)
-            {
-                throw new IOException("Decryption failed due to invalid ciphertext.", ex);
-            }
-            catch (Exception ex)
-            {
-                throw new IOException("An unexpected error occurred during chunk decryption.", ex);
+                catch (DataLengthException ex)
+                {
+                    throw new IOException("Cryptographic data length error.", ex);
+                }
+                catch (InvalidCipherTextException ex)
+                {
+                    throw new IOException("Decryption failed due to invalid ciphertext.", ex);
+                }
+                catch (Exception ex)
+                {
+                    throw new IOException("An unexpected error occurred during chunk decryption.", ex);
+                }
             }
         }
         
         public int decryptTimeMs()
         {
             if (_decryptCount == 0)
-            {
                 return 0;
-            }
 
             double averageTicks = (double)_decryptTotalTime / _decryptCount;
             return (int)(averageTicks / System.Diagnostics.Stopwatch.Frequency * 1000f);

@@ -17,7 +17,6 @@ namespace lib.metadata
         {
             _spotifyId = this;
             _hexId = hex.ToLower();
-            Console.WriteLine(_hexId);
         }
 
         public static AlbumId FromBase62(String base62)

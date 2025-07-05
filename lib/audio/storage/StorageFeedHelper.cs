@@ -22,8 +22,12 @@ namespace lib.audio.storage
             stream.Open();
 
             AbsChunkedInputStream inputStream = stream.Stream();
+            inputStream.Initialize();
             NormalizationData normalizationData = NormalizationData.Read(inputStream);
-            if (inputStream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            if (inputStream.Seek(0xa7, SeekOrigin.Begin) != 0xa7)
+            {
+                throw new IOException("Couldn't skip 0xa7 bytes!");
+            }
             
             return new PlayableContentFeeder.LoadedStream(track, stream, normalizationData, new PlayableContentFeeder.Metrics(file.FileId, preload, preload ? -1 : audioKeyTime));
         }
@@ -39,8 +43,12 @@ namespace lib.audio.storage
             stream.Open();
             
             AbsChunkedInputStream inputStream = stream.Stream();
+            inputStream.Initialize();
             NormalizationData normalizationData = NormalizationData.Read(inputStream);
-            if (inputStream.Skip(0xa7) != 0xa7) throw new IOException("Couldn't skip 0xa7 bytes!");
+            if (inputStream.Seek(0xa7, SeekOrigin.Begin) != 0xa7)
+            {
+                throw new IOException("Couldn't skip 0xa7 bytes!");
+            }
             
             return new PlayableContentFeeder.LoadedStream(episode, stream, normalizationData, new PlayableContentFeeder.Metrics(file.FileId, preload, preload ? -1 : audioKeyTime));
         }

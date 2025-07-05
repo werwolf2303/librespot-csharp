@@ -4,25 +4,23 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
-using System.Web;
 using com.spotify.canvazcache;
 using Connectstate;
+using deps.HttpSharp;
 using lib.common;
 using lib.core;
 using lib.json;
 using lib.mercury;
 using lib.metadata;
 using log4net;
-using log4net.Util;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Utilities;
 using ProtoBuf;
+using spotify.clienttoken.data.v0;
 using spotify.clienttoken.http.v0;
 using spotify.extendedmetadata.proto;
 using spotify.metadata.proto;
 using spotify.playlist4.proto;
 using Artist = spotify.metadata.proto.Artist;
-using HttpResponse = EasyHttp.Http.HttpResponse;
 
 namespace lib.dealer
 {
@@ -61,31 +59,36 @@ namespace lib.dealer
             {
                 headers = new Headers.Builder().Build();
             }
-            headers.Add("Authorization", "Bearer " + _session.GetTokens().Get("playlist-read"));
-            headers.Add("client-token", _clientToken);
 
-            foreach (String key in headers.Keys) 
-                _session.GetClient().Request.RawHeaders.Add(key, headers[key]);
-            
-            HttpResponse response;
+            HttpRequest request;
             switch (method)
             {
                 default:
                 case RequestMethod.GET:
-                    response = _session.GetClient().Get(_baseUrl + suffix);
+                    request = new HttpRequest(_baseUrl + suffix, HttpMethod.Get);
                     break;
                 case RequestMethod.POST:
-                    response = _session.GetClient().Post(_baseUrl + suffix, body, requestBodyType);
+                    request = new HttpRequest(_baseUrl + suffix, HttpMethod.Post);
+                    request.SetData(body);
+                    request.ContentEncoding = requestBodyType;
                     break;
                 case RequestMethod.PUT:
-                    response = _session.GetClient().Put(_baseUrl + suffix, body, requestBodyType);
+                    request = new HttpRequest(_baseUrl + suffix, HttpMethod.Put);
+                    request.SetData(body);
+                    request.ContentEncoding = requestBodyType;
                     break;
                 case RequestMethod.OPTIONS:
-                    response = _session.GetClient().Options(_baseUrl + suffix);
+                    request = new HttpRequest(_baseUrl + suffix, HttpMethod.Options);
                     break;
             }
-            
-            _session.GetClient().Request.RawHeaders.Clear();
+
+            request.Authorization = "Bearer " + _session.GetTokens().Get("playlist-read");
+            headers.Add("client-token", _clientToken);
+
+            HttpResponse response = _session.GetClient().NewCall(request);
+
+            foreach (String key in headers.Keys) 
+                request.ExtraHeaders.Add(key, headers[key]);
 
             if ((int) response.StatusCode == 503)
             {
@@ -116,7 +119,7 @@ namespace lib.dealer
                 LOGGER.WarnFormat("PUT state payload too large: {0} bytes uncompressed", Utils.ProtoBytes(proto).Length);
             }else if (response.StatusCode != HttpStatusCode.OK)
             {
-                LOGGER.WarnFormat("PUT state returned {0}. (headers: {1})", (int)response.StatusCode, response.RawHeaders);
+                LOGGER.WarnFormat("PUT state returned {0}. (headers: {1})", (int)response.StatusCode, response.Headers);
             }
         }
 
@@ -124,42 +127,42 @@ namespace lib.dealer
         {
             HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/track/" + track.HexId());
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Track>(resp.ResponseStream);
+            return Serializer.Deserialize<Track>(resp.GetResponseStream());
         }
 
         public Episode GetMetadata4Episode(EpisodeId episode)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/episode/" + episode.HexId());
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Episode>(resp.ResponseStream);
+            return Serializer.Deserialize<Episode>(resp.GetResponseStream());
         }
 
         public Album GetMetadata4Album(AlbumId album)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/album/" + album.HexId());
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Album>(resp.ResponseStream);
+            return Serializer.Deserialize<Album>(resp.GetResponseStream());
         }
 
         public Artist GetMetadata4Artist(ArtistId artist)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/artist/" + artist.HexId());
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Artist>(resp.ResponseStream);
+            return Serializer.Deserialize<Artist>(resp.GetResponseStream());
         }
 
         public Show GetMetadata4Show(ShowId show)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/show/" + show.HexId()); 
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Show>(resp.ResponseStream);
+            return Serializer.Deserialize<Show>(resp.GetResponseStream());
         }
 
         public EntityCanvazResponse GetCanvases(EntityCanvazRequest req)
         {
             HttpResponse resp = Send(RequestMethod.POST, "/canvaz-cache/v0/canvases", null, Utils.ProtoBytes(req));
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<EntityCanvazResponse>(resp.ResponseStream);
+            return Serializer.Deserialize<EntityCanvazResponse>(resp.GetResponseStream());
         }
 
         public BatchedExtensionResponse GetExtendedMetadata(BatchedEntityRequest req)
@@ -167,14 +170,14 @@ namespace lib.dealer
             HttpResponse resp = Send(RequestMethod.POST, "/extended-metadata/v0/extended-metadata", null,
                 Utils.ProtoBytes(req));
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<BatchedExtensionResponse>(resp.ResponseStream);
+            return Serializer.Deserialize<BatchedExtensionResponse>(resp.GetResponseStream());
         }
 
         public SelectedListContent GetPlaylist(PlaylistId playlistId)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/playlist/v2/playlist/" + playlistId.HexId());
             StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<SelectedListContent>(resp.ResponseStream);
+            return Serializer.Deserialize<SelectedListContent>(resp.GetResponseStream());
         }
 
         public JObject GetUserProfile(String id, int playlistLimit, int artistLimit)
@@ -204,21 +207,21 @@ namespace lib.dealer
             
             HttpResponse resp = Send(RequestMethod.GET, url.ToString());
             StatusCodeException.CheckStatus(resp);
-            return JObject.Parse(resp.RawText);
+            return JObject.Parse(resp.GetResponseString());
         }
 
         public JObject GetUserFollowers(String id)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/user-profile-view/v3/profile/" + id + "/followers");
             StatusCodeException.CheckStatus(resp);
-            return JObject.Parse(resp.RawText);
+            return JObject.Parse(resp.GetResponseString());
         }
 
         public JObject GetUserFollowing(String id)
         {
             HttpResponse resp = Send(RequestMethod.GET, "/user-profile-view/v3/profile/" + id + "/following");
             StatusCodeException.CheckStatus(resp);
-            return JObject.Parse(resp.RawText);
+            return JObject.Parse(resp.GetResponseString());
         }
 
         public JObject GetRadioForTrack(PlayableId id)
@@ -226,7 +229,7 @@ namespace lib.dealer
             HttpResponse resp = Send(RequestMethod.GET,
                 "/inspiredby-mix/v2/seed_to_playlist/" + id.ToSpotifyUri() + "?response-format=json");
             StatusCodeException.CheckStatus(resp);
-            return JObject.Parse(resp.RawText);
+            return JObject.Parse(resp.GetResponseString());
         }
 
         public StationsWrapper GetApolloStation(String context, List<String> prevTracks, int count, bool autoplay)
@@ -241,7 +244,7 @@ namespace lib.dealer
             HttpResponse resp = Send(RequestMethod.GET, String.Format("/radio-apollo/v3/stations/{0}?count={1}&prev_tracks={2}&autoplay={3}",
                 context, count, prevTracksStr, autoplay));
             StatusCodeException.CheckStatus(resp);
-            return new StationsWrapper(JObject.Parse(resp.RawText));
+            return new StationsWrapper(JObject.Parse(resp.GetResponseString()));
         }
 
         private ClientTokenResponse ClientToken()
@@ -249,16 +252,16 @@ namespace lib.dealer
             ClientTokenRequest protoReq = new ClientTokenRequest
             {
                 RequestType = ClientTokenRequestType.RequestClientDataRequest,
-                ClientData =
+                ClientData = new ClientDataRequest
                 {
                     ClientId = MercuryRequests.KEYMASTER_CLIENT_ID,
                     ClientVersion = Version.versionNumber(),
-                    ConnectivitySdkData =
+                    ConnectivitySdkData = new ConnectivitySdkData
                     {
                         DeviceId = _session.GetDeviceId(),
-                        PlatformSpecificData =
+                        PlatformSpecificData = new PlatformSpecificData
                         {
-                            Windows =
+                            Windows = new NativeWindowsData
                             {
                                 Something1 = 10,
                                 Something3 = 21370,
@@ -272,19 +275,21 @@ namespace lib.dealer
                     }
                 }
             };
+
+            byte[] protoBytes = Utils.ProtoBytes(protoReq);
             
-            _session.GetClient().Request.Accept = "application/x-protobuf";
-            _session.GetClient().Request.ContentEncoding = "";
-
-            HttpResponse resp = _session.GetClient().Post("https://clienttoken.spotify.com/v1/clienttoken",
-                Utils.ProtoBytes(protoReq), "application/x-protobuf");
+            HttpWebRequest request = WebRequest.CreateHttp("https://clienttoken.spotify.com/v1/clienttoken");
+            request.Method = "POST";
+            request.Accept = "application/x-protobuf";
+            request.Headers.Add("Content-Encoding", "application/x-protobuf");
+            request.ContentLength = protoBytes.Length;
             
-            StatusCodeException.CheckStatus(resp);
-
-            _session.GetClient().Request.Accept = "";
-            _session.GetClient().Request.ContentEncoding = "";
-
-            return Serializer.Deserialize<ClientTokenResponse>(resp.ResponseStream);
+            var stream = request.GetRequestStream();
+            stream.Write(protoBytes, 0, protoBytes.Length);
+            
+            var response = (HttpWebResponse)request.GetResponse();
+            
+            return Serializer.Deserialize<ClientTokenResponse>(response.GetResponseStream());
         }
 
         public void SetClientToken(String clientToken)
@@ -297,14 +302,14 @@ namespace lib.dealer
             public int code;
 
             internal StatusCodeException(HttpResponse resp) :
-                base(String.Format("{0}: {1}", (int)resp.StatusCode, resp.RawText))
+                base(String.Format("{0}: {1}", (int)resp.StatusCode, resp.GetResponseString()))
             {
                 code = (int)resp.StatusCode;
             }
 
             internal static void CheckStatus(HttpResponse resp)
             {
-                if (resp.ResponseStream == null) throw new StatusCodeException(resp);
+                if (resp.GetResponseStream() == null) throw new StatusCodeException(resp);
                 if ((int)resp.StatusCode != 200) throw new StatusCodeException(resp);
             }
         }

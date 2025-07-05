@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using JsonFx.Json;
+using System.Text;
 using lib.json;
 using Newtonsoft.Json.Linq;
 
@@ -19,8 +19,16 @@ namespace lib.mercury
 
         public W Instantiate(MercuryClient.Response resp)
         {
-            BinaryReader reader = new BinaryReader(resp.Payload.Stream());
-            JObject elm = JObject.Parse(reader.ReadString());
+            var sb = new StringBuilder();
+            var buffer = new byte[4096];
+            int readCount;
+            Stream stream = resp.Payload.Stream();
+            while ((readCount = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                var s = Encoding.UTF8.GetString(buffer, 0, readCount);
+                sb.Append(s);
+            }
+            JObject elm = JObject.Parse(sb.ToString());
             return (W)_wrapperClass.GetConstructor(new []{typeof(JObject)}).Invoke(new object[]{elm});
         }
     }

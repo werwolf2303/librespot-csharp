@@ -21,14 +21,14 @@ namespace lib.common
                     for (int i = 0; i < _scheduledFutures.Count; i++)
                     {
                         _scheduledFutures[i].ExecuteIfNeeded(Utils.getUnixTimeStampInMilliseconds());
-                        if (_scheduledFutures[i].WasExecuted() || _scheduledFutures[i].IsExecuting())
+                        if (_scheduledFutures[i].WasExecuted() || _scheduledFutures[i].IsExecuting() && !removals.Contains(i))
                         {
                             if(_scheduledFutures[i].IsInfinite()) continue;
                             removals.Add(i);
                         }
                     }
 
-                    for (int i = 0; i < removals.Count; i++)
+                    for (int i = removals.Count - 1; i >= 0; i--)
                     {
                         _scheduledFutures.RemoveAt(removals[i]);
                     }

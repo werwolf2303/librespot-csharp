@@ -1,10 +1,9 @@
 using System;
-using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using EasyHttp.Http;
+using deps.HttpSharp;
 using log4net;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Security;
@@ -79,14 +78,12 @@ namespace lib.core
                 throw new Exception("Illegal state! You need to provide a code before!");
             }
 
-            client.Request.Accept = "application/json";
-            HttpResponse response = client.Post(
-                SPOTIFY_TOKEN,
-                String.Format(SPOTIFY_TOKEN_DATA, clientId, redirectUrl, code, codeVerifier),
-                "application/x-www-form-urlencoded"
-            );
-            client.Request.Accept = "";
-            JObject obj = JObject.Parse(response.RawText);
+            HttpRequest request = new HttpRequest(SPOTIFY_TOKEN, HttpMethod.Post);
+            request.SetData(String.Format(SPOTIFY_TOKEN_DATA, clientId, redirectUrl, code, codeVerifier));
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Accept = "application/json";
+  
+            JObject obj = JObject.Parse(client.NewCall(request).GetResponseString());
             token = obj["access_token"].ToString();
         }
 

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using lib.audio.format;
 using lib.common;
 using log4net;
+using Newtonsoft.Json.Linq;
 using spotify.metadata.proto;
 
 namespace lib.audio.decoders
 {
-    public class VorbisOnlyAudioQuality
+    public class VorbisOnlyAudioQuality : AudioQualityPicker
     {
         private static ILog LOGGER = LogManager.GetLogger(typeof(VorbisOnlyAudioQuality));
         private AudioQuality preferred;
@@ -19,12 +20,10 @@ namespace lib.audio.decoders
 
         public static AudioFile getVorbisFile(List<AudioFile> files)
         {
-            foreach(AudioFile file in Enum.GetValues(typeof(AudioFile)))
+            foreach(AudioFile file in files)
             {
                 if (SuperAudioFormat.get(file.format).Equals(SuperAudioFormat.VORBIS))
-                {
                     return file;
-                }
             }
 
             return null;

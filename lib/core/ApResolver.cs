@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using EasyHttp.Http;
+using deps.HttpSharp;
 using lib.common;
 using log4net;
 using Newtonsoft.Json.Linq;
@@ -58,7 +58,7 @@ namespace lib.core
                 url.Append("type=").Append(types[i]);
             }
             
-            JObject response = JObject.Parse(client.Get(url.ToString()).RawText);
+            JObject response = JObject.Parse(client.NewCall(new HttpRequest(url.ToString(), HttpMethod.Get)).GetResponseString());
             Dictionary<String, List<String>> map = new Dictionary<String, List<String>>();
             foreach (String type in types)
                 map.Add(type, getUrls(response, type));

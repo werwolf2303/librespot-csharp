@@ -2,15 +2,59 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using lib.audio;
 
 namespace lib.audio.playback
 {
-
     public class BlockingStream : Stream
     {
         private readonly Queue<byte> _buffer = new Queue<byte>();
         private readonly object _lock = new object();
         private bool _isCompleted;
+        private Thread _streamingThread;
+
+        public BlockingStream()
+        {
+        }
+
+        public BlockingStream(IDecodedAudioStream decodedAudioStream)
+        {
+            if (decodedAudioStream == null)
+                throw new ArgumentNullException(nameof(decodedAudioStream));
+
+            _streamingThread = new Thread(() => StreamFromSource(decodedAudioStream.Stream()))
+            {
+                IsBackground = true,
+                Name = "BlockingStream-Feeder"
+            };
+            _streamingThread.Start();
+        }
+
+        private void StreamFromSource(Stream sourceStream)
+        {
+            try
+            {
+                if (sourceStream is AbsChunkedInputStream chunkedStream)
+                {
+                    chunkedStream.Initialize();
+                }
+
+                byte[] tempBuffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = sourceStream.Read(tempBuffer, 0, tempBuffer.Length)) > 0)
+                {
+                    Write(tempBuffer, 0, bytesRead);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in BlockingStream feeder thread: {ex.Message}");
+            }
+            finally
+            {
+                Complete();
+            }
+        }
 
         public override bool CanRead => true;
         public override bool CanWrite => true;

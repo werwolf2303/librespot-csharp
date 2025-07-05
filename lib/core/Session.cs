@@ -9,8 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using Connectstate;
-using EasyHttp.Http;
-using EasyHttp.Http.Injection;
+using deps.HttpSharp;
 using lib.audio;
 using lib.audio.cdn;
 using lib.audio.storage;
@@ -121,17 +120,21 @@ namespace lib.core
         private static HttpClient CreateClient(Configuration configuration)
         {
             HttpClient client = new HttpClient();
-
-            client.RegisteredInterceptions.Add(new HttpRequestInterception(request =>
+            
+            client.AddInterceptor(request =>
             {
-                if (request.Data == null || !request.RawHeaders.ContainsKey("Content-Encoding"))
-                    return false;
-                
+                if (request.RequestData == null || !request.ExtraHeaders.ContainsKey("Content-Encoding"))
+                    return true;
+
                 request.ContentEncoding = "gzip";
-                request.Data = new GZipStream(request.Data as Stream, CompressionMode.Compress);
+                GZipStream stream = new GZipStream(new MemoryStream(request.RequestData), CompressionMode.Compress);
+                byte[] compressedData = new byte[stream.Length];
+                stream.Read(compressedData, 0, compressedData.Length);
+                request.RequestData = compressedData;
+                request.ContentLength = compressedData.Length;
 
                 return true;
-            }));
+            });
 
             return client;
         }
@@ -442,6 +445,10 @@ namespace lib.core
                 preferredLocale.WriteByte(0x10);
                 preferredLocale.WriteByte(0x0);
                 preferredLocale.WriteByte(0x02);
+
+                byte[] preferredLocaleStringBytes = Encoding.UTF8.GetBytes("preferred-locale");
+                preferredLocale.Write(preferredLocaleStringBytes, 0, preferredLocaleStringBytes.Length);
+                
                 preferredLocale.Write(preferredLocaleBytes, 0, preferredLocaleBytes.Length);
                 SendUnchecked(Packet.Type.PreferredLocale, preferredLocale.ToArray());
 
@@ -567,7 +574,7 @@ namespace lib.core
 
             lock (_authLock)
             {
-                if (_cipherPair == null)
+                if (_cipherPair == null || _authLockState)
                 {
                     Monitor.Wait(_authLock);
                 }
@@ -586,7 +593,7 @@ namespace lib.core
 
             lock (_authLock)
             {
-                if (_cipherPair == null)
+                if (_cipherPair == null || _authLockState)
                 {
                     Monitor.Wait(_authLock);
                 }
@@ -1229,6 +1236,7 @@ namespace lib.core
             public NetworkStream Stream;
             public BinaryReader In;
             public BinaryWriter Out;
+            private static int _retries = 0;
 
             /// <exception cref="IOException"></exception>
             private ConnectionHolder(Socket socket)
@@ -1246,7 +1254,21 @@ namespace lib.core
                 String apAddr = split[0];
                 int apPort = int.Parse(split[1]);
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect(apAddr, apPort);
+                try
+                {
+                    socket.Connect(apAddr, apPort);
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode == SocketError.ConnectionRefused && !(_retries > 5))
+                    {
+                        _retries++;
+                        return Create(addr, conf);
+                    }
+
+                    throw;
+                }
+
                 return new ConnectionHolder(socket);
             }
         }
@@ -1290,7 +1312,10 @@ namespace lib.core
                             continue;
                         }
                     }
-                    catch (GeneralSecurityException ex) {
+                    catch (Exception ex)
+                    {
+                        if (!(ex is IOException || ex is GeneralSecurityException)) throw;
+                        
                         if (_running && !_sessionParent._closing)
                         {
                             LOGGER.Error("Failed reading packet!", ex);
@@ -1301,8 +1326,6 @@ namespace lib.core
                     }
 
                     if (!_running) break;
-                    
-                    Console.Error.WriteLine(cmd);
 
                     switch (cmd)
                     {

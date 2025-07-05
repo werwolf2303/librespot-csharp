@@ -198,6 +198,7 @@ namespace lib.audio.storage
                 _internalStream =
                     new InternalStream(_audioFileStreaming._session.GetConfiguration()
                         .RetryOnChunkError, this);
+                _internalStream.Initialize();
             }
 
             internal void WriteChunk(byte[] chunk, int chunkIndex)
@@ -227,7 +228,7 @@ namespace lib.audio.storage
             {
                 private ChunksBuffer _chunksBuffer;
                 
-                internal InternalStream(bool retryOnChunkError, ChunksBuffer chunksBuffer) : base(retryOnChunkError, null)
+                internal InternalStream(bool retryOnChunkError, ChunksBuffer chunksBuffer) : base(retryOnChunkError)
                 {
                     _chunksBuffer = chunksBuffer;
                 }

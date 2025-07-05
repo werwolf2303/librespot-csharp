@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using EasyHttp.Http;
+using deps.HttpSharp;
 using lib.audio.decrypt;
 using lib.audio.format;
 using lib.audio.storage;
@@ -31,17 +30,18 @@ namespace lib.audio.cdn
 
         private MemoryStream GetHead(byte[] fileId)
         {
-            HttpResponse resp = _session.GetClient().Get(
-                _session.GetUserAttribute("head-files-url", "https://heads-fa.spotify.com/head/{file_id}".Replace("{file_id}", Utils.bytesToHex(fileId).ToLower()))
-            );
+            HttpResponse resp = _session.GetClient().NewCall(new HttpRequest(
+                _session.GetUserAttribute("head-files-url", "https://heads-fa.spotify.com/head/{file_id}".Replace("{file_id}", Utils.bytesToHex(fileId).ToLower())),
+                HttpMethod.Get
+            ));
 
             if (resp.StatusCode != HttpStatusCode.OK)
-                throw new IOException((int)resp.StatusCode + ": " + resp.RawText);
+                throw new IOException((int)resp.StatusCode + ": " + resp.GetResponseString());
 
-            if (resp.ResponseStream == null) throw new IOException("Response body is empty!");
+            if (resp.GetResponseStream() == null) throw new IOException("Response body is empty!");
             
             MemoryStream responseStream = new MemoryStream();
-            resp.ResponseStream.CopyTo(responseStream);
+            resp.GetResponseStream().CopyTo(responseStream);
             
             return responseStream;
         }
@@ -65,11 +65,11 @@ namespace lib.audio.cdn
                 String.Format("/storage-resolve/files/audio/interactive/{0}", Utils.bytesToHex(fileId)));
 
             if (resp.StatusCode != HttpStatusCode.OK)
-                throw new IOException((int)resp.StatusCode + ": " + resp.RawText);
+                throw new IOException((int)resp.StatusCode + ": " + resp.GetResponseString());
             
-            if (resp.ResponseStream == null) throw new IOException("Response body is empty!");
+            if (resp.GetResponseStream() == null) throw new IOException("Response body is empty!");
             MemoryStream responseStream = new MemoryStream();
-            resp.ResponseStream.CopyTo(responseStream);
+            resp.GetResponseStream().CopyTo(responseStream);
             
             StorageResolveResponse proto = Serializer.Deserialize<StorageResolveResponse>(responseStream);
             if (proto.result == StorageResolveResponse.Result.Cdn)
@@ -273,6 +273,7 @@ namespace lib.audio.cdn
                 _requested = new bool[_chunks];
                 _buffer = new byte[_chunks][];
                 _internalStream = new InternalStream(_session.GetConfiguration().RetryOnChunkError, this);
+                _internalStream.Initialize();
 
                 _requested[0] = true;
                 WriteChunk(firstChunk, 0, fromCache);
@@ -371,11 +372,11 @@ namespace lib.audio.cdn
 
             public InternalResponse Request(int rangeStart, int rangeEnd)
             {
-                HttpWebRequest request = WebRequest.CreateHttp(_cdnUrl.Url());
-                request.Method = "GET";
+                HttpRequest request = new HttpRequest(_cdnUrl.Url(), HttpMethod.Get);
+         
                 request.AddRange(rangeStart, rangeEnd);
 
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                HttpResponse response = _session.GetClient().NewCall(request);
                 if (response.StatusCode != HttpStatusCode.PartialContent)
                     throw new IOException(response.StatusCode.ToString() + ": " + response.StatusDescription);
 
@@ -387,8 +388,8 @@ namespace lib.audio.cdn
 
                 Headers.Builder headers = new Headers.Builder();
                 
-                foreach (KeyValuePair<string, string> header in response.Headers)
-                    headers.Add(header.Key, header.Value);
+                foreach (String key in response.Headers.Keys)
+                    headers.Add(key, response.Headers[key]);
                 
                 return new InternalResponse(responseStream.ToArray(), headers.Build());
             }
@@ -402,7 +403,7 @@ namespace lib.audio.cdn
             {
                 private Streamer _streamer;
 
-                internal InternalStream(bool retryOnChunkError, Streamer streamer) : base(retryOnChunkError, null)
+                internal InternalStream(bool retryOnChunkError, Streamer streamer) : base(retryOnChunkError)
                 {
                     _streamer = streamer;
                 }

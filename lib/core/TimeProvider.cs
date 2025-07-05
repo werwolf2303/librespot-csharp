@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
-using EasyHttp.Http;
+using deps.HttpSharp;
 using lib.common;
 using lib.dealer;
 using lib.mercury;
@@ -79,7 +79,7 @@ namespace lib.core
                 if (resp.StatusCode != HttpStatusCode.OK)
                 {
                     LOGGER.ErrorFormat("Failed notifying server of time request! (code: {0}, msg: {1})",
-                        (int)resp.StatusCode, resp.RawText);
+                        (int)resp.StatusCode, resp.GetResponseString());
                     return;
                 }
             }
@@ -100,15 +100,14 @@ namespace lib.core
                 if (resp.StatusCode != HttpStatusCode.OK)
                 {
                     LOGGER.ErrorFormat("Failed requesting time! (code: {0}, msg: {1})",
-                        (int)resp.StatusCode, resp.RawText);
+                        (int)resp.StatusCode, resp.GetResponseString());
                     return;
                 }
 
-                if (resp.ResponseStream == null)
+                if (resp.GetResponseStream() == null)
                     throw new Exception("Illegal state!");
-                Stream stram = resp.ResponseStream;
 
-                JObject obj = JObject.Parse(resp.RawText);
+                JObject obj = JObject.Parse(resp.GetResponseString());
                 long diff = obj["timestamp"].ToObject<long>() - Utils.getUnixTimeStampInMilliseconds();
                 lock (_offsetLock)
                 {

@@ -39,7 +39,7 @@ namespace lib.cache
                 }
             }
 
-            io = new FileStream(file, FileMode.Open, FileAccess.Read);
+            io = new FileStream(file, FileMode.Open, FileAccess.ReadWrite);
         }
 
         /// <exception cref="IOException"></exception>
@@ -193,7 +193,7 @@ namespace lib.cache
         {
             if (id.Length > MAX_ID_LENGTH) throw new ArgumentException("Illegal argument");
 
-            Entry entry = entries[id];
+            Entry entry = entries.TryGetValue(id, out Entry result) ? result : null;
             if (entry != null) return entry;
 
             byte[] idBytes = Encoding.ASCII.GetBytes(id);
@@ -337,9 +337,9 @@ namespace lib.cache
                 }
 
                 io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
-                io.WriteByte(BitConverter.GetBytes(id)[0]);
+                io.WriteByte((byte) id);
                 var bytes = Encoding.ASCII.GetBytes(value);
-                io.Write(bytes, (int) io.Position, bytes.Length);
+                io.Write(bytes, 0, bytes.Length);
             }
 
             /// <exception cref="IOException"></exception>
@@ -370,7 +370,7 @@ namespace lib.cache
 
                 io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1) + 1, SeekOrigin.Begin);
                 byte[] read = new byte[MAX_HEADER_LENGTH];
-                io.Read(read, (int) io.Position, MAX_HEADER_LENGTH);
+                io.Read(read, 0, MAX_HEADER_LENGTH);
 
                 return new JournalHeader(id, trimArrayToNullTerminator(read));
             }

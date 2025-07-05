@@ -36,8 +36,7 @@ public class CacheManager : IDisposable
         parent = conf.CacheDir;
         if (!Directory.Exists(parent))
         {
-            Directory.CreateDirectory(parent);
-            if (!Directory.Exists(parent)) new IOException("Couldn't create cache directory!");
+            if (!Directory.CreateDirectory(parent).Exists) throw new IOException("Couldn't create cache directory!");
         }
 
         journal = new CacheJournal(parent);
@@ -98,8 +97,7 @@ public class CacheManager : IDisposable
         DirectoryInfo subDir = new DirectoryInfo(Path.Combine(parentDir, dirName));
         if (!subDir.Exists)
         {
-            File.Create(subDir.FullName).Close();
-            if(!subDir.Exists) throw new IOException("Couldn't create cache directory!");
+            Directory.CreateDirectory(subDir.FullName);
         }
         return new FileInfo(Path.Combine(subDir.FullName, hex));
     }
@@ -203,7 +201,7 @@ public class CacheManager : IDisposable
 
             try
             {
-                byte[] timestampBytes = new BigInteger(Utils.getUnixTimeStampInMilliseconds()).ToByteArray().Reverse().ToArray();
+                byte[] timestampBytes = new BigInteger(Utils.getUnixTimeStampInMilliseconds() / 1000).ToByteArray().Reverse().ToArray();
                 journal.setHeader(streamId, HEADER_TIMESTAMP, timestampBytes);
                 updatedTimestamp = true;
             }
