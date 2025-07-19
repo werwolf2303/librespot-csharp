@@ -37,9 +37,7 @@ namespace lib.audio
             
             foreach (Track alt in track.Alternatives) {
                 if (alt.Files.Count > 0) {
-                    Track trackBuilder = new Track();
-                    trackBuilder.Files.RemoveRange(0, alt.Files.Count);
-                    trackBuilder.Files.AddRange(alt.Files);
+                    track.Files.AddRange(alt.Files);
                     return track;
                 }
             }
@@ -80,6 +78,7 @@ namespace lib.audio
         {
             Track original = _session.GetApi().GetMetadata4Track(id);
             Track track = PickAlternativeIfNecessary(original);
+            
             if (track == null)
             {
                 String country = _session.GetCountryCode();
@@ -144,7 +143,7 @@ namespace lib.audio
                 LOGGER.Error("Couldn't find any suitable audio file, available " + Utils.formatsToString(track.Files));
                 throw new FileAudioStream.FeederException();
             }
-
+            
             return LoadStream(file, track, null, preload, haltListener);
         }
 

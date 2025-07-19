@@ -21,7 +21,7 @@ namespace lib.audio.decoders
         }
 
         public static Decoder InitDecoder(SuperAudioFormat format, Stream audioIn,
-            float normalizationFactor)
+            float normalizationFactor, int duration)
         {
             audioIn.Seek((int)audioIn.Position, SeekOrigin.Begin);
             Type decoder = decoders[format.Id];
@@ -29,7 +29,7 @@ namespace lib.audio.decoders
             {
                 throw new DecoderException(String.Format("Unsupported audio format: {0}", format));
             }
-            return decoder.GetConstructor(new []{ typeof(Stream), typeof(float)}).Invoke(new object[] { audioIn, normalizationFactor }) as Decoder;
+            return decoder.GetConstructor(new []{ typeof(Stream), typeof(float), typeof(int)}).Invoke(new object[] { audioIn, normalizationFactor, duration}) as Decoder;
         }
         
     }

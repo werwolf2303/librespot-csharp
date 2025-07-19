@@ -1,90 +1,98 @@
 using System;
 using System.IO;
 using decoder_api;
+using deps.NAudio.Vorbis;
 using deps.NVorbis;
+using lib.audio.format;
 using sink_api;
 
 namespace lib.audio.decoders
 {
-        public class VorbisDecoder : Decoder
+    public class VorbisDecoder : Decoder
     {
-        private readonly VorbisReader _vorbisReader;
+        private readonly VorbisWaveReader _waveReader;
         private readonly float[] _readBuffer;
         private readonly byte[] _byteBuffer;
+        private readonly int _channels;
+        private const int CHUNK_FRAMES = 1024; // frames = samples per channel
+        private OutputAudioFormat _format = OutputAudioFormat.DEFAULT_FORMAT;
 
-        public VorbisDecoder(Stream audioIn, float normalizationFactor)
-            : base(audioIn, normalizationFactor, GetDuration(audioIn))
+        public VorbisDecoder(Stream audioIn, float normalizationFactor, int duration)
+            : base(audioIn, normalizationFactor, duration)
         {
-            this.audioIn.Position = 0;
+            audioIn.Position = 0;
+            _waveReader = new VorbisWaveReader(audioIn);
 
-            _vorbisReader = new VorbisReader(this.audioIn, false);
+            _channels = _format.getChannels();
 
-            _readBuffer = new float[BUFFER_SIZE];
-            _byteBuffer = new byte[BUFFER_SIZE * 2]; 
+            _readBuffer = new float[CHUNK_FRAMES * _channels]; // interleaved float samples
+            _byteBuffer = new byte[_readBuffer.Length * 2];     // 16-bit PCM
 
             SetAudioFormat(new OutputAudioFormat(
-                _vorbisReader.SampleRate,
-                16, 
-                _vorbisReader.Channels,
-                true, 
-                false));
+                _format.getSampleRate(),
+                16,
+                _channels,
+                signed: true,
+                bigEndian: false));
         }
 
-        private static int GetDuration(Stream audioIn)
-        {
-            using (var reader = new VorbisReader(audioIn, false))
-            {
-                return (int)reader.TotalTime.TotalMilliseconds;
-            }
-        }
-        
         protected override int ReadInternal(Stream stream)
         {
-            Console.WriteLine("Decoding a piece");
-            
-            int samplesRead = _vorbisReader.ReadSamples(_readBuffer, 0, _readBuffer.Length);
-            if (samplesRead == 0)
+            try
             {
-                return 0; 
+                // Read a chunk of samples (interleaved)
+                int samplesRead = _waveReader.Read(_readBuffer, 0, _readBuffer.Length);
+                if (samplesRead == 0)
+                    return 0; // EOF
+
+                int bytesToWrite = 0;
+
+                for (int i = 0; i < samplesRead; i++)
+                {
+                    float sample = _readBuffer[i] * normalizationFactor;
+
+                    // Clamp to [-1.0, 1.0]
+                    sample = Math.Max(-1.0f, Math.Min(1.0f, sample));
+                    short pcmSample = (short)(sample * 32767f);
+
+                    _byteBuffer[bytesToWrite++] = (byte)(pcmSample & 0xFF);
+                    _byteBuffer[bytesToWrite++] = (byte)(pcmSample >> 8);
+                }
+
+                stream.Write(_byteBuffer, 0, bytesToWrite);
+                return bytesToWrite;
             }
-            
-            int bytesToWrite = 0;
-            for (int i = 0; i < samplesRead; i++)
+            catch (Exception ex)
             {
-                float sample = _readBuffer[i] * normalizationFactor;
+                Console.WriteLine($"[VorbisDecoder] Decode error: {ex.Message}");
 
-                if (sample > 1.0f) sample = 1.0f;
-                if (sample < -1.0f) sample = -1.0f;
-                short pcmSample = (short)(sample * 32767);
-
-                _byteBuffer[bytesToWrite++] = (byte)(pcmSample & 0xFF);
-                _byteBuffer[bytesToWrite++] = (byte)(pcmSample >> 8);
+                // Write silence to maintain timing
+                int silentBytes = CHUNK_FRAMES * _channels * 2;
+                Array.Clear(_byteBuffer, 0, silentBytes);
+                stream.Write(_byteBuffer, 0, silentBytes);
+                return silentBytes;
             }
-            
-            stream.Write(_byteBuffer, 0, bytesToWrite);
-            
-            return bytesToWrite;
         }
-        
+
         public override int Time()
         {
-            return (int)_vorbisReader.DecodedTime.TotalMilliseconds;
+            return (int)_waveReader.TotalTime.TotalMilliseconds;
         }
-        
+
         public override void Seek(int positionMs)
         {
             if (positionMs < 0) positionMs = 0;
             if (positionMs > duration) positionMs = duration;
 
             Console.WriteLine($"Seeking to {positionMs}ms...");
-            _vorbisReader.DecodedTime = TimeSpan.FromMilliseconds(positionMs);
+            _waveReader.CurrentTime = TimeSpan.FromMilliseconds(positionMs);
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                _vorbisReader?.Dispose();
+                _waveReader?.Dispose();
             }
             base.Dispose(disposing);
         }

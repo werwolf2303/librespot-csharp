@@ -12,8 +12,8 @@ namespace lib.audio.decoders
         private readonly Mp3FileReader _mp3Reader;
         private readonly IWaveProvider _pcmProvider;
 
-        public Mp3Decoder(Stream audioIn, float normalizationFactor)
-            : base(audioIn, normalizationFactor, GetDuration(audioIn))
+        public Mp3Decoder(Stream audioIn, float normalizationFactor, int duration)
+            : base(audioIn, normalizationFactor, duration)
         {
             this.audioIn.Position = 0;
             _mp3Reader = new Mp3FileReader(this.audioIn);
@@ -28,14 +28,6 @@ namespace lib.audio.decoders
                 _pcmProvider.WaveFormat.Channels,
                 true,
                 false));
-        }
-        
-        private static int GetDuration(Stream audioIn)
-        {
-            using (var reader = new Mp3FileReader(audioIn))
-            {
-                return (int)reader.TotalTime.TotalMilliseconds;
-            }
         }
 
         protected override int ReadInternal(Stream stream)

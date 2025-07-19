@@ -95,18 +95,23 @@ public abstract class AbsChunkedInputStream : Stream, IDisposable
         if (_pos >= Size()) return -1;
 
         int totalBytesRead = 0;
+
         while (totalBytesRead < count)
         {
-            if (_pos >= Size()) break; 
+            if (_pos >= Size()) break;
 
             long chunkIndex = _pos / ChannelManager.CHUNK_SIZE;
             long chunkOffset = _pos % ChannelManager.CHUNK_SIZE;
 
             CheckAvailability((int)chunkIndex, true, false);
-            if (_closed) return totalBytesRead; 
+            if (_closed) return totalBytesRead;
 
             byte[] chunkBuffer = Buffer()[(int)chunkIndex];
-            int bytesToCopy = (int)Math.Min(chunkBuffer.Length - chunkOffset, count - totalBytesRead);
+
+            long remaining = Size() - _pos;
+            int bytesAvailableInChunk = chunkBuffer.Length - (int)chunkOffset;
+            int bytesRequested = count - totalBytesRead;
+            int bytesToCopy = (int)Math.Min(Math.Min(bytesAvailableInChunk, bytesRequested), remaining);
 
             Array.Copy(chunkBuffer, chunkOffset, buffer, offset + totalBytesRead, bytesToCopy);
 

@@ -67,21 +67,23 @@ namespace lib.audio.decrypt
                     for (int i = 0; i < buffer.Length; i += 4096)
                     {
                         byte[] ivBytes = currentCounter.ToByteArray();
+
                         Array.Reverse(ivBytes);
 
                         byte[] paddedIvBytes = new byte[AES_BLOCK_SIZE_BYTES];
                         int copyLen = Math.Min(ivBytes.Length, AES_BLOCK_SIZE_BYTES);
                         Buffer.BlockCopy(ivBytes, 0, paddedIvBytes, AES_BLOCK_SIZE_BYTES - copyLen, copyLen);
 
-                        ParametersWithIV keyAndIV = new ParametersWithIV(new KeyParameter(_secretKey), paddedIvBytes);
+                        var keyAndIV = new ParametersWithIV(new KeyParameter(_secretKey), paddedIvBytes);
+
                         _bufferedCipher.Init(true, keyAndIV);
 
                         int count = Math.Min(4096, buffer.Length - i);
-                        int bytesProcessed = _bufferedCipher.ProcessBytes(buffer, i, count, buffer, i);
 
-                        if (count != bytesProcessed)
-                            throw new IOException(
-                                $"Bouncy Castle ProcessBytes did not process all data. Actual: {bytesProcessed}, Expected: {count}");
+                        int processed = _bufferedCipher.DoFinal(buffer, i, count, buffer, i);
+
+                        if (processed != count)
+                            throw new IOException($"Expected {count} bytes processed, but got {processed}.");
 
                         currentCounter += IV_INCREMENT_VALUE;
                     }
@@ -90,17 +92,9 @@ namespace lib.audio.decrypt
                     _decryptTotalTime += stopwatch.ElapsedTicks;
                     _decryptCount++;
                 }
-                catch (DataLengthException ex)
-                {
-                    throw new IOException("Cryptographic data length error.", ex);
-                }
-                catch (InvalidCipherTextException ex)
-                {
-                    throw new IOException("Decryption failed due to invalid ciphertext.", ex);
-                }
                 catch (Exception ex)
                 {
-                    throw new IOException("An unexpected error occurred during chunk decryption.", ex);
+                    throw new IOException("Error during decryption.", ex);
                 }
             }
         }
