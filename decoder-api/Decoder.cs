@@ -12,7 +12,7 @@ namespace decoder_api
         protected readonly float normalizationFactor;
         protected readonly int duration;
         protected volatile bool closed = false;
-        protected long seekZero = 0;
+        protected internal long seekZero = 0;
         private OutputAudioFormat format;
 
         protected Decoder(Stream audioIn, float normalizationFactor, int duration)
@@ -34,7 +34,6 @@ namespace decoder_api
 
         protected abstract int ReadInternal(Stream stream);
         public abstract int Time();
-        public abstract void Seek(int positionMs);
 
         public void Close()
         {

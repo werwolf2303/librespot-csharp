@@ -46,14 +46,14 @@ namespace lib.audio.decoders
             return (int)_mp3Reader.CurrentTime.TotalMilliseconds;
         }
 
-        public override void Seek(int positionMs)
+        /*public override void Seek(int positionMs)
         {
             if (positionMs < 0) positionMs = 0;
             if (positionMs > duration) positionMs = duration;
 
             Console.WriteLine($"Seeking to {positionMs}ms...");
             _mp3Reader.CurrentTime = TimeSpan.FromMilliseconds(positionMs);
-        }
+        }*/
 
         protected override void Dispose(bool disposing)
         {
