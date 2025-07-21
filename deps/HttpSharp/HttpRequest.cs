@@ -301,7 +301,6 @@ namespace deps.HttpSharp
         public void SetData(byte[] data)
         {
             RequestData = data;
-            _request.GetRequestStream().Write(data, 0, data.Length);
             ContentLength = data.Length;
         }
 

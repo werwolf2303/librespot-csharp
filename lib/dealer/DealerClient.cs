@@ -26,7 +26,8 @@ namespace lib.dealer
         private Dictionary<String, RequestListener> _reqListeners = new Dictionary<string, RequestListener>();
         private Dictionary<MessageListener, List<String>> _msgListeners =
             new Dictionary<MessageListener, List<string>>();
-        private ScheduledExecutorService _scheduler = new ScheduledExecutorService();
+
+        private ScheduledExecutorService _scheduler;
         private volatile ConnectionHolder _conn;
         private ScheduledExecutorService.ScheduledFuture<int> _lastScheduledReconnection;
         private Object _lock = new Object();
@@ -34,12 +35,13 @@ namespace lib.dealer
         public DealerClient(Session session)
         {
             _session = session;
+            _scheduler = _session.GetScheduledExecutorService();
             _asyncWorker = new AsyncWorker<Runnable.Run>("dealer-worker", Run => { });
         }
 
         private static Dictionary<String, String> GetHeaders(JObject obj)
         {
-            JObject headers = obj["headers"] as JObject;
+            JObject headers = Utils.OptionalJSON(obj, "headers", new JObject());
             if (headers == null) return new Dictionary<string, string>();
             
             Dictionary<String, String> map = new Dictionary<String, String>();
@@ -133,10 +135,10 @@ namespace lib.dealer
 
         private void HandleMessage(JObject obj)
         {
-            String uri = obj["uri"].ToObject<string>();
+            String uri = Utils.OptionalJSON(obj, "uri", "");
             
             Dictionary<String, String> headers = GetHeaders(obj);
-            JArray payloads = obj.TryGetValue("payloads", out JToken optPayloads) ? optPayloads.ToObject<JArray>() : null;
+            JArray payloads = Utils.OptionalJSON<JArray>(obj, "payloads", null);
             byte[] decodedPayload;
             if (payloads != null)
             {
@@ -264,7 +266,6 @@ namespace lib.dealer
         public void Dispose()
         {
             _asyncWorker.Dispose();
-            _scheduler.Dispose();
 
             if (_conn != null)
             {
@@ -311,6 +312,7 @@ namespace lib.dealer
                     }
                     return 0;
                 }, 10);
+                _scheduler.schedule(_lastScheduledReconnection);
             }
         }
 
@@ -342,8 +344,8 @@ namespace lib.dealer
             {
                 _client = client;
                 _ws = new WebSocket(url);
-                _ws.Connect();
                 new WebSocketListenerImpl(_ws, this, _client);
+                _ws.Connect();
             }
 
             internal void SendPing()
@@ -414,7 +416,7 @@ namespace lib.dealer
                     
                     _client._scheduler.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
                     {
-                        if (_holder.LastScheduledPing == null || _holder.LastScheduledPing.IsCancelled) return 0;
+                        if (_holder.LastScheduledPing == null || _holder.LastScheduledPing.IsCancelled()) return 0;
 
                         if (!_holder.ReceivedPong)
                         {
@@ -437,26 +439,27 @@ namespace lib.dealer
                 JObject obj = JObject.Parse(e.Data);
                 
                 _client.WaitForListeners();
-
-                MessageType type = MessageType.Parse(obj["type"].ToObject<string>());
-                if (type.Equals(MessageType.Message))
+                
+                String type = obj["type"].ToObject<String>();
+                
+                if (type.Equals("message"))
                 {
                     try {
                         _client.HandleMessage(obj);
                     } catch (Exception ex) {
                         LOGGER.Warn("Failed handling message: " + obj, ex);
                     }
-                }else if (type.Equals(MessageType.Request))
+                }else if (type.Equals("request"))
                 {
                     try {
                         _client.HandleRequest(obj);
                     } catch (Exception ex) {
                         LOGGER.Warn("Failed handling request: " + obj, ex);
                     }
-                } else if (type.Equals(MessageType.Pong))
+                } else if (type.Equals("pong"))
                 {
-                    _holder.ReceivedPong = true;
-                } else if (type.Equals(MessageType.Ping))
+                   _holder.ReceivedPong = true;
+                } else if (type.Equals("ping"))
                 {
                 }
                 else

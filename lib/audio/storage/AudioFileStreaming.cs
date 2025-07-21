@@ -20,13 +20,14 @@ namespace lib.audio.storage
         private byte[] _key;
         private Session _session;
         private IHaltListener _haltListener;
-        private ScheduledExecutorService _executorService = new ScheduledExecutorService();
+        private ScheduledExecutorService _executorService;
         private int _chunks = -1;
         private ChunksBuffer _chunksBuffer;
 
         internal AudioFileStreaming(Session session, spotify.metadata.proto.AudioFile file, byte[] key, IHaltListener haltListener)
         {
             _session = session;
+            _executorService = _session.GetScheduledExecutorService();
             _haltListener = haltListener;
             _cacheHandler = session.GetCache().GetHandler(Utils.bytesToHex(file.FileId));
             _file = file;
@@ -161,7 +162,6 @@ namespace lib.audio.storage
 
         public void Dispose()
         {
-            _executorService.Dispose();
             if (_chunksBuffer != null) 
                 _chunksBuffer.Dispose();
 

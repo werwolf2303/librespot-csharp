@@ -252,5 +252,11 @@ namespace lib.common
                 Array.Reverse(bytes);
             return bytes;
         }
+
+        public static void Swap<T>(List<T> list, int i, int j)
+        {
+            list[i] = list[j];
+            list[j] = list[i];
+        }
     }
 }

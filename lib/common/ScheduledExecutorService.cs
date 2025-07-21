@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using log4net;
+using log4net.Util;
 
 namespace lib.common
 {
@@ -8,33 +10,72 @@ namespace lib.common
     {
         private List<IScheduledFuture> _scheduledFutures = new List<IScheduledFuture>();
         private Object _scheduledFuturesLock = new Object();
-        private Timer _timer;
-        private bool _isRunning = false;
-        
+        private bool _isRunning;
+        private Thread _workerThread;
+        private readonly AutoResetEvent _wakeup = new AutoResetEvent(false);
+        private static ILog LOGGER = LogManager.GetLogger(typeof(ScheduledExecutorService));
+
         public ScheduledExecutorService()
         {
-            _timer = new Timer(state =>
+            _isRunning = true;
+            _workerThread = new Thread(() =>
             {
-                lock (_scheduledFuturesLock)
+                while (_isRunning)
                 {
-                    List<int> removals = new List<int>();
-                    for (int i = 0; i < _scheduledFutures.Count; i++)
+                    long waitTime = -1;
+                    long now = Utils.getUnixTimeStampInMilliseconds();
+
+                    lock (_scheduledFuturesLock)
                     {
-                        _scheduledFutures[i].ExecuteIfNeeded(Utils.getUnixTimeStampInMilliseconds());
-                        if (_scheduledFutures[i].WasExecuted() || _scheduledFutures[i].IsExecuting() && !removals.Contains(i))
+                        _scheduledFutures.RemoveAll(f => (f.WasExecuted() && !f.IsInfinite()) || f.IsCancelled());
+                        
+                        List<Thread> threads = new List<Thread>();
+                        
+                        foreach (var f in _scheduledFutures)
                         {
-                            if(_scheduledFutures[i].IsInfinite()) continue;
-                            removals.Add(i);
+                            Thread optThread = f.ExecuteIfNeeded(now);
+
+                            // Waiting for the task thread is only necessary for infinite tasks
+                            // This is because of the waitTime that gets calculated
+                            if (optThread != null && f.IsInfinite())
+                            {
+                                threads.Add(optThread);
+                            }
+                        }
+
+                        threads.ForEach(t => t.Join());
+                        
+                        _scheduledFutures.RemoveAll(f => (f.WasExecuted() && !f.IsInfinite()) || f.IsCancelled());
+
+                        foreach (var f in _scheduledFutures)
+                        {
+                            if (!f.WasExecuted() || f.IsInfinite())
+                            {
+                                long timeUntilExecution = f.GetExecutionTime() - now;
+                                if (waitTime == Timeout.Infinite) waitTime = timeUntilExecution;
+                                if (timeUntilExecution < waitTime)
+                                {
+                                    waitTime = Math.Max(0, timeUntilExecution);
+                                }
+                            }
                         }
                     }
 
-                    for (int i = removals.Count - 1; i >= 0; i--)
+                    if (!_isRunning) break;
+
+                    if (waitTime == -1)
                     {
-                        _scheduledFutures.RemoveAt(removals[i]);
-                    }
+                        _wakeup.WaitOne();
+                    } else _wakeup.WaitOne((int)Math.Min(waitTime, int.MaxValue));
                 }
-            }, null, 0, 500);
-            _isRunning = true;
+            });
+            _workerThread.Name = "ScheduledExecutorService-worker";
+            _workerThread.Start();
+        }
+
+        public List<IScheduledFuture> ScheduledFutures
+        {
+            get => _scheduledFutures;
         }
 
         public enum TimeUnit
@@ -47,13 +88,15 @@ namespace lib.common
 
         public interface IScheduledFuture
         {
-            void ExecuteIfNeeded(long currentTimeMilliseconds);
+            Thread ExecuteIfNeeded(long currentTimeMilliseconds);
             void Cancel(bool interruptIfRunning);
-            bool WasExecuted(); 
+            bool WasExecuted();
             bool IsExecuting();
             void Reset();
             void SetInfinite(bool value);
             bool IsInfinite();
+            long GetExecutionTime();
+            bool IsCancelled();
         }
 
         public class ScheduledFuture<T> : IScheduledFuture
@@ -70,17 +113,19 @@ namespace lib.common
             private bool _infinite;
             private long _delay;
             private bool _isCancelled;
+            private Action _onReschedule;
 
-            public ScheduledFuture(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS)
+            public ScheduledFuture(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS, Action onReschedule = null)
             {
+                _onReschedule = onReschedule;
                 Init(func, delay, unit);
             }
 
             private void Reschedule()
             {
                 long systemMilliseconds = Utils.getUnixTimeStampInMilliseconds();
-                
-                switch (_unit) 
+
+                switch (_unit)
                 {
                     case TimeUnit.HOURS:
                         _executionTime = systemMilliseconds + (long)TimeSpan.FromHours(_delay).TotalMilliseconds;
@@ -95,29 +140,23 @@ namespace lib.common
                         _executionTime = systemMilliseconds + (long)TimeSpan.FromSeconds(_delay).TotalMilliseconds;
                         break;
                 }
-                
-                _thread = new Thread(o =>
-                {
-                    lock (_executionLock)
-                    {
-                        _value = _function();
-                        lock (_valueLock) 
-                        {
-                            Monitor.PulseAll(_valueLock);
-                        }
-                    }
-                });
-                _thread.Name = "ScheduledFuture";
-                
+
                 _executing = false;
                 _executed = false;
+
+                _onReschedule?.Invoke();
+            }
+
+            public long GetExecutionTime()
+            {
+                return _executionTime;
             }
 
             public bool IsInfinite()
             {
                 return _infinite;
             }
-            
+
             private void Init(Function func, long delay, TimeUnit unit = TimeUnit.SECONDS)
             {
                 _delay = delay;
@@ -126,36 +165,56 @@ namespace lib.common
                 Reschedule();
             }
 
-            public void ExecuteIfNeeded(long currentTimeMilliseconds)
+            public Thread ExecuteIfNeeded(long currentTimeMilliseconds)
             {
-                if (_executed || _executing) return;
+                if (_executed || _executing) return null;
                 if (currentTimeMilliseconds >= _executionTime)
                 {
                     _executing = true;
-                    _value = Execute();
-                    _executing = false;
-                    if(_infinite) Reschedule();
+                    _thread = new Thread(_ =>
+                    {
+                        try
+                        {
+                            T result = _function();
+
+                            lock (_valueLock)
+                            {
+                                _value = result;
+                                Monitor.PulseAll(_valueLock);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LOGGER.ErrorExt("Unexpected exception in worker function", ex);
+                        }
+                        finally
+                        {
+                            _executing = false;
+                            _executed = true;
+                            if (_infinite) Reschedule();
+                        }
+                    });
+                    _thread.Name = "ScheduledExecutorService-worker";
+                    _thread.Start();
+                    
+                    return _thread;
                 }
-            }
-            
-            public T Execute()
-            {
-                _thread.Start();
-                _thread.Join();
-                _executing = false;
-                _executed = true;
-                return _value;
+
+                return null;
             }
 
             public void Cancel(bool interruptIfRunning = true)
             {
                 if (!_executing) return;
                 if (!interruptIfRunning && _executing) return;
-                _thread.Interrupt();
+                if (_thread != null) _thread.Interrupt();
                 _isCancelled = true;
             }
-            
-            public bool IsCancelled => _isCancelled;
+
+            public bool IsCancelled()
+            {
+                return _isCancelled;
+            }
 
             public bool WasExecuted()
             {
@@ -171,37 +230,31 @@ namespace lib.common
             {
                 _executed = false;
                 _executing = false;
-                Init(_function, _executionTime, _unit);
+                Init(_function, _delay, _unit);
             }
 
             public void SetInfinite(bool value)
             {
                 _infinite = value;
             }
-            
-            public T Get()
-            {
-                if (_executed) return _value;
-                lock (_valueLock)
-                {
-                    Monitor.Wait(_valueLock);
-                }
-                return _value;
-            }
-            
+
             public delegate T Function();
         }
-        
-        public void schedule(IScheduledFuture future)
+
+        private void scheduleInternal(IScheduledFuture future)
         {
             lock (_scheduledFuturesLock)
             {
-                if (_scheduledFutures.Contains(future)) return;
-                Monitor.Enter(_scheduledFuturesLock);
-                if(future.WasExecuted()) future.Reset();
-                _scheduledFutures.Add(future);
-                Monitor.Exit(_scheduledFuturesLock);
+                if (_scheduledFutures.Contains(future)) return; 
+                if (future.WasExecuted()) future.Reset(); 
+                _scheduledFutures.Add(future); 
+                _wakeup.Set();
             }
+        }
+
+        public void schedule(IScheduledFuture future)
+        {
+            ThreadPool.QueueUserWorkItem(state => { scheduleInternal(future); });
         }
 
         public void scheduleAtFixedRate(IScheduledFuture future)
@@ -209,7 +262,7 @@ namespace lib.common
             future.SetInfinite(true);
             schedule(future);
         }
-        
+
         public bool IsShutdown
         {
             get => !_isRunning;
@@ -217,20 +270,21 @@ namespace lib.common
 
         public void Dispose()
         {
-            _timer.Dispose();
+            _isRunning = false;
+            _wakeup.Set();
+
+            _workerThread.Join();
+
             lock (_scheduledFuturesLock)
             {
-                Monitor.Enter(_scheduledFuturesLock);
-                for (int i = 0; i < _scheduledFutures.Count; i++)
+                foreach (var future in _scheduledFutures)
                 {
-                    _scheduledFutures[i].Cancel(false);
+                    future.Cancel(false);
                 }
-                _scheduledFutures = null;
-                Monitor.Exit(_scheduledFuturesLock);
+                _scheduledFutures.Clear();
             }
-            _timer = null;
-            _scheduledFuturesLock = null;
-            _isRunning = false;
+
+            _wakeup.Dispose();
         }
     }
 }

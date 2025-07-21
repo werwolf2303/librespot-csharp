@@ -54,7 +54,7 @@ namespace lib.metadata
     public class PlayableId : IPlayableId
     {
         internal static IPlayableId _playableId;
-        internal static common.Base62 _base62 = common.Base62.CreateInstanceWithInvertedCharacterSet();
+        public static common.Base62 Base62 = common.Base62.CreateInstanceWithInvertedCharacterSet();
         
         protected PlayableId()
         {
@@ -69,7 +69,7 @@ namespace lib.metadata
             throw new InvalidOperationException("Unknown uri: " + uri);
         }
         
-        internal static int IndexOfTrack(List<ContextTrack> tracks, IPlayableId id)
+        public static int IndexOfTrack(List<ContextTrack> tracks, IPlayableId id)
         {
             byte[] gid = null;
             if (id.HasGid()) gid = id.GetGid();
@@ -85,17 +85,17 @@ namespace lib.metadata
             return -1;
         }
 
-        internal static IPlayableId From(ProvidedTrack track)
+        public static IPlayableId From(ProvidedTrack track)
         {
             return track.Uri.Equals("") ? null : FromUri(track.Uri);
         }
 
-        internal static bool IsDelimiter(String uri)
+        public static bool IsDelimiter(String uri)
         {
             return uri.Equals("spotify:delimiter") || uri.Equals("spotify:meta:delimiter");
         }
 
-        internal static bool IsLocal(String uri)
+        public static bool IsLocal(String uri)
         {
             return uri.StartsWith("spotify:local:");
         }
@@ -124,7 +124,7 @@ namespace lib.metadata
 
         public string ToSpotifyUri()
         {
-            return "spotify:" + PlayableIds.ToString(_playableId.GetId()).ToLower() + ":" + Utils.HexToBase62(_playableId.HexId(), 16, _base62);
+            return "spotify:" + PlayableIds.ToString(_playableId.GetId()).ToLower() + ":" + Utils.HexToBase62(_playableId.HexId(), 16, Base62);
         }
 
         public int GetId()

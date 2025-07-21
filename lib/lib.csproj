@@ -110,6 +110,7 @@
         <Compile Include="common\ByteBuffer.cs" />
         <Compile Include="common\BytesArrayList.cs" />
         <Compile Include="common\Enumeration.cs" />
+        <Compile Include="common\FisherYatesShuffle.cs" />
         <Compile Include="common\Headers.cs" />
         <Compile Include="common\Iterator.cs" />
         <Compile Include="common\NameThreadFactory.cs" />
@@ -132,7 +133,6 @@
         <Compile Include="crypto\Shannon.cs" />
         <Compile Include="dealer\ApiClient.cs" />
         <Compile Include="dealer\DealerClient.cs" />
-        <Compile Include="dealer\MessageType.cs" />
         <Compile Include="json\GenericJson.cs" />
         <Compile Include="json\JsonWrapper.cs" />
         <Compile Include="json\ResolvedContextWrapper.cs" />

@@ -200,7 +200,7 @@ namespace lib.audio.cdn
         public class Streamer : IDecodedAudioStream, IGeneralWriteableStream
         {
             private StreamId _streamId;
-            private ScheduledExecutorService _executorService = new ScheduledExecutorService();
+            private ScheduledExecutorService _executorService;
             private SuperAudioFormat _format;
             private AudioDecrypt _audioDecrypt;
             private CdnUrl _cdnUrl;
@@ -219,6 +219,7 @@ namespace lib.audio.cdn
                 IHaltListener haltListener)
             {
                 _session = session;
+                _executorService = _session.GetScheduledExecutorService();
                 _streamId = streamId;
                 _format = format;
                 _audioDecrypt = audioDecrypt;
@@ -411,7 +412,6 @@ namespace lib.audio.cdn
                 protected override void Dispose(bool disposing)
                 {
                     base.Dispose(disposing);
-                    _streamer._executorService.Dispose();
 
                     if (_streamer._cacheHandler != null)
                     {

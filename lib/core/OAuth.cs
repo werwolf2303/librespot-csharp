@@ -93,7 +93,7 @@ namespace lib.core
             {
                 throw new Exception("Illegal state! You need to request a token before!");
             }
-
+            
             return new LoginCredentials
             {
                 Typ = AuthenticationType.AuthenticationSpotifyToken,

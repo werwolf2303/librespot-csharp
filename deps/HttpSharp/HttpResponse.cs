@@ -156,7 +156,14 @@ namespace deps.HttpSharp
         {
             HttpMethod = request.HttpMethod;
             _requestData = request.RequestData;
-            _httpWebResponse = (HttpWebResponse)request.GetRequest().GetResponse();
+
+            HttpWebRequest webRequest = request.GetRequest();
+
+            if (_requestData != null)
+            {
+                webRequest.GetRequestStream().Write(_requestData, 0, _requestData.Length);
+            } 
+            _httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
 
             AcceptCH = TryGet<string>("Accept-CH");
             AccessControlAllowOrigin = TryGet<string>("Access-Control-Allow-Origin");
@@ -241,7 +248,13 @@ namespace deps.HttpSharp
             {
                 Stream cresponseStream = _httpWebResponse.GetResponseStream();
                 byte[] cdata = new byte[(int)ContentLength];
-                cresponseStream.Read(cdata, 0, (int)ContentLength);
+                int offset = 0;
+                while (offset < cdata.Length)
+                {
+                    int read = cresponseStream.Read(cdata, offset, cdata.Length - offset);
+                    if (read == 0) break; 
+                    offset += read;
+                }
                 cresponseStream.Close();
                 return cdata;
             }

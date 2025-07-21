@@ -19,7 +19,7 @@ namespace lib.metadata
 
         public static TrackId FromBase62(String base62)
         {
-            return new TrackId(Utils.Base62ToHex(base62, 16, _base62));
+            return new TrackId(Utils.Base62ToHex(base62, 16, Base62));
         }
 
         public static TrackId FromHex(String hex)
@@ -34,7 +34,7 @@ namespace lib.metadata
 
         public string ToSpotifyUri()
         {
-            return "spotify:track:" + Utils.HexToBase62(_hexId, 22, _base62); 
+            return "spotify:track:" + Utils.HexToBase62(_hexId, 22, Base62); 
         }
 
         public string HexId()

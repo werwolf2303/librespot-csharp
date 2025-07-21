@@ -475,6 +475,7 @@ namespace lib.core
                     FileStream credentialsFileStream = File.OpenWrite(_inner.Conf.StoredCredentialsFile);
                     byte[] credentialsBytes = Encoding.UTF8.GetBytes(obj.ToString());
                     credentialsFileStream.Write(credentialsBytes, 0, credentialsBytes.Length);
+                    credentialsFileStream.Close();
                 }
             }else if (packet.Is(Packet.Type.AuthFailure))
             {
@@ -744,6 +745,11 @@ namespace lib.core
             return _inner.Conf;
         }
 
+        public ScheduledExecutorService GetScheduledExecutorService()
+        {
+            return _scheduler;
+        }
+
         private void Reconnect()
         {
             if (_closing) return;
@@ -804,6 +810,8 @@ namespace lib.core
 
         private void ParseProductInfo(byte[] payload)
         {
+            if (_userAttributes.Count != 0) _userAttributes.Clear();
+            
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(Encoding.UTF8.GetString(payload));
 
@@ -1387,7 +1395,10 @@ namespace lib.core
                         case Packet.Type.ProductInfo:
                             try
                             {
-                                _sessionParent.ParseProductInfo(packet._payload);
+                                if (_sessionParent._userAttributes.Count == 0)
+                                {
+                                    _sessionParent.ParseProductInfo(packet._payload);
+                                }
                             }
                             catch (IOException ex) {
                                 LOGGER.Warn("Failed parsing product info!", ex);

@@ -174,11 +174,12 @@ namespace lib.audio
             private int _size;
             private bool[] _available;
             private bool[] _requested;
-            private ScheduledExecutorService _executorService = new ScheduledExecutorService();
+            private ScheduledExecutorService _executorService;
 
-            public FileAudioStream(String file)
+            public FileAudioStream(String file, ScheduledExecutorService executorService)
             {
                 _file = file;
+                _executorService = executorService;
                 _fileStream = File.OpenRead(file);
                 
                 _size = (int)_fileStream.Length;
@@ -385,9 +386,9 @@ namespace lib.audio
                 Metrics = new Metrics(null, false, 0);
             }
 
-            public static LoadedStream ForLocalFile(LocalId id, String file)
+            public static LoadedStream ForLocalFile(LocalId id, String file, ScheduledExecutorService scheduledExecutorService)
             {
-                return new LoadedStream(id, new FileAudioStream(file));
+                return new LoadedStream(id, new FileAudioStream(file, scheduledExecutorService));
             }
         }
     }
