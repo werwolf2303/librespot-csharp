@@ -12,6 +12,9 @@ namespace player
         public float _normalisationPregain;
         public bool _autoplayEnabled;
         public int _crossfadeDuration;
+        public AudioOutputMethod _audioOutputMethod;
+        public String _audioOutputClass;
+        public bool _preloadEnabled;
         
         // Output
         public AudioOutput _output;
@@ -32,12 +35,14 @@ namespace player
         public String _localFilesPath;
 
         private PlayerConfiguration(
+            bool preloadEnabled,
             AudioQuality preferredQuality,
             bool enableNormalisation,
             bool useAlbumGain,
             float normalisationPregain,
             bool autoplayEnabled,
             int crossfadeDuration,
+            String audioOutputClass,
             AudioOutput output,
             String outputClass,
             Object[] outputClassParams,
@@ -45,6 +50,7 @@ namespace player
             String metadataPipe,
             String[] mixerSearchKeywords,
             bool logAvailableMixers,
+            AudioOutputMethod audioOutputMethod,
             int releaseLineDelay,
             int initialVolume,
             int volumeSteps,
@@ -52,12 +58,14 @@ namespace player
             String localFilesPath
             )
         {
+            _preloadEnabled = preloadEnabled;
             _preferredQuality = preferredQuality;
             _enableNormalisation = enableNormalisation;
             _useAlbumGain = useAlbumGain;
             _normalisationPregain = normalisationPregain;
             _autoplayEnabled = autoplayEnabled;
             _crossfadeDuration = crossfadeDuration;
+            _audioOutputClass = audioOutputClass;
             _output = output;
             _outputClass = outputClass;
             _outputClassParams = outputClassParams;
@@ -65,6 +73,7 @@ namespace player
             _metadataPipe = metadataPipe;
             _mixerSearchKeywords = mixerSearchKeywords;
             _logAvailableMixers = logAvailableMixers;
+            _audioOutputMethod = audioOutputMethod;
             _releaseLineDelay = releaseLineDelay;
             _initialVolume = initialVolume;
             _volumeSteps = volumeSteps;
@@ -74,9 +83,14 @@ namespace player
         
         public enum AudioOutput
         {
-            ALSA, PIPE, STDOUT, CUSTOM
+            MIXER, PIPE, STDOUT, CUSTOM
         }
 
+        public enum AudioOutputMethod
+        {
+            AUTO, ALSA, CUSTOM
+        }
+        
         public class Builder
         {
             // Audio
@@ -87,9 +101,11 @@ namespace player
             private bool _autoplayEnabled = true;
             private int _crossfadeDuration = 0;
             private bool _preloadEnabled = true;
+            private AudioOutputMethod _audioOutputMethod = AudioOutputMethod.AUTO;
+            private String _audioOutputClass = "";
             
             // Output
-            private AudioOutput _output = AudioOutput.ALSA;
+            private AudioOutput _output = AudioOutput.MIXER;
             private String _outputClass;
             private Object[] _outputClassParams;
             private String _outputPipe;
@@ -133,6 +149,12 @@ namespace player
                 return this;
             }
 
+            public Builder SetAudioOutputClass(String classPath)
+            {
+                _audioOutputClass = classPath;
+                return this;
+            }
+
             public Builder SetAutoplayEnabled(bool autoplayEnabled)
             {
                 _autoplayEnabled = autoplayEnabled;
@@ -172,6 +194,12 @@ namespace player
             public Builder SetLogAvailableMixers(bool logAvailableMixers)
             {
                 _logAvailableMixers = logAvailableMixers;
+                return this;
+            }
+
+            public Builder SetAudioOutputMethod(AudioOutputMethod method)
+            {
+                _audioOutputMethod = method;
                 return this;
             }
 
@@ -220,12 +248,14 @@ namespace player
             public PlayerConfiguration Build()
             {
                 return new PlayerConfiguration(
+                    _preloadEnabled,
                     _preferredQuality,
                     _enableNormalisation,
                     _useAlbumGain,
                     _normalisationPregain,
                     _autoplayEnabled,
                     _crossfadeDuration,
+                    _audioOutputClass,
                     _output,
                     _outputClass,
                     _outputClassParams,
@@ -233,6 +263,7 @@ namespace player
                     _metadataPipe,
                     _mixerSearchKeywords,
                     _logAvailableMixers,
+                    _audioOutputMethod,
                     _releaseLineDelay,
                     _initialVolume,
                     _volumeSteps,

@@ -53,9 +53,9 @@ namespace lib.core
 
         public class Type : Enumeration
         {
-            public readonly Type NewSessionId = new Type("557", "3");
-            public readonly Type NewPlaybackId = new Type("558", "1");
-            public readonly Type TrackTransition = new Type("12", "38");
+            public static readonly Type NewSessionId = new Type("557", "3");
+            public static readonly Type NewPlaybackId = new Type("558", "1");
+            public static readonly Type TrackTransition = new Type("12", "38");
 
             public String Id;
             public String Unknown;

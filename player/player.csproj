@@ -58,7 +58,26 @@
         <Compile Include="contexts\GeneralFiniteContext.cs" />
         <Compile Include="contexts\GeneralInfiniteContext.cs" />
         <Compile Include="contexts\SearchContext.cs" />
+        <Compile Include="crossfade\CrossfadeController.cs" />
+        <Compile Include="crossfade\IGainInterpolator.cs" />
+        <Compile Include="crossfade\LinearDecreasingInterpolator.cs" />
+        <Compile Include="crossfade\LinearIncreasingInterpolator.cs" />
+        <Compile Include="crossfade\LookupInterpolator.cs" />
+        <Compile Include="metrics\NewPlaybackIdEvent.cs" />
+        <Compile Include="metrics\NewSessionIdEvent.cs" />
+        <Compile Include="metrics\PlaybackMetrics.cs" />
+        <Compile Include="metrics\PlayerMetrics.cs" />
+        <Compile Include="metrics\TrackTransitionEvent.cs" />
+        <Compile Include="mixing\AudioSink.cs" />
+        <Compile Include="mixing\CircularBuffer.cs" />
+        <Compile Include="mixing\GainAwareCircularBuffer.cs" />
+        <Compile Include="mixing\MixingLine.cs" />
+        <Compile Include="mixing\output\PipeOutput.cs" />
+        <Compile Include="mixing\output\StreamOutput.cs" />
+        <Compile Include="mixing\StreamConverter.cs" />
         <Compile Include="PagesLoader.cs" />
+        <Compile Include="playback\PlayerQueue.cs" />
+        <Compile Include="playback\PlayerQueueEntry.cs" />
         <Compile Include="Player.cs" />
         <Compile Include="PlayerConfiguration.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
@@ -67,6 +86,10 @@
         <Compile Include="state\RestrictionsManager.cs" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\decoder-api\decoder-api.csproj">
+        <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
+        <Name>decoder-api</Name>
+      </ProjectReference>
       <ProjectReference Include="..\deps\deps.csproj">
         <Project>{a961c373-4854-47f9-91df-1ab68479e0c3}</Project>
         <Name>deps</Name>
@@ -75,6 +98,13 @@
         <Project>{1de0fbc2-185c-499d-b691-1ff01fff28f2}</Project>
         <Name>lib</Name>
       </ProjectReference>
+      <ProjectReference Include="..\sink-api\sink-api.csproj">
+        <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>
+        <Name>sink-api</Name>
+      </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="README.md" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

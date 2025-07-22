@@ -437,6 +437,11 @@ namespace lib.audio.cdn
                 {
                 }
 
+                public override int Read()
+                {
+                    return -1;
+                }
+
                 public override bool CanRead
                 {
                     get => true;

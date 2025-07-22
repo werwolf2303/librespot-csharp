@@ -8,14 +8,14 @@ namespace decoder_api
     public abstract class Decoder : IDisposable
     {
         public static readonly int BUFFER_SIZE = 4096;
-        protected readonly Stream audioIn;
+        protected readonly SeekableInputStream audioIn;
         protected readonly float normalizationFactor;
         protected readonly int duration;
         protected volatile bool closed = false;
-        protected internal long seekZero = 0;
+        protected internal int seekZero = 0;
         private OutputAudioFormat format;
 
-        protected Decoder(Stream audioIn, float normalizationFactor, int duration)
+        protected Decoder(SeekableInputStream audioIn, float normalizationFactor, int duration)
         {
             if (!audioIn.CanSeek)
             {
@@ -48,6 +48,22 @@ namespace decoder_api
             Close();
         }
 
+        public void Seek(int positionMs)
+        {
+            if (positionMs < 0) positionMs = 0;
+
+            audioIn.Seek(seekZero);
+            if (positionMs > 0)
+            {
+                int skip = (int)Math.Round(audioIn.Length / (float)duration * positionMs);
+                if (skip > audioIn.Length) skip = (int) audioIn.Length;
+
+                long skipped = audioIn.Skip(skip);
+                if (skip != skipped) 
+                    throw new IOException("Failed seeking, skip: " + skipped + ", skipped: " + skipped);
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -76,11 +92,16 @@ namespace decoder_api
         {
             return duration;
         }
-    }
 
-    public class DecoderException : Exception
-    {
-        public DecoderException(string message) : base(message) { }
-        public DecoderException(string message, Exception cause) : base(message, cause) { }
+        public int Size()
+        {
+            return (int) audioIn.Length;
+        }
+        
+        public class DecoderException : Exception
+        {
+            public DecoderException(string message) : base(message) { }
+            public DecoderException(string message, Exception cause) : base(message, cause) { }
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace lib.audio.decoders
         private readonly Mp3FileReader _mp3Reader;
         private readonly IWaveProvider _pcmProvider;
 
-        public Mp3Decoder(Stream audioIn, float normalizationFactor, int duration)
+        public Mp3Decoder(SeekableInputStream audioIn, float normalizationFactor, int duration)
             : base(audioIn, normalizationFactor, duration)
         {
             this.audioIn.Position = 0;

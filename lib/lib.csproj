@@ -94,6 +94,7 @@
         <Compile Include="audio\playback\Alsa.cs" />
         <Compile Include="audio\playback\BlockingStream.cs" />
         <Compile Include="audio\playback\IPlayback.cs" />
+        <Compile Include="audio\playback\MixerOutput.cs" />
         <Compile Include="audio\storage\AudioFile.cs" />
         <Compile Include="audio\storage\AudioFileFetch.cs" />
         <Compile Include="audio\storage\AudioFileStreaming.cs" />

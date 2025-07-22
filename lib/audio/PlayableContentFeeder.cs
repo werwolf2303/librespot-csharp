@@ -82,7 +82,7 @@ namespace lib.audio
             if (track == null)
             {
                 String country = _session.GetCountryCode();
-                if (country != null) FileAudioStream.ContentRestrictedException.CheckRestrictions(country, original.Restrictions);
+                if (country != null) ContentRestrictedException.CheckRestrictions(country, original.Restrictions);
                 
                 LOGGER.Error("Couldn't find playable track: " + id.ToSpotifyUri());
                 throw new FileAudioStream.FeederException();
@@ -267,6 +267,11 @@ namespace lib.audio
                     throw new InvalidOperationException();
                 }
 
+                public override int Read()
+                {
+                    return -1;
+                }
+
                 public override bool CanRead { get => true; }
                 public override bool CanSeek { get => true; }
                 public override bool CanWrite { get => false; }
@@ -300,41 +305,41 @@ namespace lib.audio
                 {
                 }
             }
-
-            public class ContentRestrictedException : Exception
+        }
+        
+        public class ContentRestrictedException : Exception
+        {
+            public static void CheckRestrictions(String country, List<Restriction> restrictions)
             {
-                public static void CheckRestrictions(String country, List<Restriction> restrictions)
-                {
-                    foreach (Restriction restriction in restrictions)
-                        if (IsRestricted(country, restriction))
-                            throw new ContentRestrictedException();
-                }
+                foreach (Restriction restriction in restrictions)
+                    if (IsRestricted(country, restriction))
+                        throw new ContentRestrictedException();
+            }
 
-                private static bool IsInList(String list, String match)
-                {
-                    for (int i = 0; i < list.Length; i += 2)
-                        if (list.Substring(i, i + 2).Equals(match))
-                            return true;
+            private static bool IsInList(String list, String match)
+            {
+                for (int i = 0; i < list.Length; i += 2)
+                    if (list.Substring(i, i + 2).Equals(match))
+                        return true;
                     
-                    return false;
-                }
+                return false;
+            }
 
-                private static bool IsRestricted(String countryCode, Restriction restriction)
+            private static bool IsRestricted(String countryCode, Restriction restriction)
+            {
+                if (restriction.CountriesAllowed != null)
                 {
-                    if (restriction.CountriesAllowed != null)
-                    {
-                        String allowed = restriction.CountriesAllowed;
-                        if (allowed.Equals("")) return true;
+                    String allowed = restriction.CountriesAllowed;
+                    if (allowed.Equals("")) return true;
 
-                        if (!IsInList(restriction.CountriesForbidden, countryCode))
-                            return true;
-                    }
-
-                    if (restriction.CountriesForbidden != null)
-                        return IsInList(restriction.CountriesForbidden, countryCode);
-
-                    return false;
+                    if (!IsInList(restriction.CountriesForbidden, countryCode))
+                        return true;
                 }
+
+                if (restriction.CountriesForbidden != null)
+                    return IsInList(restriction.CountriesForbidden, countryCode);
+
+                return false;
             }
         }
         

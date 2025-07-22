@@ -1,10 +1,12 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using decoder_api;
 using lib.audio.storage; 
 using lib.common; 
 
-public abstract class AbsChunkedInputStream : Stream, IDisposable
+public abstract class AbsChunkedInputStream : SeekableInputStream, IDisposable
 {
     private static readonly int PRELOAD_AHEAD = 3;
     private static readonly int PRELOAD_CHUNK_RETRIES = 2;
@@ -32,7 +34,6 @@ public abstract class AbsChunkedInputStream : Stream, IDisposable
     }
     
     protected abstract byte[][] Buffer();
-    public abstract int Size();
     protected abstract bool[] RequestedChunks();
     protected abstract bool[] AvailableChunks();
     protected abstract int Chunks();
@@ -42,6 +43,32 @@ public abstract class AbsChunkedInputStream : Stream, IDisposable
     public override bool CanSeek => true;
     public override bool CanWrite => false;
     public override long Length => Size();
+
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public override void Seek(int where)
+    {
+        if (where < 0) throw new InvalidOperationException();
+        if (_closed) throw new IOException("Stream is closed!");
+        _pos = where;
+        
+        CheckAvailability((int)(_pos / ChannelManager.CHUNK_SIZE), false, false);
+    }
+
+    [MethodImpl(MethodImplOptions.Synchronized)]
+    public override long Skip(long n)
+    {
+        if (n < 0) throw new InvalidOperationException();
+        if (_closed) throw new IOException("Stream is closed!");
+
+        long k = Size() - _pos;
+        if (n < k) k = n;
+        _pos += k;
+        
+        int chunk = (int) _pos / ChannelManager.CHUNK_SIZE;
+        CheckAvailability(chunk, false, false);
+
+        return k;
+    }
 
     public override long Position
     {
@@ -259,7 +286,7 @@ public abstract class AbsChunkedInputStream : Stream, IDisposable
         }
     }
     
-    public int DecodedLength() => _decodedLength;
+    public override int DecodedLength() => _decodedLength;
 
     public virtual void StreamReadHalted(int chunk, long time) { }
     public virtual void StreamReadResumed(int chunk, long time) { }

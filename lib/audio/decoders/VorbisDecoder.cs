@@ -28,7 +28,7 @@ namespace lib.audio.decoders
         private int _index;
         private long _pcmOffset;
 
-        public VorbisDecoder(Stream audioIn, float normalizationFactor, int duration) : base(audioIn, normalizationFactor, duration)
+        public VorbisDecoder(SeekableInputStream audioIn, float normalizationFactor, int duration) : base(audioIn, normalizationFactor, duration)
         {
             _jorbisBlock = new Block(_jorbisDspState);
             
@@ -37,7 +37,7 @@ namespace lib.audio.decoders
             _buffer = _joggSyncState.Data;
 
             ReadHeader();
-            seekZero = audioIn.Position;
+            seekZero = (int) audioIn.Position;
 
             _convertedBuffer = new byte[_convertedBufferSize];
 

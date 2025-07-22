@@ -245,6 +245,11 @@ namespace lib.audio.storage
                 {
                 }
 
+                public override int Read()
+                {
+                    return -1;
+                }
+
                 public override bool CanRead
                 {
                     get => true;

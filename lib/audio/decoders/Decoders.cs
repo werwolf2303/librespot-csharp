@@ -27,7 +27,7 @@ namespace lib.audio.decoders
             Type decoder = decoders[format.Id];
             if (decoder == null)
             {
-                throw new DecoderException(String.Format("Unsupported audio format: {0}", format));
+                throw new Decoder.DecoderException(String.Format("Unsupported audio format: {0}", format));
             }
             return decoder.GetConstructor(new []{ typeof(Stream), typeof(float), typeof(int)}).Invoke(new object[] { audioIn, normalizationFactor, duration}) as Decoder;
         }

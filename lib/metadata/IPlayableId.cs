@@ -100,17 +100,17 @@ namespace lib.metadata
             return uri.StartsWith("spotify:local:");
         }
 
-        internal static IPlayableId From(ContextTrack track)
+        public static IPlayableId From(ContextTrack track)
         {
             return FromUri(track.Uri);
         }
 
-        internal static PlayableId From(Track track)
+        public static PlayableId From(Track track)
         {
             return TrackId.FromHex(Utils.bytesToHex(track.Gid));
         }
 
-        internal static PlayableId From(Episode episode)
+        public static PlayableId From(Episode episode)
         {
             return EpisodeId.FromHex(Utils.bytesToHex(episode.Gid));
         }

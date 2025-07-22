@@ -258,5 +258,21 @@ namespace lib.common
             list[i] = list[j];
             list[j] = list[i];
         }
+        
+        public static Type FindType(string typeName)
+        {
+            Type type = Type.GetType(typeName);
+            if (type != null)
+                return type;
+            
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = assembly.GetType(typeName);
+                if (type != null)
+                    return type;
+            }
+            
+            return null;
+        }
     }
 }
