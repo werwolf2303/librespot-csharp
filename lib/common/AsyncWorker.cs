@@ -26,14 +26,13 @@ namespace lib.common
                 T workItem;
                 lock (_lock)
                 {
-                    if (_workQueue.Count == 0 || _shutDown)
+                    while (_workQueue.Count == 0 && !_shutDown)
                     {
-                        _workerThread = null;
-                        return;
+                        Monitor.Wait(_lock);
                     }
+                    if (_shutDown) return;
                     workItem = _workQueue.Dequeue();
                 }
-
                 try
                 {
                     _handler(workItem);
@@ -49,11 +48,10 @@ namespace lib.common
         {
             if (_shutDown)
                 throw new ObjectDisposedException(nameof(AsyncWorker<T>));
-
             lock (_lock)
             {
                 _workQueue.Enqueue(toWorkOn);
-
+                Monitor.Pulse(_lock);
                 if (_workerThread == null || !_workerThread.IsAlive)
                 {
                     _workerThread = new Thread(Run)
