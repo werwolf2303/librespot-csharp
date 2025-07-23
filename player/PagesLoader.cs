@@ -100,6 +100,7 @@ namespace player
             if (index < _pages.Count)
             {
                 ContextPage page = _pages[index];
+                Console.WriteLine(JObject.FromObject(_pages).ToString());
                 List<ContextTrack> tracks = ResolvePage(page);
                 page.PageUrl = "";
                 page.Tracks.Clear();

@@ -84,11 +84,13 @@ namespace lib.dealer
 
             request.Authorization = "Bearer " + _session.GetTokens().Get("playlist-read");
             headers.Add("client-token", _clientToken);
-
-            HttpResponse response = _session.GetClient().NewCall(request);
-
+            
+            request.ContentType = "application/x-protobuf";
+            
             foreach (String key in headers.Keys) 
                 request.ExtraHeaders.Add(key, headers[key]);
+
+            HttpResponse response = _session.GetClient().NewCall(request);
 
             if ((int) response.StatusCode == 503)
             {

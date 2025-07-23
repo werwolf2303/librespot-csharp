@@ -175,6 +175,25 @@ namespace player.crossfade
             }
         }
 
+        public FadeInterval SelectFadeOut(PlaybackMetrics.Reason reason, bool customFade)
+        {
+            if ((!customFade && _fadeOutPlayable != null) && reason == PlaybackMetrics.Reason.TrackDone)
+            {
+                _fadeOut = null;
+                _activeInterval = null;
+                LOGGER.Debug("Cleared fade out because custom fade doesn't apply. (id: " + _playbackId + ")");
+                return null;
+            }
+            else
+            {
+                _fadeOut = _fadeOutMap[reason];
+                _activeInterval = null;
+                LOGGER.DebugFormat("Changed fade out. (curr: {0}, custom: {2}, why: {3}, id: {4})", _fadeOut,
+                    customFade, reason, _playbackId);
+                return _fadeOut;
+            }
+        }
+
         public int FadeOutStartTimeMin()
         {
             int fadeOutStartTime = -1;

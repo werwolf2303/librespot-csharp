@@ -123,15 +123,23 @@ namespace lib.core
             
             client.AddInterceptor(request =>
             {
-                if (request.RequestData == null || !request.ExtraHeaders.ContainsKey("Content-Encoding"))
+                request.UserAgent = Version.systemInfoString();
+                
+                if (request.RequestData == null || request.ExtraHeaders.ContainsKey("Content-Encoding"))
                     return true;
 
                 request.ContentEncoding = "gzip";
-                GZipStream stream = new GZipStream(new MemoryStream(request.RequestData), CompressionMode.Compress);
-                byte[] compressedData = new byte[stream.Length];
-                stream.Read(compressedData, 0, compressedData.Length);
-                request.RequestData = compressedData;
-                request.ContentLength = compressedData.Length;
+                
+                using (var output = new MemoryStream())
+                {
+                    using (var gzip = new GZipStream(output, CompressionMode.Compress, true))
+                    {
+                        gzip.Write(request.RequestData, 0, request.RequestData.Length);
+                    }
+                    byte[] compressedData = output.ToArray();
+                    request.RequestData = compressedData;
+                    request.ContentLength = compressedData.Length;
+                }
 
                 return true;
             });
@@ -880,7 +888,7 @@ namespace lib.core
             protected Configuration Conf;
             protected String DeviceId = null;
             protected String ClientToken = null;
-            protected String DeviceName = "librespot-java";
+            protected String DeviceName = "librespot-csharp";
             protected DeviceType DeviceType = DeviceType.Computer;
             protected String PreferredLocale = "en";
 

@@ -78,6 +78,7 @@
         <Compile Include="PagesLoader.cs" />
         <Compile Include="playback\PlayerQueue.cs" />
         <Compile Include="playback\PlayerQueueEntry.cs" />
+        <Compile Include="playback\PlayerSession.cs" />
         <Compile Include="Player.cs" />
         <Compile Include="PlayerConfiguration.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
@@ -86,6 +87,10 @@
         <Compile Include="state\RestrictionsManager.cs" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\dacp\dacp.csproj">
+        <Project>{ff642152-ef3f-4f99-b3dd-922c8a23b0b1}</Project>
+        <Name>dacp</Name>
+      </ProjectReference>
       <ProjectReference Include="..\decoder-api\decoder-api.csproj">
         <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
         <Name>decoder-api</Name>

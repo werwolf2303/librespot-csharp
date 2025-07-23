@@ -58,11 +58,14 @@
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
+        <Reference Include="System.Drawing" />
+        <Reference Include="System.Windows.Forms" />
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Program.cs"/>
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="TestForm.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\decoder-api\decoder-api.csproj">
@@ -76,6 +79,10 @@
       <ProjectReference Include="..\lib\lib.csproj">
         <Project>{1de0fbc2-185c-499d-b691-1ff01fff28f2}</Project>
         <Name>lib</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\player\player.csproj">
+        <Project>{65044903-83c0-4f32-938b-e9a861d2f837}</Project>
+        <Name>player</Name>
       </ProjectReference>
       <ProjectReference Include="..\sink-api\sink-api.csproj">
         <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>

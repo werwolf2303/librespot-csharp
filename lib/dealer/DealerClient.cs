@@ -21,7 +21,6 @@ namespace lib.dealer
     public class DealerClient : IDisposable
     {
         private static ILog LOGGER = LogManager.GetLogger(typeof(DealerClient));
-        private AsyncWorker<Runnable.Run> _asyncWorker;
         private Session _session;
         private Dictionary<String, RequestListener> _reqListeners = new Dictionary<string, RequestListener>();
         private Dictionary<MessageListener, List<String>> _msgListeners =
@@ -36,7 +35,6 @@ namespace lib.dealer
         {
             _session = session;
             _scheduler = _session.GetScheduledExecutorService();
-            _asyncWorker = new AsyncWorker<Runnable.Run>("dealer-worker", Run => { });
         }
 
         private static Dictionary<String, String> GetHeaders(JObject obj)
@@ -80,13 +78,18 @@ namespace lib.dealer
 
             Dictionary<String, String> headers = GetHeaders(obj);
             JObject payload = obj["payload"].ToObject<JObject>();
-            if ("gzip".Equals(headers["Transfer-Encoding"]))
+            if ("gzip".Equals(headers.TryGetValue("Transfer-Encoding", out var transferEncoding) ? transferEncoding : null))
             {
                 byte[] gzip = Base64.Decode(payload["compressed"].ToObject<string>());
                 try
                 {
-                    GZipStream stream = new GZipStream(new MemoryStream(gzip), CompressionMode.Decompress);
-                    payload = JObject.Load(new JsonTextReader(new StreamReader(stream)));
+                    using (var ms = new MemoryStream(gzip))
+                    using (var gzipStream = new GZipStream(ms, CompressionMode.Decompress))
+                    using (var reader = new StreamReader(gzipStream))
+                    using (var jsonReader = new JsonTextReader(reader))
+                    {
+                        payload = JObject.Load(jsonReader);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -111,7 +114,7 @@ namespace lib.dealer
                     {
                         RequestListener listener = _reqListeners[midPrefix];
                         interesting = true;
-                        _asyncWorker.Submit((() =>
+                        _scheduler.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
                         {
                             try
                             {
@@ -125,7 +128,8 @@ namespace lib.dealer
                                 LOGGER.ErrorFormat("Failed handling request. (key: {0})", key);
                                 LOGGER.Error(ex);
                             }
-                        }));
+                            return 0;
+                        }, 10, ScheduledExecutorService.TimeUnit.MILLISECONDS));
                     }
                 }
             }
@@ -142,11 +146,16 @@ namespace lib.dealer
             byte[] decodedPayload;
             if (payloads != null)
             {
-                if ("application/json".Equals(headers["Content-Type"]))
+                String contentType;
+                if (headers.TryGetValue("Content-Type", out var contentTypeVal))
+                    contentType = contentTypeVal;
+                else contentType = null;
+                
+                if ("application/json".Equals(contentType))
                 {
                     if (payloads.Count > 1) throw new Exception("Unsupported");
                     decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToObject<string>());
-                } else if ("text/plain".Equals(headers["Content-Type"]))
+                } else if ("text/plain".Equals(contentType))
                 {
                     if (payloads.Count > 1) throw new Exception("Unsupported");
                     decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToObject<string>());
@@ -157,11 +166,16 @@ namespace lib.dealer
                     for (int i = 0; i < payloads.Count; i++) payloadsStr[i] = payloads[i].ToObject<string>();
 
                     Stream stream = BytesArrayList.StreamBase64(payloadsStr);
-                    if ("gzip".Equals(headers["Transfer-Encoding"]))
+                    if ("gzip".Equals(headers.TryGetValue("Transfer-Encoding", out var transferEncoding) ? transferEncoding : null))
                     {
                         try
                         {
-                            stream = new GZipStream(stream, CompressionMode.Decompress);
+                            using (var gzipStream = new GZipStream(stream, CompressionMode.Decompress))
+                            using (var ms = new MemoryStream())
+                            {
+                                gzipStream.CopyTo(ms);
+                                stream = new MemoryStream(ms.ToArray());
+                            }
                         }
                         catch (IOException ex)
                         {
@@ -175,7 +189,9 @@ namespace lib.dealer
                     BinaryWriter writer = new BinaryWriter(writerStream);
                     byte[] buffer = new byte[1024];
                     int read;
-                    while ((read = stream.Read(buffer, 0, buffer.Length)) != 0) writer.Write(buffer, 0, read);
+                    while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+                        writer.Write(buffer, 0, read);
+
                     decodedPayload = writerStream.ToArray();
                     stream.Close();
                 }
@@ -197,16 +213,18 @@ namespace lib.dealer
                         if (uri.StartsWith(key) && !dispatched)
                         {
                             interesting = true;
-                            _asyncWorker.Submit(() =>
+                            
+                            _scheduler.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
                             {
                                 try {
                                     listener.OnMessage(uri, headers, decodedPayload);
                                 } catch (IOException ex) {
-                                    LOGGER.Error(String.Format("Failed dispatching message! {uri: {}}", uri), ex);
+                                    LOGGER.Error(String.Format("Failed dispatching message! (uri: {0})", uri), ex);
                                 } catch (Exception ex) {
-                                    LOGGER.Error(String.Format("Failed handling message! {uri: {}}", uri), ex);
+                                    LOGGER.Error(String.Format("Failed handling message! (uri: {0})", uri), ex);
                                 }
-                            });
+                                return 0;
+                            }, 10, ScheduledExecutorService.TimeUnit.MILLISECONDS));
                             dispatched = true;
                         }
                     }
@@ -238,7 +256,7 @@ namespace lib.dealer
 
         public void AddRequestListener(RequestListener listener, String uri)
         {
-            lock (_msgListeners)
+            lock (_reqListeners)
             {
                 if (_reqListeners.ContainsKey(uri))
                     throw new Exception("A listener for '" + uri + "' has already been added.");
@@ -265,8 +283,6 @@ namespace lib.dealer
 
         public void Dispose()
         {
-            _asyncWorker.Dispose();
-
             if (_conn != null)
             {
                 ConnectionHolder tmp = _conn;

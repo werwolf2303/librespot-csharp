@@ -10,47 +10,117 @@ namespace player.playback
         private static ILog LOGGER = LogManager.GetLogger(typeof(PlayerQueue));
         private ScheduledExecutorService _executorService;
         private PlayerQueueEntry _head = null;
+        private Object _funcLock = new Object();
 
         internal PlayerQueue()
         {
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
+        internal PlayerQueueEntry Next()
+        {
+            lock (_funcLock)
+            {
+                if (_head == null || _head.Next == null) return null;
+                else return _head.Next;
+            }
+        }
+        
         internal PlayerQueueEntry Head()
         {
-            return _head;
+            lock (_funcLock)
+            {
+                return _head;
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal PlayerQueueEntry Prev()
         {
-            if (_head == null || _head._prev == null) return null;
-            else return _head._prev;
+            lock (_funcLock)
+            {
+                if (_head == null || _head.Prev == null) return null;
+                else return _head.Prev;
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void Add(PlayerQueueEntry entry)
         {
-            if (_head == null) _head = entry;
-            else _head.SetNext(entry);
-            _executorService.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
+            lock (_funcLock)
             {
-                entry.Run();
-                return 0;
-            }, 100, ScheduledExecutorService.TimeUnit.MILLISECONDS));
+                if (_head == null) _head = entry;
+                else _head.SetNext(entry);
+                _executorService.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
+                {
+                    entry.Run();
+                    return 0;
+                }, 100, ScheduledExecutorService.TimeUnit.MILLISECONDS));
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void Swap(PlayerQueueEntry oldEntry, PlayerQueueEntry newEntry)
         {
-            if (_head == null) return;
-
-            bool swapped;
-            if (_head == oldEntry)
+            lock (_funcLock)
             {
-                _head = newEntry;
-                _head._next = oldEntry._next;
+                if (_head == null) return;
+
+                bool swapped;
+                if (_head == oldEntry)
+                {
+                    _head = newEntry;
+                    _head.Next = oldEntry.Next;
+                    _head.Next = oldEntry.Next;
+                    _head.Prev = oldEntry.Prev;
+                    swapped = true;
+                }
+                else swapped = _head.Swap(oldEntry, newEntry);
+
+                oldEntry.Dispose();
+                if (swapped)
+                {
+                    _executorService.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
+                    {
+                        newEntry.Run();
+                        return 0;
+                    }, 100, ScheduledExecutorService.TimeUnit.MILLISECONDS));
+                }
             }
+        }
+        
+        internal void Remove(PlayerQueueEntry entry)
+        {
+            lock (_funcLock)
+            {
+                if (_head == null) return;
+
+                bool removed;
+                if (_head == entry)
+                {
+                    PlayerQueueEntry tmp = _head;
+                    _head = _head.Next;
+                    tmp.Dispose();
+                    removed = true;
+                }
+                else removed = _head.Remove(entry);
+            }
+        }
+
+        internal bool Advance()
+        {
+            lock (_funcLock)
+            {
+                if (_head == null || _head.Next == null) return false;
+
+                PlayerQueueEntry tmp = _head.Next;
+                _head.Next = null;
+                _head.Prev = null;
+                if (!_head.CloseIfUseless()) tmp.Prev = _head;
+                _head = tmp;
+                return true;
+            }
+        }
+
+        public void Dispose()
+        {
+            _head?.Clear();
         }
 
         public abstract class Entry

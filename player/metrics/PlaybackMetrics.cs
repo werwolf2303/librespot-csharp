@@ -66,13 +66,13 @@ namespace player.metrics
             _lastInterval = null;
         }
 
-        public void StartedNow(Reason reason, String origin)
+        public void StartedHow(Reason reason, String origin)
         {
             _reasonStart = reason;
             _sourceStart = string.IsNullOrEmpty(origin) ? "unknown" : origin;
         }
 
-        public void EndedNow(Reason reason, String origin)
+        public void EndedHow(Reason reason, String origin)
         {
             _reasonEnd = reason;
             _sourceEnd = string.IsNullOrEmpty(origin) ? "unknown" : origin;

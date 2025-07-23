@@ -372,9 +372,10 @@ namespace deps.HttpSharp
             AddHeader("Correlation-ID", CorrelationId);
             AddHeader("Save-Data", SaveData);
             AddHeader("Sec-GPC", SecGPC);
-            
-            foreach (String key in ExtraHeaders.Keys)
-                AddHeader(key, ExtraHeaders[key]);
+
+            foreach (KeyValuePair<String, String> pair in ExtraHeaders)
+                AddHeader(pair.Key, pair.Value);
+
             return _request;
         }
     }

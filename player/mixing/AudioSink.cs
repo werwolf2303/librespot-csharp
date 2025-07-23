@@ -16,13 +16,11 @@ namespace player.mixing
         private ISinkOutput _output;
         private MixingLine _mixing = new MixingLine();
         private Thread _thread;
-        private IListener _listener;
         private volatile bool _closed = false;
         private volatile bool _paused = true;
 
-        public AudioSink(PlayerConfiguration conf, IListener listener)
+        public AudioSink(PlayerConfiguration conf)
         {
-            _listener = listener;
             switch (conf._output)
             {
                 case PlayerConfiguration.AudioOutput.MIXER:
@@ -144,11 +142,6 @@ namespace player.mixing
             }
             
             _output.Dispose();
-        }
-
-        public interface IListener
-        {
-            void SinkError(Exception ex);
         }
     }
 }

@@ -110,6 +110,7 @@
         <Compile Include="common\BinaryReaderExtension.cs" />
         <Compile Include="common\ByteBuffer.cs" />
         <Compile Include="common\BytesArrayList.cs" />
+        <Compile Include="common\CompletableFuture.cs" />
         <Compile Include="common\Enumeration.cs" />
         <Compile Include="common\FisherYatesShuffle.cs" />
         <Compile Include="common\Headers.cs" />

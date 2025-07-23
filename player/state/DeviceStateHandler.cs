@@ -31,6 +31,7 @@ namespace player.state
         private volatile String _connectionId = null;
         private volatile bool _closing = false;
         private String _lastCommandSentByDeviceId;
+        private Object _funcLock = new Object();
 
         public DeviceStateHandler(Session session, PlayerConfiguration conf)
         {
@@ -116,16 +117,18 @@ namespace player.state
             _listeners.ForEach(listener => listener.NotActive());
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         private void UpdateConnectionId(String newer)
         {
-            newer = HttpUtility.UrlDecode(newer, Encoding.UTF8);
-
-            if (_connectionId == null || !_connectionId.Equals(newer))
+            lock (_funcLock)
             {
-                _connectionId = newer;
-                LOGGER.Debug("Updated Spotify-Connection-Id: " + _connectionId);
-                NotifyReady();
+                newer = HttpUtility.UrlDecode(newer, Encoding.UTF8);
+
+                if (_connectionId == null || !_connectionId.Equals(newer))
+                {
+                    _connectionId = newer;
+                    LOGGER.Debug("Updated Spotify-Connection-Id: " + _connectionId);
+                    NotifyReady();
+                }
             }
         }
 
@@ -136,7 +139,11 @@ namespace player.state
             } else if (Equals(uri, "hm://connect-state/v1/connect/volume")) {
                 SetVolumeCommand cmd = Serializer.Deserialize<SetVolumeCommand>(new MemoryStream(payload));
                 SetVolume((uint)cmd.Volume);
-            } else if (Equals(uri, "hm://connect-state/v1/cluster")) {
+            } else if (Equals(uri, "hm://connect-state/v1/cluster"))
+            {
+                FileStream stream = File.OpenWrite("cluster_update.dump");
+                stream.Write(payload, 0, payload.Length);
+                stream.Close();
                 ClusterUpdate update = Serializer.Deserialize<ClusterUpdate>(new MemoryStream(payload));
 
                 long now = TimeProvider.currentTimeMillis();
@@ -158,69 +165,86 @@ namespace player.state
             NotifyCommand(endpoint, new CommandBody(command));
             return DealerClient.RequestResult.Success;
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         public String GetLastCommandSentByDeviceId()
         {
-            return _lastCommandSentByDeviceId;
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        private long StartedPlayingAt()
-        {
-            return (long)_putState.StartedPlayingAt;
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public bool IsActive()
-        {
-            return _putState.IsActive;
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void SetIsActive(bool active)
-        {
-            if (active) {
-                if (!_putState.IsActive) {
-                    ulong now =  (ulong) TimeProvider.currentTimeMillis();
-                    _putState.IsActive = true;
-                    _putState.StartedPlayingAt = now;
-                    LOGGER.DebugFormat("Device is now active. (ts: {0})", now);
-                }
-            } else {
-                _putState.IsActive = false;
-                _putState.StartedPlayingAt = 0;
+            lock (_funcLock)
+            {
+                return _lastCommandSentByDeviceId;
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        private long StartedPlayingAt()
+        {
+            lock (_funcLock)
+            {
+                return (long)_putState.StartedPlayingAt;
+            }
+        }
+        
+        public bool IsActive()
+        {
+            lock (_funcLock)
+            {
+                return _putState.IsActive;
+            }
+        }
+        
+        public void SetIsActive(bool active)
+        {
+            lock (_funcLock)
+            {
+                if (active)
+                {
+                    if (!_putState.IsActive)
+                    {
+                        ulong now = (ulong)TimeProvider.currentTimeMillis();
+                        _putState.IsActive = true;
+                        _putState.StartedPlayingAt = now;
+                        LOGGER.DebugFormat("Device is now active. (ts: {0})", now);
+                    }
+                }
+                else
+                {
+                    _putState.IsActive = false;
+                    _putState.StartedPlayingAt = 0;
+                }
+            }
+        }
+        
         public void UpdateState(PutStateReason reason, int playerTime, PlayerState state)
         {
-            if (_connectionId == null) throw new Exception();
-
-            long timestamp = TimeProvider.currentTimeMillis();
-
-            if (playerTime == -1)
-                _putState.HasBeenPlayingForMs = 0;
-            else 
-                _putState.HasBeenPlayingForMs = (ulong) Math.Min(playerTime, timestamp - (long) _putState.StartedPlayingAt);
-              
-            _putState.PutStateReason = reason;
-            _putState.ClientSideTimestamp = (ulong) timestamp;
-            _putState.Device.DeviceInfo = _deviceInfo;
-            _putState.Device.PlayerState = state;
-            
-            _scheduler.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
+            lock (_funcLock)
             {
-                PutConnectState(_putState);
-                return 0;
-            }, 1));
-        }
+                if (_connectionId == null) throw new Exception();
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
+                long timestamp = TimeProvider.currentTimeMillis();
+
+                if (playerTime == -1)
+                    _putState.HasBeenPlayingForMs = 0;
+                else
+                    _putState.HasBeenPlayingForMs =
+                        (ulong)Math.Min(playerTime, timestamp - (long)_putState.StartedPlayingAt);
+
+                _putState.PutStateReason = reason;
+                _putState.ClientSideTimestamp = (ulong)timestamp;
+                _putState.Device.DeviceInfo = _deviceInfo;
+                _putState.Device.PlayerState = state;
+
+                _scheduler.schedule(new ScheduledExecutorService.ScheduledFuture<int>(() =>
+                {
+                    PutConnectState(_putState);
+                    return 0;
+                }, 1));
+            }
+        }
+        
         public uint GetVolume()
         {
-            return _deviceInfo.Volume;
+            lock (_funcLock)
+            {
+                return _deviceInfo.Volume;
+            }
         }
 
         public void SetVolume(uint val)
@@ -247,7 +271,7 @@ namespace player.state
         private void PutConnectState(PutStateRequest req) {
             try {
                 _session.GetApi().PutConnectState(_connectionId, req);
-                LOGGER.InfoFormat("Put state. (ts: {}, connId: {}, reason: {})", req.ClientSideTimestamp, 
+                LOGGER.InfoFormat("Put state. (ts: {0}, connId: {1}, reason: {2})", req.ClientSideTimestamp, 
                     Utils.truncateMiddle(_connectionId, 10), req.PutStateReason);
             } catch (Exception ex) {
                 if (ex is IOException || ex is MercuryClient.MercuryException)
@@ -260,16 +284,18 @@ namespace player.state
 
         public class Endpoint : Enumeration
         {
-            public readonly Endpoint Play = new Endpoint("play");
-            public readonly Endpoint Pause = new Endpoint("pause");
-            public readonly Endpoint Resume = new Endpoint("resume");
-            public readonly Endpoint SeekTo = new Endpoint("seek_to");
-            public readonly Endpoint SkipNext = new Endpoint("skip_next");
-            public readonly Endpoint SkipPrevious = new Endpoint("skip_previous");
-            public readonly Endpoint SetShufflingContext = new Endpoint("set_shuffling_context");
-            public readonly Endpoint SetRepeatingContext = new Endpoint("set_repeating_context");
-            public readonly Endpoint AddToQueue = new Endpoint("add_to_queue");
-            public readonly Endpoint Transfer = new Endpoint("transfer");
+            public static readonly Endpoint Play = new Endpoint("play");
+            public static readonly Endpoint Pause = new Endpoint("pause");
+            public static readonly Endpoint Resume = new Endpoint("resume");
+            public static readonly Endpoint SeekTo = new Endpoint("seek_to");
+            public static readonly Endpoint SkipNext = new Endpoint("skip_next");
+            public static readonly Endpoint SkipPrev = new Endpoint("skip_prev");
+            public static readonly Endpoint SetShufflingContext = new Endpoint("set_shuffling_context");
+            public static readonly Endpoint SetRepeatingContext = new Endpoint("set_repeating_context");
+            public static readonly Endpoint UpdateContext = new Endpoint("update_context");
+            public static readonly Endpoint SetQueue = new Endpoint("set_queue");
+            public static readonly Endpoint AddToQueue = new Endpoint("add_to_queue");
+            public static readonly Endpoint Transfer = new Endpoint("transfer");
             
             private String val;
 

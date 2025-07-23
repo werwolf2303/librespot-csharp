@@ -238,6 +238,16 @@ namespace lib.common
                 _infinite = value;
             }
 
+            public T Get()
+            {
+                lock (_valueLock)
+                {
+                    Monitor.Wait(_valueLock);
+                }
+
+                return _value;
+            }
+
             public delegate T Function();
         }
 

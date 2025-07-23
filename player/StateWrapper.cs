@@ -42,6 +42,7 @@ namespace player
         private PagesLoader _pages;
         private TracksKeeper _tracksKeeper;
         private ScheduledExecutorService.ScheduledFuture<int> _volumeChangedFuture;
+        private Object _funcLock = new Object();
 
         internal StateWrapper(Session session, Player player, PlayerConfiguration conf)
         {
@@ -121,32 +122,38 @@ namespace player
         {
             return _device.IsActive();
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void SetState(bool playing, bool paused, bool buffering)
         {
-            if (paused && !playing) throw new InvalidOperationException();
-            else if (buffering && !playing) throw new InvalidOperationException();
+            lock (_funcLock)
+            {
+                if (paused && !playing) throw new InvalidOperationException();
+                else if (buffering && !playing) throw new InvalidOperationException();
 
-            bool wasPaused = IsPaused();
-            _state.IsPlaying = playing;
-            _state.IsPaused = paused;
-            _state.IsBuffering = buffering;
+                bool wasPaused = IsPaused();
+                _state.IsPlaying = playing;
+                _state.IsPaused = paused;
+                _state.IsBuffering = buffering;
 
-            if (wasPaused && !paused)
-                SetPosition(_state.PositionAsOfTimestamp);
+                if (wasPaused && !paused)
+                    SetPosition(_state.PositionAsOfTimestamp);
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal bool IsPaused()
         {
-            return _state.IsPlaying && !_state.IsPaused;
+            lock (_funcLock)
+            {
+                return _state.IsPlaying && !_state.IsPaused;
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void SetBuffering(bool buffering)
         {
-            SetState(true, _state.IsPaused, buffering);
+            lock (_funcLock)
+            {
+                SetState(true, _state.IsPaused, buffering);
+            }
         }
 
         private bool IsShufflingContext()
@@ -315,12 +322,14 @@ namespace player
             _state.Restrictions = _context.Restrictions.ToProto();
             _state.ContextRestrictions = _context.Restrictions.ToProto();
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void Updated()
         {
-            UpdateRestrictions();
-            _device.UpdateState(PutStateReason.PlayerStateChanged, _player.GetTime(), _state);
+            lock (_funcLock)
+            {
+                UpdateRestrictions();
+                _device.UpdateState(PutStateReason.PlayerStateChanged, _player.Time(), _state);
+            }
         }
 
         internal void AddListener(DeviceStateHandler.Listener listener)
@@ -332,13 +341,15 @@ namespace player
         {
             return _state.IsSystemInitiated;
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         public void Ready()
         {
-            _state.IsSystemInitiated = true;
-            _device.UpdateState(PutStateReason.NewDevice, _player.GetTime(), _state);
-            LOGGER.Info("Notified new device (us)!");
+            lock (_funcLock)
+            {
+                _state.IsSystemInitiated = true;
+                _device.UpdateState(PutStateReason.NewDevice, _player.Time(), _state);
+                LOGGER.Info("Notified new device (us)!");
+            }
         }
 
         public void Command(DeviceStateHandler.Endpoint endpoint, DeviceStateHandler.CommandBody data)
@@ -346,33 +357,39 @@ namespace player
             // Not interested
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public void VolumeChanged()
         {
-            if (_volumeChangedFuture != null) _volumeChangedFuture.Cancel(false);
-            _volumeChangedFuture = new ScheduledExecutorService.ScheduledFuture<int>(() =>
+            lock (_funcLock)
             {
-                _device.UpdateState(PutStateReason.VolumeChanged, _player.GetTime(), _state);
-                return 0;
-            }, 500, ScheduledExecutorService.TimeUnit.MILLISECONDS);
-            _scheduler.schedule(_volumeChangedFuture);
+                if (_volumeChangedFuture != null) _volumeChangedFuture.Cancel(false);
+                _volumeChangedFuture = new ScheduledExecutorService.ScheduledFuture<int>(() =>
+                {
+                    _device.UpdateState(PutStateReason.VolumeChanged, _player.Time(), _state);
+                    return 0;
+                }, 500, ScheduledExecutorService.TimeUnit.MILLISECONDS);
+                _scheduler.schedule(_volumeChangedFuture);
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         public void NotActive()
         {
-            _state = new PlayerState();
-            InitState(_state);
-            
-            _device.SetIsActive(false);
-            _device.UpdateState(PutStateReason.BecameInactive, _player.GetTime(), _state);
-            LOGGER.Info("Notified inactivity!");
+            lock (_funcLock)
+            {
+                _state = new PlayerState();
+                InitState(_state);
+
+                _device.SetIsActive(false);
+                _device.UpdateState(PutStateReason.BecameInactive, _player.Time(), _state);
+                LOGGER.Info("Notified inactivity!");
+            }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         internal uint GetVolume()
         {
-            return _device.GetVolume();
+            lock (_funcLock)
+            {
+                return _device.GetVolume();
+            }
         }
 
         internal void SetVolume(uint val)
@@ -386,130 +403,144 @@ namespace player
             else if (metadata.IsEpisode()) EnrichWithMetadata(metadata._episode);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         private void EnrichWithMetadata(Track track)
         {
-            if (_state.Track == null) throw new InvalidOperationException();
-            if (!ProtoUtils.IsTrack(_state.Track, track))
+            lock (_funcLock)
             {
-                LOGGER.WarnFormat("Failed updating metadata: tracks do not match. (current: {0}, expected: {1})", ProtoUtils.ToString(_state.Track), ProtoUtils.ToString(track));
-                return;
-            }
-            
-            if (track.Duration != 0) _tracksKeeper.UpdateTrackDuration(track.Duration);
-            
-            ProvidedTrack builder = new ProvidedTrack();
-            if (track.Popularity != 0) builder.Metadatas.Add("popularity", track.Popularity.ToString());
-            // FIXME: I'm unsure about if it's null or just a default value e.g. false
-            if (track.Explicit) builder.Metadatas.Add("is_explicit", track.Explicit.ToString());
-            if (track.HasLyrics) builder.Metadatas.Add("has_lyrics", track.HasLyrics.ToString());
-            if (track.Name != "") builder.Metadatas.Add("title", track.Name);
-            if (track.DiscNumber != 0) builder.Metadatas.Add("album_disc_number", track.DiscNumber.ToString());
-
-            for (int i = 0; i < track.Artists.Count; i++)
-            {
-                Artist artist = track.Artists[i];
-                if (artist.Name != "") builder.Metadatas.Add("artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
-                if (artist.Gid != null) builder.Metadatas.Add("artist_uri" + (i == 0 ? "" : (":" + i)),
-                    ArtistId.FromHex(Utils.bytesToHex(artist.Gid)).ToSpotifyUri());
-            }
-
-            if (track.Album != null)
-            {
-                Album album = track.Album;
-                if (album.Discs.Count > 0)
+                if (_state.Track == null) throw new InvalidOperationException();
+                if (!ProtoUtils.IsTrack(_state.Track, track))
                 {
-                    builder.Metadatas.Add("album_track_count", ProtoUtils.GetTrackCount(album).ToString());
-                    builder.Metadatas.Add("album_disc_count", album.Discs.Count.ToString());
+                    LOGGER.WarnFormat("Failed updating metadata: tracks do not match. (current: {0}, expected: {1})",
+                        ProtoUtils.ToString(_state.Track), ProtoUtils.ToString(track));
+                    return;
                 }
-                if (album.Name != "") builder.Metadatas.Add("album_title", album.Name);
-                if (album.Gid != null) builder.Metadatas.Add("album_uri",
-                    AlbumId.FromHex(Utils.bytesToHex(album.Gid)).ToSpotifyUri());
 
-                for (int i = 0; i < album.Artists.Count; i++)
+                if (track.Duration != 0) _tracksKeeper.UpdateTrackDuration(track.Duration);
+
+                ProvidedTrack builder = new ProvidedTrack();
+                if (track.Popularity != 0) builder.Metadatas.Add("popularity", track.Popularity.ToString());
+                // FIXME: I'm unsure about if it's null or just a default value e.g. false
+                if (track.Explicit) builder.Metadatas.Add("is_explicit", track.Explicit.ToString());
+                if (track.HasLyrics) builder.Metadatas.Add("has_lyrics", track.HasLyrics.ToString());
+                if (track.Name != "") builder.Metadatas.Add("title", track.Name);
+                if (track.DiscNumber != 0) builder.Metadatas.Add("album_disc_number", track.DiscNumber.ToString());
+
+                for (int i = 0; i < track.Artists.Count; i++)
                 {
-                    Artist artist = album.Artists[i];
+                    Artist artist = track.Artists[i];
                     if (artist.Name != "")
-                        builder.Metadatas.Add("album_artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
+                        builder.Metadatas.Add("artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
                     if (artist.Gid != null)
-                        builder.Metadatas.Add("album_artist_uri" + (i == 0 ? "" : (":" + i)), 
+                        builder.Metadatas.Add("artist_uri" + (i == 0 ? "" : (":" + i)),
                             ArtistId.FromHex(Utils.bytesToHex(artist.Gid)).ToSpotifyUri());
                 }
 
-                if (track.DiscNumber != 0)
+                if (track.Album != null)
                 {
-                    foreach (Disc disc in album.Discs)
+                    Album album = track.Album;
+                    if (album.Discs.Count > 0)
                     {
-                        if (disc.Number != track.DiscNumber) continue;
+                        builder.Metadatas.Add("album_track_count", ProtoUtils.GetTrackCount(album).ToString());
+                        builder.Metadatas.Add("album_disc_count", album.Discs.Count.ToString());
+                    }
 
-                        for (int i = 0; i < disc.Tracks.Count; i++)
+                    if (album.Name != "") builder.Metadatas.Add("album_title", album.Name);
+                    if (album.Gid != null)
+                        builder.Metadatas.Add("album_uri",
+                            AlbumId.FromHex(Utils.bytesToHex(album.Gid)).ToSpotifyUri());
+
+                    for (int i = 0; i < album.Artists.Count; i++)
+                    {
+                        Artist artist = album.Artists[i];
+                        if (artist.Name != "")
+                            builder.Metadatas.Add("album_artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
+                        if (artist.Gid != null)
+                            builder.Metadatas.Add("album_artist_uri" + (i == 0 ? "" : (":" + i)),
+                                ArtistId.FromHex(Utils.bytesToHex(artist.Gid)).ToSpotifyUri());
+                    }
+
+                    if (track.DiscNumber != 0)
+                    {
+                        foreach (Disc disc in album.Discs)
                         {
-                            if (disc.Tracks[i].Gid.Equals(track.Gid))
+                            if (disc.Number != track.DiscNumber) continue;
+
+                            for (int i = 0; i < disc.Tracks.Count; i++)
                             {
-                                builder.Metadatas.Add("album_track_number", (i + 1).ToString());
-                                break;
+                                if (disc.Tracks[i].Gid.Equals(track.Gid))
+                                {
+                                    builder.Metadatas.Add("album_track_number", (i + 1).ToString());
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                
-                if (album.CoverGroup != null) ImageId.PutAsMetadata(builder, album.CoverGroup); 
-            }
-            
-            ProtoUtils.PutFilesAsMetadata(builder, track.Files);
-            _state.Track = builder;
-        }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
+                    if (album.CoverGroup != null) ImageId.PutAsMetadata(builder, album.CoverGroup);
+                }
+
+                ProtoUtils.PutFilesAsMetadata(builder, track.Files);
+                _state.Track = builder;
+            }
+        }
+        
         private void EnrichWithMetadata(Episode episode)
         {
-            if (_state.Track == null) throw new InvalidOperationException();
-            if (!ProtoUtils.IsEpisode(_state.Track, episode))
+            lock (_funcLock)
             {
-                LOGGER.WarnFormat("Failed updating metadata: episodes do not match. (current: {0}, expected: {1})",
-                    ProtoUtils.ToString(_state.Track), ProtoUtils.ToString(episode));
-                return;
-            }
-            
-            if (episode.Duration != 0) _tracksKeeper.UpdateTrackDuration(episode.Duration);
-            
-            ProvidedTrack builder = new ProvidedTrack();
-            if (episode.Explicit) builder.Metadatas.Add("is_explicit", episode.Explicit.ToString());
-            if (episode.Name != "") builder.Metadatas.Add("title", episode.Name);
+                if (_state.Track == null) throw new InvalidOperationException();
+                if (!ProtoUtils.IsEpisode(_state.Track, episode))
+                {
+                    LOGGER.WarnFormat("Failed updating metadata: episodes do not match. (current: {0}, expected: {1})",
+                        ProtoUtils.ToString(_state.Track), ProtoUtils.ToString(episode));
+                    return;
+                }
 
-            if (episode.Show != null)
-            {
-                Show show = episode.Show;
-                if (show.Name != "") builder.Metadatas.Add("album_title", show.Name);
-                
-                if (show.CoverImage != null) ImageId.PutAsMetadata(builder, show.CoverImage);
-            }
+                if (episode.Duration != 0) _tracksKeeper.UpdateTrackDuration(episode.Duration);
 
-            if (episode.Audioes.Count > 0 && episode.Videoes.Count == 0)
-            {
-                builder.Metadatas.Add("media.type", "audio");
-            }else if (episode.Videoes.Count > 0)
-            {
-                builder.Metadatas.Add("media.type", "video");
+                ProvidedTrack builder = new ProvidedTrack();
+                if (episode.Explicit) builder.Metadatas.Add("is_explicit", episode.Explicit.ToString());
+                if (episode.Name != "") builder.Metadatas.Add("title", episode.Name);
+
+                if (episode.Show != null)
+                {
+                    Show show = episode.Show;
+                    if (show.Name != "") builder.Metadatas.Add("album_title", show.Name);
+
+                    if (show.CoverImage != null) ImageId.PutAsMetadata(builder, show.CoverImage);
+                }
+
+                if (episode.Audioes.Count > 0 && episode.Videoes.Count == 0)
+                {
+                    builder.Metadatas.Add("media.type", "audio");
+                }
+                else if (episode.Videoes.Count > 0)
+                {
+                    builder.Metadatas.Add("media.type", "video");
+                }
+
+                ProtoUtils.PutFilesAsMetadata(builder, episode.Audioes);
+                _state.Track = builder;
             }
-            
-            ProtoUtils.PutFilesAsMetadata(builder, episode.Audioes);
-            _state.Track = builder;
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal int GetPosition()
         {
-            int diff = (int)(TimeProvider.currentTimeMillis() - _state.Timestamp);
-            return (int)(_state.PositionAsOfTimestamp + diff);
+            lock (_funcLock)
+            {
+                int diff = (int)(TimeProvider.currentTimeMillis() - _state.Timestamp);
+                return (int)(_state.PositionAsOfTimestamp + diff);
+            }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         internal void SetPosition(long pos)
         {
-            _state.Timestamp = TimeProvider.currentTimeMillis();
-            _state.PositionAsOfTimestamp = pos;
-            _state.Position = 0;
+            lock (_funcLock)
+            {
+                _state.Timestamp = TimeProvider.currentTimeMillis();
+                _state.PositionAsOfTimestamp = pos;
+                _state.Position = 0;
+            }
         }
 
         internal String LoadContextWithTracks(String uri, List<ContextTrack> tracks)
@@ -624,19 +655,22 @@ namespace player
             LoadTransforming();
             return sessionId;
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void UpdateContext(JObject obj)
         {
-            String uri = obj["uri"].ToObject<string>();
-            if (!_context.Uri().Equals(uri))
+            lock (_funcLock)
             {
-                LOGGER.WarnFormat("Received update for the wrong context! (context: {0}, newUri: {1})", _context, uri);
-                return;
+                String uri = obj["uri"].ToObject<string>();
+                if (!_context.Uri().Equals(uri))
+                {
+                    LOGGER.WarnFormat("Received update for the wrong context! (context: {0}, newUri: {1})", _context,
+                        uri);
+                    return;
+                }
+
+                ProtoUtils.CopyOverMetadata(obj["metadata"].ToObject<JObject>(), _state);
+                _tracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(obj["pages"].ToObject<JArray>()));
             }
-            
-            ProtoUtils.CopyOverMetadata(obj["metadata"].ToObject<JObject>(), _state);
-            _tracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(obj["pages"].ToObject<JArray>()));
         }
 
         internal void SkipTo(ContextTrack track)
@@ -704,26 +738,32 @@ namespace player
         {
             _device.RemoveListener(listener);
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void AddToQueue(ContextTrack track)
         {
-            _tracksKeeper.AddToQueue(track);
+            lock (_funcLock)
+            {
+                _tracksKeeper.AddToQueue(track);
+            }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         internal void RemoveFromQueue(String uri)
         {
-            _tracksKeeper.RemoveFromQueue(uri);
+            lock (_funcLock)
+            {
+                _tracksKeeper.RemoveFromQueue(uri);
+            }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         internal void SetQueue(List<ContextTrack> prevTracks, List<ContextTrack> nextTracks)
         {
-            _tracksKeeper.SetQueue(prevTracks, nextTracks);
+            lock (_funcLock)
+            {
+                _tracksKeeper.SetQueue(prevTracks, nextTracks);
+            }
         }
 
-        Dictionary<String, String> MetadataFor(IPlayableId id)
+        internal Dictionary<String, String> MetadataFor(IPlayableId id)
         {
             if (_tracksKeeper == null) return null;
 
@@ -740,73 +780,79 @@ namespace player
             
             return _tracksKeeper.Tracks[index].Metadatas;
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         private void PerformAdd(Add add)
         {
-            bool wasShuffled = false;
-            if (IsShufflingContext())
+            lock (_funcLock)
             {
-                wasShuffled = true;
-                _tracksKeeper.ToggleShuffle(false);
-            }
+                bool wasShuffled = false;
+                if (IsShufflingContext())
+                {
+                    wasShuffled = true;
+                    _tracksKeeper.ToggleShuffle(false);
+                }
 
-            try
-            {
-                if (add.AddFirst)
-                    _tracksKeeper.AddToTracks(0, add.Items);
-                else if (add.AddLast)
-                    _tracksKeeper.AddToTracks(_tracksKeeper.Length(), add.Items);
-                else if (add.FromIndex != 0) 
-                    _tracksKeeper.AddToTracks(add.FromIndex, add.Items);
-                else throw new InvalidOperationException(add.ToString());
-            }
-            finally
-            {
-                if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                try
+                {
+                    if (add.AddFirst)
+                        _tracksKeeper.AddToTracks(0, add.Items);
+                    else if (add.AddLast)
+                        _tracksKeeper.AddToTracks(_tracksKeeper.Length(), add.Items);
+                    else if (add.FromIndex != 0)
+                        _tracksKeeper.AddToTracks(add.FromIndex, add.Items);
+                    else throw new InvalidOperationException(add.ToString());
+                }
+                finally
+                {
+                    if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                }
             }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         private void PerformRemove(Rem rem)
         {
-            bool wasShuffled = false;
-            if (IsShufflingContext())
+            lock (_funcLock)
             {
-                wasShuffled = true;
-                _tracksKeeper.ToggleShuffle(false);
-            }
+                bool wasShuffled = false;
+                if (IsShufflingContext())
+                {
+                    wasShuffled = true;
+                    _tracksKeeper.ToggleShuffle(false);
+                }
 
-            try
-            {
-                if (rem.FromIndex != 0 && rem.Length != 0) _tracksKeeper.RemoveTracks(rem.FromIndex, rem.Length);
-                else throw new InvalidOperationException(rem.ToString());
-            }
-            finally
-            {
-                if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                try
+                {
+                    if (rem.FromIndex != 0 && rem.Length != 0) _tracksKeeper.RemoveTracks(rem.FromIndex, rem.Length);
+                    else throw new InvalidOperationException(rem.ToString());
+                }
+                finally
+                {
+                    if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                }
             }
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
         private void PerformMove(Mov mov)
         {
-            bool wasShuffled = false;
-            if (IsShufflingContext())
+            lock (_funcLock)
             {
-                wasShuffled = true;
-                _tracksKeeper.ToggleShuffle(false);
-            }
+                bool wasShuffled = false;
+                if (IsShufflingContext())
+                {
+                    wasShuffled = true;
+                    _tracksKeeper.ToggleShuffle(false);
+                }
 
-            try
-            {
-                if (mov.FromIndex != 0 && mov.ToIndex != 0 && mov.Length != 0) 
-                    _tracksKeeper.MoveTracks(mov.FromIndex, mov.ToIndex, mov.Length);
-                else throw new InvalidOperationException(mov.ToString());
-            }
-            finally
-            {
-                if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                try
+                {
+                    if (mov.FromIndex != 0 && mov.ToIndex != 0 && mov.Length != 0)
+                        _tracksKeeper.MoveTracks(mov.FromIndex, mov.ToIndex, mov.Length);
+                    else throw new InvalidOperationException(mov.ToString());
+                }
+                finally
+                {
+                    if (wasShuffled) _tracksKeeper.ToggleShuffle(true);
+                }
             }
         }
 
@@ -889,12 +935,14 @@ namespace player
                 Updated();
             }
         }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
+        
         private void PerformCollectionUpdate(List<String> uris, bool inCollection)
         {
-            foreach (String uri in uris)
-                _tracksKeeper.UpdateMetadataFor(uri, "collection.in_collection", inCollection.ToString());
+            lock (_funcLock)
+            {
+                foreach (String uri in uris)
+                    _tracksKeeper.UpdateMetadataFor(uri, "collection.in_collection", inCollection.ToString());
+            }
         }
 
         public int GetContextSize()
@@ -1028,6 +1076,7 @@ namespace player
             internal volatile bool CannotLoadMore = false;
             internal volatile int ShuffleKeepIndex = -1;
             private StateWrapper _wrapper;
+            private Object _funcLock = new Object();
 
             internal TracksKeeper(StateWrapper wrapper)
             {
@@ -1059,11 +1108,13 @@ namespace player
                 }
                 else CannotLoadMore = false;
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal ProvidedTrack GetCurrentTrack()
             {
-                return _wrapper._state.Track;
+                lock (_funcLock)
+                {
+                    return _wrapper._state.Track;
+                }
             }
 
             internal uint GetCurrentTrackIndex()
@@ -1182,167 +1233,182 @@ namespace player
                 UpdateTrackDuration();
                 UpdatePrevNextTracks();
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void AddToQueue(ContextTrack track)
             {
-                track.Metadatas.Add("is_queued", "true");
-                Queue.Add(track);
-                UpdatePrevNextTracks();
-                UpdateTrackCount();
+                lock (_funcLock)
+                {
+                    track.Metadatas.Add("is_queued", "true");
+                    Queue.Add(track);
+                    UpdatePrevNextTracks();
+                    UpdateTrackCount();
+                }
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void RemoveFromQueue(String uri)
             {
-                byte[] gid;
-                IPlayableId playable = PlayableId.FromUri(uri);
-                if (playable.HasGid()) gid = playable.GetGid();
-                else gid = null;
-
-                if (Queue.RemoveAll(track => track.Uri != "" && uri.Equals(track.Uri)) > 0)
+                lock (_funcLock)
                 {
+                    byte[] gid;
+                    IPlayableId playable = PlayableId.FromUri(uri);
+                    if (playable.HasGid()) gid = playable.GetGid();
+                    else gid = null;
+
+                    if (Queue.RemoveAll(track => track.Uri != "" && uri.Equals(track.Uri)) > 0)
+                    {
+                        UpdateTrackCount();
+                        UpdatePrevNextTracks();
+                    }
+                }
+            }
+            
+            internal void SetQueue(List<ContextTrack> prevTracks, List<ContextTrack> nextTracks)
+            {
+                lock (_funcLock)
+                {
+                    ContextTrack current = Tracks[(int)GetCurrentTrackIndex()];
+
+                    Queue.Clear();
+                    Tracks.Clear();
+
+                    if (prevTracks != null) Tracks.AddRange(prevTracks);
+                    Tracks.Add(current);
+
+                    if (nextTracks != null)
+                    {
+                        foreach (ContextTrack track in nextTracks)
+                        {
+                            if (ProtoUtils.IsQueued(track)) Queue.Add(track);
+                            else Tracks.Add(track);
+                        }
+                    }
+
                     UpdateTrackCount();
                     UpdatePrevNextTracks();
                 }
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
-            internal void SetQueue(List<ContextTrack> prevTracks, List<ContextTrack> nextTracks)
-            {
-                ContextTrack current = Tracks[(int)GetCurrentTrackIndex()];
-
-                Queue.Clear();
-                Tracks.Clear();
-
-                if (prevTracks != null) Tracks.AddRange(prevTracks);
-                Tracks.Add(current);
-
-                if (nextTracks != null)
-                {
-                    foreach (ContextTrack track in nextTracks)
-                    {
-                        if (ProtoUtils.IsQueued(track)) Queue.Add(track);
-                        else Tracks.Add(track);
-                    }
-                }
-
-                UpdateTrackCount();
-                UpdatePrevNextTracks();
-            }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void UpdateContext(List<ContextPage> updatedPages)
             {
-                List<ContextTrack> updatedTracks = ProtoUtils.Join(updatedPages);
-                foreach (ContextTrack track in updatedTracks)
+                lock (_funcLock)
                 {
-                    int index = ProtoUtils.IndexOfTrack(Tracks, track);
-                    if (index == -1) continue;
-
-                    ContextTrack builder = Tracks[index];
-                    ProtoUtils.CopyOverMetadata(track, builder);
-
-                    if (index == GetCurrentTrackIndex())
+                    List<ContextTrack> updatedTracks = ProtoUtils.Join(updatedPages);
+                    foreach (ContextTrack track in updatedTracks)
                     {
-                        ProtoUtils.CopyOverMetadata(track, _wrapper._state.Track);
-                        _wrapper._tracksKeeper.UpdateLikeDislike();
+                        int index = ProtoUtils.IndexOfTrack(Tracks, track);
+                        if (index == -1) continue;
+
+                        ContextTrack builder = Tracks[index];
+                        ProtoUtils.CopyOverMetadata(track, builder);
+
+                        if (index == GetCurrentTrackIndex())
+                        {
+                            ProtoUtils.CopyOverMetadata(track, _wrapper._state.Track);
+                            _wrapper._tracksKeeper.UpdateLikeDislike();
+                        }
                     }
                 }
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void InitializeStart()
             {
-                if (!CannotLoadMore)
+                lock (_funcLock)
                 {
-                    if (!_wrapper._pages.NextPage()) throw new InvalidOperationException();
+                    if (!CannotLoadMore)
+                    {
+                        if (!_wrapper._pages.NextPage()) throw new InvalidOperationException();
 
-                    Tracks.Clear();
-                    Tracks.AddRange(_wrapper._pages.CurrentPage());
-                }
+                        Tracks.Clear();
+                        Tracks.AddRange(_wrapper._pages.CurrentPage());
+                    }
 
-                CheckComplete();
-                if (_wrapper.AreAllUnplayable(Tracks))
-                    throw AbsSpotifyContext.UnsupportedContextException.CannotPlayAnything();
+                    CheckComplete();
+                    if (_wrapper.AreAllUnplayable(Tracks))
+                        throw AbsSpotifyContext.UnsupportedContextException.CannotPlayAnything();
 
-                bool transformingShuffle =
-                    Boolean.Parse(_wrapper._state.ContextMetadatas.TryGetValue("transforming.shuffle", out var value)
-                        ? value
-                        : "false");
-                if (_wrapper._context.IsFinite() && _wrapper.IsShufflingContext() && transformingShuffle)
-                    ShuffleEntirely();
-                else _wrapper._state.Options.ShufflingContext = false;
+                    bool transformingShuffle =
+                        Boolean.Parse(
+                            _wrapper._state.ContextMetadatas.TryGetValue("transforming.shuffle", out var value)
+                                ? value
+                                : "false");
+                    if (_wrapper._context.IsFinite() && _wrapper.IsShufflingContext() && transformingShuffle)
+                        ShuffleEntirely();
+                    else _wrapper._state.Options.ShufflingContext = false;
 
-                SetCurrentTrackIndex(0);
-                if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
-                {
-                    LOGGER.Debug("Cannot play currently selected track, skipping: " + _wrapper.GetCurrentPlayable());
+                    SetCurrentTrackIndex(0);
+                    if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
+                    {
+                        LOGGER.Debug("Cannot play currently selected track, skipping: " +
+                                     _wrapper.GetCurrentPlayable());
+                    }
                 }
             }
 
             internal delegate int Find(List<ContextTrack> track);
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void InitializeFrom(Find finder, ContextTrack track, Queue contextQueue)
             {
-                Tracks.Clear();
-                Queue.Clear();
-
-                while (true)
+                lock (_funcLock)
                 {
-                    if (_wrapper._pages.NextPage())
+                    Tracks.Clear();
+                    Queue.Clear();
+
+                    while (true)
                     {
-                        List<ContextTrack> newTracks = _wrapper._pages.CurrentPage();
-                        uint index = (uint)finder(newTracks);
-                        if (index == -1)
+                        if (_wrapper._pages.NextPage())
                         {
+                            List<ContextTrack> newTracks = _wrapper._pages.CurrentPage();
+                            uint index = (uint)finder(newTracks);
+                            if (index == -1)
+                            {
+                                Tracks.AddRange(newTracks);
+                                continue;
+                            }
+
+                            index += (uint)Tracks.Count;
                             Tracks.AddRange(newTracks);
-                            continue;
+
+                            SetCurrentTrackIndex(index);
+                            break;
                         }
-
-                        index += (uint)Tracks.Count;
-                        Tracks.AddRange(newTracks);
-
-                        SetCurrentTrackIndex(index);
-                        break;
+                        else
+                        {
+                            CannotLoadMore = true;
+                            UpdateTrackCount();
+                            throw new InvalidOperationException("Couldn't find current track!");
+                        }
                     }
-                    else
+
+                    if (contextQueue != null)
                     {
-                        CannotLoadMore = true;
-                        UpdateTrackCount();
-                        throw new InvalidOperationException("Couldn't find current track!");
+                        Queue.AddRange(contextQueue.Tracks);
+                        IsPlayingQueue = contextQueue.IsPlayingQueue;
+                        UpdateState();
                     }
-                }
 
-                if (contextQueue != null)
-                {
-                    Queue.AddRange(contextQueue.Tracks);
-                    IsPlayingQueue = contextQueue.IsPlayingQueue;
-                    UpdateState();
-                }
+                    CheckComplete();
+                    if (_wrapper.AreAllUnplayable(Tracks))
+                        throw AbsSpotifyContext.UnsupportedContextException.CannotPlayAnything();
 
-                CheckComplete();
-                if (_wrapper.AreAllUnplayable(Tracks))
-                    throw AbsSpotifyContext.UnsupportedContextException.CannotPlayAnything();
+                    try
+                    {
+                        if (track != null) EnrichCurrentTrack(track);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        LOGGER.Warn("Failed updating current track metadata.", ex);
+                    }
 
-                try
-                {
-                    if (track != null) EnrichCurrentTrack(track);
-                }
-                catch (InvalidOperationException ex)
-                {
-                    LOGGER.Warn("Failed updating current track metadata.", ex);
-                }
+                    if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
+                    {
+                        LOGGER.Debug("Cannot play currently selected track, skipping: " +
+                                     _wrapper.GetCurrentPlayable());
 
-                if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
-                {
-                    LOGGER.Debug("Cannot play currently selected track, skipping: " + _wrapper.GetCurrentPlayable());
-
-                    bool repeatTrack = _wrapper.IsRepeatingTrack();
-                    if (repeatTrack) _wrapper._state.Options.RepeatingTrack = false;
-                    _wrapper.GetNextPlayable(false);
-                    _wrapper._state.Options.RepeatingTrack = repeatTrack;
+                        bool repeatTrack = _wrapper.IsRepeatingTrack();
+                        if (repeatTrack) _wrapper._state.Options.RepeatingTrack = false;
+                        _wrapper.GetNextPlayable(false);
+                        _wrapper._state.Options.RepeatingTrack = repeatTrack;
+                    }
                 }
             }
 
@@ -1362,178 +1428,190 @@ namespace player
                     _wrapper._state.Track = ProtoUtils.ToProvidedTrack(current, _wrapper.GetContextUri());
                 }
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void SkipTo(ContextTrack track)
             {
-                if (Queue.Count != 0)
+                lock (_funcLock)
                 {
-                    List<ContextTrack> queueCopy = new List<ContextTrack>(Queue);
+                    if (Queue.Count != 0)
+                    {
+                        List<ContextTrack> queueCopy = new List<ContextTrack>(Queue);
 
-                    foreach (ContextTrack ctxTrack in new List<ContextTrack>(queueCopy))
-                        if (ProtoUtils.TrackEquals(ctxTrack, track))
+                        foreach (ContextTrack ctxTrack in new List<ContextTrack>(queueCopy))
+                            if (ProtoUtils.TrackEquals(ctxTrack, track))
+                            {
+                                IsPlayingQueue = true;
+                                UpdateState();
+                                return;
+                            }
+                            else queueCopy.Remove(ctxTrack);
+
+                        Queue.Clear();
+                        Queue.AddRange(queueCopy);
+                    }
+
+                    for (int i = 0; i < Tracks.Count; i++)
+                    {
+                        if (ProtoUtils.TrackEquals(Tracks[i], track))
                         {
-                            IsPlayingQueue = true;
-                            UpdateState();
+                            SetCurrentTrackIndex((uint)i);
+                            EnrichCurrentTrack(track);
                             return;
                         }
-                        else queueCopy.Remove(ctxTrack);
-
-                    Queue.Clear();
-                    Queue.AddRange(queueCopy);
-                }
-
-                for (int i = 0; i < Tracks.Count; i++)
-                {
-                    if (ProtoUtils.TrackEquals(Tracks[i], track))
-                    {
-                        SetCurrentTrackIndex((uint)i);
-                        EnrichCurrentTrack(track);
-                        return;
                     }
+
+                    throw new InvalidOperationException("Did not find track to skip to: " + ProtoUtils.ToString(track));
                 }
-
-                throw new InvalidOperationException("Did not find track to skip to: " + ProtoUtils.ToString(track));
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal PlayableIdWithIndex NextPlayableDoNotSet()
             {
-                if (_wrapper.IsRepeatingTrack())
-                    return new PlayableIdWithIndex(PlayableId.From(Tracks[(int)GetCurrentTrackIndex()]),
-                        (int)GetCurrentTrackIndex());
-
-                if (Queue.Count != 0)
-                    return new PlayableIdWithIndex(PlayableId.From(Queue[0]), -1);
-
-                int current = (int)GetCurrentTrackIndex();
-                if (current == Tracks.Count - 1)
+                lock (_funcLock)
                 {
-                    if (_wrapper.IsShufflingContext() || CannotLoadMore) return null;
+                    if (_wrapper.IsRepeatingTrack())
+                        return new PlayableIdWithIndex(PlayableId.From(Tracks[(int)GetCurrentTrackIndex()]),
+                            (int)GetCurrentTrackIndex());
 
-                    if (_wrapper._pages.NextPage())
+                    if (Queue.Count != 0)
+                        return new PlayableIdWithIndex(PlayableId.From(Queue[0]), -1);
+
+                    int current = (int)GetCurrentTrackIndex();
+                    if (current == Tracks.Count - 1)
                     {
-                        Tracks.AddRange(_wrapper._pages.CurrentPage());
-                    }
-                    else
-                    {
-                        CannotLoadMore = true;
-                        UpdateTrackCount();
-                        return null;
-                    }
-                }
+                        if (_wrapper.IsShufflingContext() || CannotLoadMore) return null;
 
-                if (!_wrapper._context.IsFinite() && Tracks.Count - current <= 5)
-                {
-                    if (_wrapper._pages.NextPage())
-                    {
-                        Tracks.AddRange(_wrapper._pages.CurrentPage());
-                    }
-                    else
-                    {
-                        LOGGER.Warn("Couldn't (pre)load next page of context!");
-                    }
-                }
-
-                int add = 1;
-                while (true)
-                {
-                    ContextTrack track = Tracks[current + add];
-                    if (_wrapper.ShouldPlay(track)) break;
-                    add++;
-                }
-
-                return new PlayableIdWithIndex(PlayableId.From(Tracks[current + add]), current + add);
-            }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
-            internal NextPlayable NextPlayable(bool autoplayEnabled)
-            {
-                if (_wrapper.IsRepeatingTrack())
-                    return StateWrapper.NextPlayable.OK_REPEAT;
-
-                if (Queue.Count != 0)
-                {
-                    IsPlayingQueue = true;
-                    UpdateState();
-
-                    if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
-                        return NextPlayable(autoplayEnabled);
-
-                    return StateWrapper.NextPlayable.OK_PLAY;
-                }
-
-                IsPlayingQueue = true;
-
-                bool play = true;
-                PlayableIdWithIndex next = NextPlayableDoNotSet();
-                if (next == null || next.Index == -1)
-                {
-                    if (!_wrapper._context.IsFinite()) return StateWrapper.NextPlayable.MISSING_TRACKS;
-
-                    if (_wrapper.IsRepeatingContext())
-                    {
-                        SetCurrentTrackIndex(0);
-                    }
-                    else
-                    {
-                        if (autoplayEnabled)
+                        if (_wrapper._pages.NextPage())
                         {
-                            return StateWrapper.NextPlayable.AUTOPLAY;
+                            Tracks.AddRange(_wrapper._pages.CurrentPage());
                         }
                         else
                         {
-                            SetCurrentTrackIndex(0);
-                            play = false;
+                            CannotLoadMore = true;
+                            UpdateTrackCount();
+                            return null;
                         }
                     }
-                }
-                else
-                {
-                    SetCurrentTrackIndex((uint)next.Index);
-                }
 
-                if (play) return StateWrapper.NextPlayable.OK_PLAY;
-                else return StateWrapper.NextPlayable.OK_PAUSE;
+                    if (!_wrapper._context.IsFinite() && Tracks.Count - current <= 5)
+                    {
+                        if (_wrapper._pages.NextPage())
+                        {
+                            Tracks.AddRange(_wrapper._pages.CurrentPage());
+                        }
+                        else
+                        {
+                            LOGGER.Warn("Couldn't (pre)load next page of context!");
+                        }
+                    }
+
+                    int add = 1;
+                    while (true)
+                    {
+                        ContextTrack track = Tracks[current + add];
+                        if (_wrapper.ShouldPlay(track)) break;
+                        add++;
+                    }
+
+                    return new PlayableIdWithIndex(PlayableId.From(Tracks[current + add]), current + add);
+                }
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            internal NextPlayable NextPlayable(bool autoplayEnabled)
+            {
+                lock (_funcLock)
+                {
+                    if (_wrapper.IsRepeatingTrack())
+                        return StateWrapper.NextPlayable.OK_REPEAT;
+
+                    if (Queue.Count != 0)
+                    {
+                        IsPlayingQueue = true;
+                        UpdateState();
+
+                        if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
+                            return NextPlayable(autoplayEnabled);
+
+                        return StateWrapper.NextPlayable.OK_PLAY;
+                    }
+
+                    IsPlayingQueue = true;
+
+                    bool play = true;
+                    PlayableIdWithIndex next = NextPlayableDoNotSet();
+                    if (next == null || next.Index == -1)
+                    {
+                        if (!_wrapper._context.IsFinite()) return StateWrapper.NextPlayable.MISSING_TRACKS;
+
+                        if (_wrapper.IsRepeatingContext())
+                        {
+                            SetCurrentTrackIndex(0);
+                        }
+                        else
+                        {
+                            if (autoplayEnabled)
+                            {
+                                return StateWrapper.NextPlayable.AUTOPLAY;
+                            }
+                            else
+                            {
+                                SetCurrentTrackIndex(0);
+                                play = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SetCurrentTrackIndex((uint)next.Index);
+                    }
+
+                    if (play) return StateWrapper.NextPlayable.OK_PLAY;
+                    else return StateWrapper.NextPlayable.OK_PAUSE;
+                }
+            }
+            
             internal PreviousPlayable PreviousPlayable()
             {
-                int index = (int)GetCurrentTrackIndex();
-                if (IsPlayingQueue)
+                lock (_funcLock)
                 {
-                    index += 1;
-                    IsPlayingQueue = false;
-                }
+                    int index = (int)GetCurrentTrackIndex();
+                    if (IsPlayingQueue)
+                    {
+                        index += 1;
+                        IsPlayingQueue = false;
+                    }
 
-                if (index == 0)
-                {
-                    if (_wrapper.IsRepeatingContext() && _wrapper._context.IsFinite())
-                        SetCurrentTrackIndex((uint)Tracks.Count - 1);
-                }
-                else
-                {
-                    SetCurrentTrackIndex((uint)index - 1);
-                }
+                    if (index == 0)
+                    {
+                        if (_wrapper.IsRepeatingContext() && _wrapper._context.IsFinite())
+                            SetCurrentTrackIndex((uint)Tracks.Count - 1);
+                    }
+                    else
+                    {
+                        SetCurrentTrackIndex((uint)index - 1);
+                    }
 
-                if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
-                    return PreviousPlayable();
+                    if (!_wrapper.ShouldPlay(Tracks[(int)GetCurrentTrackIndex()]))
+                        return PreviousPlayable();
 
-                return StateWrapper.PreviousPlayable.OK;
+                    return StateWrapper.PreviousPlayable.OK;
+                }
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal bool IsPlayingFirst()
             {
-                return GetCurrentTrackIndex() == 0;
+                lock (_funcLock)
+                {
+                    return GetCurrentTrackIndex() == 0;
+                }
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
             internal bool IsPlayingLast()
             {
-                if (CannotLoadMore && Queue.Count == 0) return GetCurrentTrackIndex() == Tracks.Count;
-                else return false;
+                lock (_funcLock)
+                {
+                    if (CannotLoadMore && Queue.Count == 0) return GetCurrentTrackIndex() == Tracks.Count;
+                    else return false;
+                }
             }
 
             private bool LoadAllTracks()
@@ -1564,75 +1642,79 @@ namespace player
                 return true;
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
             internal void ShuffleEntirely()
             {
-                if (!_wrapper._context.IsFinite())
-                    throw new InvalidOperationException("Cannot shuffle infinite context!");
-                if (Tracks.Count <= 1) return;
-                if (IsPlayingQueue) return;
-
-                if (!CannotLoadMore)
+                lock (_funcLock)
                 {
-                    if (!LoadAllTracks())
-                    {
-                        LOGGER.Error("Cannot shuffle entire context!");
-                        return;
-                    }
-                }
+                    if (!_wrapper._context.IsFinite())
+                        throw new InvalidOperationException("Cannot shuffle infinite context!");
+                    if (Tracks.Count <= 1) return;
+                    if (IsPlayingQueue) return;
 
-                Shuffle.Shuffle(Tracks, true);
-            }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
-            internal void ToggleShuffle(bool value)
-            {
-                if (!_wrapper._context.IsFinite())
-                    throw new InvalidOperationException("Cannot shuffle infinite context!");
-                if (Tracks.Count <= 1) return;
-                if (IsPlayingQueue) return;
-
-                if (value)
-                {
                     if (!CannotLoadMore)
                     {
                         if (!LoadAllTracks())
                         {
-                            LOGGER.Error("Cannot shuffle context!");
+                            LOGGER.Error("Cannot shuffle entire context!");
                             return;
                         }
                     }
 
-                    IPlayableId currentlyPlaying = _wrapper.GetCurrentPlayableOrThrow();
                     Shuffle.Shuffle(Tracks, true);
-                    ShuffleKeepIndex = PlayableId.IndexOfTrack(Tracks, currentlyPlaying);
-                    Utils.Swap(Tracks, 0, ShuffleKeepIndex);
-                    SetCurrentTrackIndex(0);
-
-                    LOGGER.Debug("Shuffled context! (keepIndex: " + ShuffleKeepIndex + ")");
                 }
-                else
+            }
+
+            internal void ToggleShuffle(bool value)
+            {
+                lock (_funcLock)
                 {
-                    if (Shuffle.CanUnshuffle(Tracks.Count))
+                    if (!_wrapper._context.IsFinite())
+                        throw new InvalidOperationException("Cannot shuffle infinite context!");
+                    if (Tracks.Count <= 1) return;
+                    if (IsPlayingQueue) return;
+
+                    if (value)
                     {
+                        if (!CannotLoadMore)
+                        {
+                            if (!LoadAllTracks())
+                            {
+                                LOGGER.Error("Cannot shuffle context!");
+                                return;
+                            }
+                        }
+
                         IPlayableId currentlyPlaying = _wrapper.GetCurrentPlayableOrThrow();
-                        if (ShuffleKeepIndex != -1) Utils.Swap(Tracks, 0, ShuffleKeepIndex);
+                        Shuffle.Shuffle(Tracks, true);
+                        ShuffleKeepIndex = PlayableId.IndexOfTrack(Tracks, currentlyPlaying);
+                        Utils.Swap(Tracks, 0, ShuffleKeepIndex);
+                        SetCurrentTrackIndex(0);
 
-                        Shuffle.Unshuffle(Tracks);
-                        SetCurrentTrackIndex((uint)PlayableId.IndexOfTrack(Tracks, currentlyPlaying));
-
-                        LOGGER.Debug("Unshuffled using Fisher-Yates");
+                        LOGGER.Debug("Shuffled context! (keepIndex: " + ShuffleKeepIndex + ")");
                     }
                     else
                     {
-                        IPlayableId id = _wrapper.GetCurrentPlayableOrThrow();
+                        if (Shuffle.CanUnshuffle(Tracks.Count))
+                        {
+                            IPlayableId currentlyPlaying = _wrapper.GetCurrentPlayableOrThrow();
+                            if (ShuffleKeepIndex != -1) Utils.Swap(Tracks, 0, ShuffleKeepIndex);
 
-                        Tracks.Clear();
-                        _wrapper._pages = PagesLoader.From(_wrapper._session, _wrapper._context.Uri());
-                        LoadAllTracks();
+                            Shuffle.Unshuffle(Tracks);
+                            SetCurrentTrackIndex((uint)PlayableId.IndexOfTrack(Tracks, currentlyPlaying));
 
-                        SetCurrentTrackIndex((uint)PlayableId.IndexOfTrack(Tracks, id));
-                        LOGGER.Debug("Unshuffled by reloading context.");
+                            LOGGER.Debug("Unshuffled using Fisher-Yates");
+                        }
+                        else
+                        {
+                            IPlayableId id = _wrapper.GetCurrentPlayableOrThrow();
+
+                            Tracks.Clear();
+                            _wrapper._pages = PagesLoader.From(_wrapper._session, _wrapper._context.Uri());
+                            LoadAllTracks();
+
+                            SetCurrentTrackIndex((uint)PlayableId.IndexOfTrack(Tracks, id));
+                            LOGGER.Debug("Unshuffled by reloading context.");
+                        }
                     }
                 }
             }
@@ -1739,23 +1821,27 @@ namespace player
                 
                 UpdatePrevNextTracks();
             }
-
-            [MethodImpl(MethodImplOptions.Synchronized)]
+            
             internal void UpdateMetadataFor(int index, String key, String value)
             {
-                ContextTrack builder = Tracks[index];
-                if (builder.Metadatas.ContainsKey(key)) builder.Metadatas.Remove(key);
-                builder.Metadatas.Add(key, value);
-                Tracks.Insert(index, builder);
+                lock (_funcLock)
+                {
+                    ContextTrack builder = Tracks[index];
+                    if (builder.Metadatas.ContainsKey(key)) builder.Metadatas.Remove(key);
+                    builder.Metadatas.Add(key, value);
+                    Tracks[index] = builder;
+                }
             }
 
-            [MethodImpl(MethodImplOptions.Synchronized)]
             internal void UpdateMetadataFor(String uri, String key, String value)
             {
-                int index = ProtoUtils.IndexOfTrackByUri(Tracks, uri);
-                if (index == -1) return;
-                
-                UpdateMetadataFor(index, key, value);
+                lock (_funcLock)
+                {
+                    int index = ProtoUtils.IndexOfTrackByUri(Tracks, uri);
+                    if (index == -1) return;
+
+                    UpdateMetadataFor(index, key, value);
+                }
             }
         }
     }

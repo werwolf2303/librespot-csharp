@@ -2,6 +2,7 @@ using System;
 using lib.common;
 using log4net;
 using sink_api;
+using Spotify;
 
 namespace lib.audio.playback
 {
@@ -17,8 +18,14 @@ namespace lib.audio.playback
             switch (audioOutputMethod)
             {
                 case "AUTO":
-                    //ToDo: Implement Operating System detection
-                    throw new NotImplementedException();
+                    switch (Version.platform())
+                    {
+                        case Platform.PlatformLinuxX86:
+                            _playback = new Alsa();
+                            break;
+                        default:
+                            throw new NotImplementedException("Playback not implemented for: " + Version.platform());
+                    }
                     break;
                 case "ALSA":
                     _playback = new Alsa();
