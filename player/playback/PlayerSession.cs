@@ -34,7 +34,7 @@ namespace player.playback
             _sessionId = sessionId;
             _listener = listener;
             _executorService = _session.GetScheduledExecutorService();
-            _queue = new PlayerQueue();
+            _queue = new PlayerQueue(_executorService);
             LOGGER.Info("Created new session. (id: " + _sessionId + ")");
             
             _sink.ClearOutputs();
@@ -130,6 +130,7 @@ namespace player.playback
 
         public void StartedLoading(PlayerQueueEntry entry)
         {
+            LOGGER.DebugFormat("{0} started loading.", entry);
             if (entry == _queue.Head()) _listener.StartedLoading();
         }
 
@@ -260,7 +261,7 @@ namespace player.playback
             
             head.SetOutput(output);
             LOGGER.DebugFormat("{0} has been added to the output. (sessionId: {1}, pos: {2}, reason: {3})", head,
-                _sessionId, pos, reason);
+                _sessionId, pos, reason._val);
             return new EntryWithPos(head, pos);
         }
 

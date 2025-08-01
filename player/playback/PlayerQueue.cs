@@ -12,8 +12,9 @@ namespace player.playback
         private PlayerQueueEntry _head = null;
         private Object _funcLock = new Object();
 
-        internal PlayerQueue()
+        internal PlayerQueue(ScheduledExecutorService executorService)
         {
+            _executorService = executorService;
         }
         
         internal PlayerQueueEntry Next()
@@ -53,6 +54,8 @@ namespace player.playback
                     entry.Run();
                     return 0;
                 }, 100, ScheduledExecutorService.TimeUnit.MILLISECONDS));
+                
+                LOGGER.DebugFormat("{0} added to queue.", entry);
             }
         }
         

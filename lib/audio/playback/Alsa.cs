@@ -43,7 +43,7 @@ namespace lib.audio.playback
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_hw_params_set_rate_near(IntPtr pcm, IntPtr pcm_hw_params, ref uint rate,
             IntPtr dir);
-
+        
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_hw_params_set_channels(IntPtr pcm, IntPtr pcm_hw_params, uint channels);
 
@@ -237,6 +237,11 @@ namespace lib.audio.playback
 
 
                 int result = AlsaWrapper.snd_pcm_writei(_pcmHandle, _buffer, framesToWrite);
+                if (result == -32)
+                {
+                    AlsaWrapper.snd_pcm_prepare(_pcmHandle);
+                    result = AlsaWrapper.snd_pcm_recover(_pcmHandle, result, 1);
+                }
                 if (result < 0)
                 {
                     _stopped = true;

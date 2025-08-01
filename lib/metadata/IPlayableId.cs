@@ -124,7 +124,7 @@ namespace lib.metadata
 
         public string ToSpotifyUri()
         {
-            return "spotify:" + PlayableIds.ToString(_playableId.GetId()).ToLower() + ":" + Utils.HexToBase62(_playableId.HexId(), 16, Base62);
+            return _playableId.ToSpotifyUri();
         }
 
         public int GetId()

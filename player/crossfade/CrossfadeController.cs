@@ -28,8 +28,8 @@ namespace player.crossfade
             _playbackId = playbackId;
             _trackDuration = duration;
             _defaultFadeDuration = conf._crossfadeDuration;
-
-            String fadeOutUri = metadata["audio.fade_out_uri"];
+            
+            String fadeOutUri = metadata.TryGetValue("audio.fade_out_uri", out var fadeOutUriValue) ? fadeOutUriValue : null;
             _fadeOutPlayable = fadeOutUri == null ? null : PlayableId.FromUri(fadeOutUri);
 
             PopulateFadeIn(metadata);
@@ -54,8 +54,8 @@ namespace player.crossfade
             int fadeInStartTime =
                 int.Parse(metadata.TryGetValue("audio.fade_in_start_time", out var value2) ? value2 : "-1");
 
-            JArray fadeInCurves = JObject
-                .Parse(metadata.TryGetValue("audio.fade_in_curves", out var value3) ? value3 : "[]").ToObject<JArray>();
+            JArray fadeInCurves = JArray
+                .Parse(metadata.TryGetValue("audio.fade_in_curves", out var value3) ? value3 : "[]");
             if (fadeInCurves.Count > 1) throw new InvalidOperationException(fadeInCurves.ToString());
 
             if (fadeInDuration != 0 && fadeInCurves.Count > 0)

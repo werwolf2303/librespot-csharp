@@ -30,6 +30,11 @@ namespace lib.metadata
             return "hm://metadata/4/show/" + _hexId;
         }
 
+        public string ToSpotifyUri()
+        {
+            return "spotify:" + PlayableIds.ToString(GetId()).ToLower() + ":" + Utils.HexToBase62(HexId(), 16, _base62);
+        }
+
         public string HexId()
         {
             return _hexId;

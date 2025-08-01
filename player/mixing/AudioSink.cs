@@ -5,6 +5,7 @@ using System.Threading;
 using decoder_api;
 using lib.audio.playback;
 using lib.common;
+using Newtonsoft.Json.Linq;
 using player.mixing.output;
 using sink_api;
 
@@ -129,9 +130,9 @@ namespace player.mixing
                 }
                 else
                 {
+                    OutputAudioFormat format = _mixing.GetFormat();
                     if (!started || _mixing._switchFormat)
                     {
-                        OutputAudioFormat format = _mixing.GetFormat();
                         if (format != null) started = _output.Start(format);
                         _mixing._switchFormat = false;
                     } 

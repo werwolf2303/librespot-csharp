@@ -30,6 +30,7 @@ namespace lib.audio.decoders
 
         public VorbisDecoder(SeekableInputStream audioIn, float normalizationFactor, int duration) : base(audioIn, normalizationFactor, duration)
         {
+            
             _jorbisBlock = new Block(_jorbisDspState);
             
             _joggSyncState.Init();

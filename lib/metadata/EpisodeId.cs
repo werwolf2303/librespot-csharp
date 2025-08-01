@@ -24,7 +24,12 @@ namespace lib.metadata
         {
             return new EpisodeId(hex);
         }
-        
+
+        public string ToSpotifyUri()
+        {
+            return "spotify:" + PlayableIds.ToString(GetId()).ToLower() + ":" + Utils.HexToBase62(HexId(), 16, Base62);
+        }
+
         public String ToMercuryUri() {
             return "hm://metadata/4/episode/" + _hexId;
         }

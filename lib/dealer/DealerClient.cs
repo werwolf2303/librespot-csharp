@@ -73,7 +73,7 @@ namespace lib.dealer
 
         private void HandleRequest(JObject obj)
         {
-            String mid = obj["message-Ident"].ToObject<string>();
+            String mid = obj["message_ident"].ToObject<string>();
             String key = obj["key"].ToObject<string>();
 
             Dictionary<String, String> headers = GetHeaders(obj);
@@ -154,11 +154,11 @@ namespace lib.dealer
                 if ("application/json".Equals(contentType))
                 {
                     if (payloads.Count > 1) throw new Exception("Unsupported");
-                    decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToObject<string>());
+                    decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToString());
                 } else if ("text/plain".Equals(contentType))
                 {
                     if (payloads.Count > 1) throw new Exception("Unsupported");
-                    decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToObject<string>());
+                    decodedPayload = Encoding.UTF8.GetBytes(payloads[0].ToString());
                 }
                 else
                 {
@@ -230,8 +230,8 @@ namespace lib.dealer
                     }
                 }
             }
-            
-            if(!interesting) LOGGER.Debug("Couldn't dispatch message: " + uri);
+
+            if (!interesting) LOGGER.Debug("Couldn't dispatch message: " + uri);
         }
 
         public void AddMessageListener(MessageListener listener, params String[] uris)
@@ -424,7 +424,7 @@ namespace lib.dealer
                     return;
                 }
                 
-                LOGGER.DebugFormat("Dealer connected! (host: {0})", _ws.Url);
+                LOGGER.DebugFormat("Dealer connected! (host: {0})", _ws.Url.Host);
                 _holder.LastScheduledPing = new ScheduledExecutorService.ScheduledFuture<int>(() =>
                 {
                     _holder.SendPing();
@@ -462,7 +462,8 @@ namespace lib.dealer
                 {
                     try {
                         _client.HandleMessage(obj);
-                    } catch (Exception ex) {
+                    } catch (Exception ex)
+                    {
                         LOGGER.Warn("Failed handling message: " + obj, ex);
                     }
                 }else if (type.Equals("request"))

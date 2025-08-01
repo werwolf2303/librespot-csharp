@@ -12,6 +12,7 @@ namespace lib.audio.playback
         private IPlayback _playback;
         private bool _logAvailableMixers;
         private float _lastVolume = -1;
+        private bool _running = false;
         
         public MixerOutput(String[] mixerSearchKeywords, bool logAvailableMixers, String audioOutputMethod, String audioOutputClass)
         {
@@ -50,6 +51,11 @@ namespace lib.audio.playback
 
         public void Write(byte[] buffer, int offset, int len)
         {
+            if (!_running)
+            {
+                _playback.Start();
+                _running = true;
+            }
             _playback.Write(buffer, offset, len);
         }
 

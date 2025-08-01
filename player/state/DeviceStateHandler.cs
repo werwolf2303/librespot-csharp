@@ -76,7 +76,9 @@ namespace player.state
                     SupportsTransferCommand = true,
                     SupportsGzipPushes = true,
                     NeedsFullPlayerState = false,
-                    SupportedTypes = { "audio/episode", "audio/track" }
+                    SupportedTypes = { "audio/episode", "audio/track" },
+                    VolumeSteps = conf._volumeSteps,
+                    SupportsCommandRequest = true
                 }
             };
         }
@@ -271,8 +273,8 @@ namespace player.state
         private void PutConnectState(PutStateRequest req) {
             try {
                 _session.GetApi().PutConnectState(_connectionId, req);
-                LOGGER.InfoFormat("Put state. (ts: {0}, connId: {1}, reason: {2})", req.ClientSideTimestamp, 
-                    Utils.truncateMiddle(_connectionId, 10), req.PutStateReason);
+                LOGGER.InfoFormat("Put state. (ts: {0}, connId: {1}, reason: {2}, request: {3})", req.ClientSideTimestamp, 
+                    Utils.truncateMiddle(_connectionId, 10), req.PutStateReason, JToken.FromObject(req));
             } catch (Exception ex) {
                 if (ex is IOException || ex is MercuryClient.MercuryException)
                 {

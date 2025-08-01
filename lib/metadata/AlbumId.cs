@@ -24,6 +24,11 @@ namespace lib.metadata
             return new AlbumId(Utils.Base62ToHex(base62, 16, _base62));
         }
 
+        public string ToSpotifyUri()
+        {
+            return "spotify:" + PlayableIds.ToString(GetId()).ToLower() + ":" + Utils.HexToBase62(HexId(), 16, _base62);
+        }
+
         public static AlbumId FromHex(String hex)
         {
             return new AlbumId(hex);

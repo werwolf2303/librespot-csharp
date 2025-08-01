@@ -50,6 +50,7 @@ namespace player.playback
         {
             _sink = sink;
             _session = session;
+            PlaybackId = StateWrapper.GeneratePlaybackId(new Random());
             _conf = conf;
             Playable = playable;
             _preloaded = preloaded;
@@ -309,7 +310,7 @@ namespace player.playback
             _listener.PlaybackResumed(this, chunk, duration);
         }
 
-        public override string ToString() => $"PlayerQueueEntry{{{PlaybackId}}}";
+        public override string ToString() => "PlayerQueueEntry{" + PlaybackId + "}";
         
         internal interface IListener
         {

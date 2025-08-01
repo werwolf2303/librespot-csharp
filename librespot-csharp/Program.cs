@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Windows.Forms;
 using deps.WebSocketSharp;
 using lib.audio;
 using lib.audio.decoders;
 using lib.audio.format;
 using lib.audio.playback;
+using lib.common;
 using lib.core;
 using lib.metadata;
 using log4net;
@@ -14,6 +17,8 @@ using log4net.Appender;
 using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
+using player;
+using sink_api;
 using spotify.clienttoken.http.v0;
 using Logger = log4net.Repository.Hierarchy.Logger;
 
@@ -45,33 +50,26 @@ namespace librespot
 
             configuration.SetStoreCredentials(true);
             configuration.SetStoredCredentialsFile("credentials.json");
+            configuration.SetCacheEnabled(false);
 
             Session.Builder builder = new Session.Builder(configuration.Build());
 
             builder.OAuth();
             Session session = builder.Create();
+
+            session.GetClient().Proxy = new WebProxy("127.0.0.1", 8080);
             
-            session.GetClient().Proxy = new WebProxy("127.0.0.1", 8090);
-            
-            IDecodedAudioStream audioStream = session.GetContentFeeder().Load(
-                TrackId.FromUri("spotify:track:6AxCr5G75R5rqyNCYWVpTo"),
-                new VorbisOnlyAudioQuality(AudioQuality.VERY_HIGH),
-                true,
-                null
-            ).In;
+            PlayerConfiguration playercfg = new PlayerConfiguration.Builder()
+                .SetOutput(PlayerConfiguration.AudioOutput.MIXER)
+                .SetOutputClass("")
+                .Build();
 
-            BlockingStream stream = new BlockingStream();
-            VorbisDecoder decoder = Decoders.InitDecoder(SuperAudioFormat.VORBIS, audioStream.Stream(), 0.0f) as VorbisDecoder;
 
-            Thread thread = new Thread(() =>
-            {
-                decoder.WriteSomeTo(stream);
-            });
-            thread.Start();
+            Player player = new Player(playercfg, session);
 
-            IPlayback playback = new Alsa();
-            playback.Init(stream);
-            playback.Play();
+            player.Load("spotify:track:2XTGgYVwL96mQ9pUNAIQZF", true, false);
+
+            //new TestForm().Show();
         }
     }
 }

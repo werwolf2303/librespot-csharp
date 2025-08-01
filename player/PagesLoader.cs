@@ -62,7 +62,6 @@ namespace player
             }.Build());
 
             StreamReader reader = new StreamReader(resp.Payload.Stream());
-            JsonTextReader textReader = new JsonTextReader(reader);
             
             return ProtoUtils.JsonToContextTracks(JObject.Parse(reader.ReadToEnd())["tracks"].ToObject<JArray>());
         }
@@ -71,7 +70,7 @@ namespace player
         {
             if (page.Tracks.Count > 0)
             {
-                return page.Tracks;
+                return new List<ContextTrack>(page.Tracks);
             }
 
             if (page.PageUrl != "")
@@ -90,17 +89,16 @@ namespace player
         private List<ContextTrack> GetPage(int index)
         {
             if (index == -1) throw new Exception("You must call NextPage() first!");
-            
-            if (index == 0 && _pages.Count == 0 && _resolveUrl != null) 
+
+            if (index == 0 && _pages.Count == 0 && _resolveUrl != null)
                 _pages.AddRange(_session.GetMercury().SendSync(
                     MercuryRequests.ResolveContext(_resolveUrl)).Pages());
 
             _resolveUrl = null;
-
+            
             if (index < _pages.Count)
-            {
+            { 
                 ContextPage page = _pages[index];
-                Console.WriteLine(JObject.FromObject(_pages).ToString());
                 List<ContextTrack> tracks = ResolvePage(page);
                 page.PageUrl = "";
                 page.Tracks.Clear();
@@ -108,11 +106,11 @@ namespace player
                 _pages[index] = page;
                 return tracks;
             }
-
+            
             if (index > _pages.Count) throw new IndexOutOfRangeException();
             
             ContextPage prev = _pages[index - 1];
-            if (prev.NextPageUrl == null) throw new Exception("Illegal state");
+            if (prev.NextPageUrl == "") throw new Exception("Illegal state");
             
             String nextPageUrl = prev.NextPageUrl;
             _pages[index - 1].NextPageUrl = "";
@@ -140,6 +138,7 @@ namespace player
             }
             catch (Exception ex)
             {
+                throw;
                 return false;
             }
         }

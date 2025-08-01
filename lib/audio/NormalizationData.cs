@@ -26,19 +26,25 @@ namespace lib.audio
         }
 
         public static NormalizationData Read(Stream stream)
-        { 
-            BinaryReader dataIn = new BinaryReader(stream);
-            stream.Position = 16;
-            if (stream.Seek(144, SeekOrigin.Current) - stream.Position + 144 != 144) throw new IOException();
-            
-            byte[] data = new byte[16]; // 4 * 4
-            dataIn.Read(data, 0, data.Length);
-            stream.Position = 16;
+        {
+            BinaryReader reader = new BinaryReader(stream);
+            if(stream.Seek(144, SeekOrigin.Current) - stream.Position + 144 != 144) throw new IOException();
 
-            byte[] buffer = data.ToArray();
-            Array.Reverse(buffer); // Big to little endian
-            BinaryReader bufferReader = new BinaryReader(new MemoryStream(buffer));
-            return new NormalizationData(bufferReader.ReadSingle(), bufferReader.ReadSingle(), bufferReader.ReadSingle(), bufferReader.ReadSingle());
+            byte[] data = new byte[16];
+            reader.ReadFully(data);
+            stream.Seek(16, SeekOrigin.Begin);
+            
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(data);
+            
+            reader = new BinaryReader(new MemoryStream(data));
+            
+            return new NormalizationData(
+                reader.ReadSingle(), // Track Gain dB)
+                reader.ReadSingle(), // Track Peak
+                reader.ReadSingle(), // Album Gain dB
+                reader.ReadSingle()  // Album Peak
+            );
         }
 
         public float GetFactor(float normalisationPregain, bool useAlbumGain)

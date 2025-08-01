@@ -84,7 +84,7 @@ namespace player
 
             public void Command(DeviceStateHandler.Endpoint endpoint, DeviceStateHandler.CommandBody data)
             {
-                LOGGER.Debug("Receive command: " + endpoint);
+                LOGGER.Debug("Received command: " + endpoint);
 
                 if (endpoint.Equals(DeviceStateHandler.Endpoint.Play))
                 {
@@ -349,6 +349,9 @@ namespace player
             }
 
             _playerSession = new PlayerSession(_session, _sink, _conf, sessionId, new PlayerSessionListenerImpl(this));
+            _session.GetEventService().SendEvent(new NewSessionIdEvent(sessionId, _state));
+            
+            LoadTrack(play, trans);
         }
 
         private void LoadTrack(bool play, TransitionInfo trans)
@@ -357,7 +360,7 @@ namespace player
                 trans._endedWhen);
 
             LOGGER.DebugFormat("Loading track, id: {0}, session: {1}, playback: {2}, play: {3}",
-                _state.GetCurrentPlayable(), _playerSession.CurrentPlaybackId(), play);
+                _state.GetCurrentPlayable(), _playerSession.SessionId(), _playerSession.CurrentPlaybackId(), play);
             String playbackId = _playerSession.Play(_state.GetCurrentPlayableOrThrow(), _state.GetPosition(),
                 trans._startedReason);
             _state.SetPlaybackId(playbackId);
