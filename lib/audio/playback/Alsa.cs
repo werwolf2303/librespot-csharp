@@ -30,6 +30,9 @@ namespace lib.audio.playback
 
         [DllImport("libasound.so.2")]
         public static extern long snd_pcm_hw_params_sizeof();
+        
+        [DllImport("libasound.so")]
+        public static extern long snd_pcm_avail_update(IntPtr pcmHandle);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_hw_params_any(IntPtr pcm, IntPtr pcm_hw_params);
@@ -54,10 +57,13 @@ namespace lib.audio.playback
         public static extern int snd_pcm_prepare(IntPtr pcm);
 
         [DllImport("libasound.so.2")]
-        public static extern int snd_pcm_writei(IntPtr pcm, byte[] buffer, uint sizeInFrames);
+        public static extern int snd_pcm_writei(IntPtr pcm, byte[] buffer, long sizeInFrames);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_recover(IntPtr pcm, int err, int silent);
+        
+        [DllImport("libasound.so")]
+        public static extern int snd_pcm_wait(IntPtr pcmHandle, int timeoutMs);
 
         public class AlsaException : Exception
         {
@@ -372,7 +378,41 @@ namespace lib.audio.playback
 
         public void Write(byte[] buffer, int offset, int count)
         {
-            _stream.Write(buffer, offset, count);
+            int frameSize = _audioFormat.getFrameSize(); 
+            int framesToWrite = count / frameSize;
+
+            byte[] chunk = new byte[count];
+            Array.Copy(buffer, offset, chunk, 0, count);
+
+            while (true)
+            {
+                long available = AlsaWrapper.snd_pcm_avail_update(_pcmHandle);
+                if (available < 0)
+                {
+                    throw new Exception($"ALSA avail error: {available}");
+                }
+
+                if (available >= framesToWrite)
+                {
+                    break;
+                }
+
+                int waitResult = AlsaWrapper.snd_pcm_wait(_pcmHandle, 1000);
+                if (waitResult <= 0)
+                {
+                    throw new Exception("ALSA wait timeout or error");
+                }
+            }
+
+            int written = AlsaWrapper.snd_pcm_writei(_pcmHandle, chunk, framesToWrite);
+            if (written < 0)
+            {                
+                int recoverResult = AlsaWrapper.snd_pcm_recover(_pcmHandle, written, 1);
+                if (recoverResult < 0)
+                {
+                    throw new AlsaWrapper.AlsaException($"ALSA write error: {written}");
+                }
+            }
         }
 
         public void Dispose()
