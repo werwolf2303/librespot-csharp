@@ -120,6 +120,7 @@ namespace lib.core
         private static HttpClient CreateClient(Configuration configuration)
         {
             HttpClient client = new HttpClient();
+            client.RetryOnConnectionFailure = true;
             
             client.AddInterceptor(request =>
             {

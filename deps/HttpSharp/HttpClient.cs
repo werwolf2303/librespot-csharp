@@ -9,6 +9,7 @@ namespace deps.HttpSharp
         public int Timeout { get; set; }
         public int ReadWriteTimeout { get; set; }
         public IWebProxy Proxy { get; set; }
+        public bool RetryOnConnectionFailure { get; set; } = false;
         public HttpContinueDelegate ContinueDelegate { get; set; }
         private List<Intercept> _interceptors = new List<Intercept>();
 
@@ -28,7 +29,31 @@ namespace deps.HttpSharp
             {
                 if (!interceptor(request)) throw new RequestCancelledException("An Interceptor cancelled the request");
             }
-            return new HttpResponse(request);
+            
+            return MakeResponse(request);
+        }
+
+        private HttpResponse MakeResponse(HttpRequest request)
+        {
+            try
+            {
+                return new HttpResponse(request);
+            } 
+            catch (WebException ex) when (RetryOnConnectionFailure)
+            {
+                switch (ex.Status)
+                {
+                    case WebExceptionStatus.Timeout:
+                        break;
+                    case WebExceptionStatus.ConnectFailure:
+                        break;
+                    case WebExceptionStatus.ProtocolError:
+                        break;
+                    case WebExceptionStatus.ReceiveFailure:
+                        break;
+                }
+                return MakeResponse(request);
+            }
         }
         
         /// <summary>
