@@ -246,6 +246,7 @@ namespace deps.HttpSharp
         private HttpWebRequest _request;
         public byte[] RequestData;
         internal List<HttpClient.Intercept> Interceptors;
+        internal int Tries = 0;
         
         public HttpRequest(Uri uri, HttpMethod httpMethod)
         {

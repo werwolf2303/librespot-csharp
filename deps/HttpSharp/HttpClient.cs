@@ -45,14 +45,17 @@ namespace deps.HttpSharp
                 {
                     case WebExceptionStatus.Timeout:
                         break;
-                    case WebExceptionStatus.ConnectFailure:
-                        break;
                     case WebExceptionStatus.ProtocolError:
                         break;
                     case WebExceptionStatus.ReceiveFailure:
                         break;
                 }
-                return MakeResponse(request);
+                if (request.Tries > 5) 
+                    throw new RequestCancelledException("Request failed after 5 tries: " + ex.Message);
+                request.Tries += 1;
+                HttpResponse response = MakeResponse(request);
+                request.Tries = 0;
+                return response;
             }
         }
         
