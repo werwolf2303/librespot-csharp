@@ -66,10 +66,10 @@ namespace librespot
 
 
             Player player = new Player(playercfg, session);
-
-            player.Load("spotify:track:2XTGgYVwL96mQ9pUNAIQZF", true, false);
-
-            //new TestForm().Show();
+            
+            //player.Load("spotify:track:5WHTFyqSii0lmT9R21abT8", false, false);
+            
+            //Application.Run(new TestForm(player));
         }
     }
 }

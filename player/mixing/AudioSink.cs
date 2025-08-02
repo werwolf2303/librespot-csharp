@@ -13,12 +13,12 @@ namespace player.mixing
 {
     public class AudioSink : IDisposable
     {
-        private Object _pauseLock = new Object();
         private ISinkOutput _output;
         private MixingLine _mixing = new MixingLine();
         private Thread _thread;
         private volatile bool _closed = false;
         private volatile bool _paused = true;
+        private ManualResetEvent _pauseEvent = new ManualResetEvent(true);
 
         public AudioSink(PlayerConfiguration conf)
         {
@@ -81,15 +81,14 @@ namespace player.mixing
         public void Resume()
         {
             _paused = false;
-            lock (_pauseLock)
-            {
-                Monitor.PulseAll(_pauseLock);
-            }
+            _pauseEvent.Reset();
+            _output.Resume();
         }
 
         public void Pause()
         {
             _paused = true;
+            _pauseEvent.Set();
             _output.Suspend();
         }
 
@@ -120,13 +119,8 @@ namespace player.mixing
             {
                 if (_paused)
                 {
-                    _output.Suspend();
                     started = false;
-
-                    lock (_pauseLock)
-                    {
-                        Monitor.Wait(_pauseLock);
-                    }
+                    _pauseEvent.WaitOne();
                 }
                 else
                 {

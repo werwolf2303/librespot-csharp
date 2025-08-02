@@ -64,8 +64,9 @@ namespace player
 
         private void InitState()
         {
+            _deviceStateListener = new DeviceStateListenerImpl(this);
             _state = new StateWrapper(_session, this, _conf);
-            _state.AddListener(_deviceStateListener = new DeviceStateListenerImpl(this));
+            _state.AddListener(_deviceStateListener);
         }
 
         private class DeviceStateListenerImpl : DeviceStateHandler.Listener
@@ -84,50 +85,50 @@ namespace player
 
             public void Command(DeviceStateHandler.Endpoint endpoint, DeviceStateHandler.CommandBody data)
             {
-                LOGGER.Debug("Received command: " + endpoint);
+                LOGGER.Debug("Received command: " + endpoint.Val);
 
-                if (endpoint.Equals(DeviceStateHandler.Endpoint.Play))
+                if (endpoint.Matches(DeviceStateHandler.Endpoint.Play))
                 {
                     _player.HandlePlay(data.GetObj());
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.Transfer))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.Transfer))
                 {
                     _player.HandleTransferState(Serializer.Deserialize<TransferState>(new MemoryStream(data.GetData())));
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.Resume))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.Resume))
                 {
                     _player.HandleResume();
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.Pause))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.Pause))
                 {
                     _player.HandlePause();
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SeekTo))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SeekTo))
                 {
                     _player.HandleSeek(data.GetValueInt().Value);
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SkipNext))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SkipNext))
                 {
                     _player.HandleSkipNext(data.GetObj(), TransitionInfo.SkippedNext(_player._state));
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SkipPrev))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SkipPrev))
                 {
                     _player.HandleSkipPrev();
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SetRepeatingContext))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SetRepeatingContext))
                 {
                     _player._state.SetRepeatingContext(data.GetValueBool().Value);
                     _player._state.Updated();
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SetShufflingContext))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SetShufflingContext))
                 {
                     _player._state.SetRepeatingContext(data.GetValueBool().Value);
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.AddToQueue))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.AddToQueue))
                 {
                     _player.HandleAddToQueue(data.GetObj());
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.SetQueue))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SetQueue))
                 {
                      _player.HandleSetQueue(data.GetObj());
-                } else if (endpoint.Equals(DeviceStateHandler.Endpoint.UpdateContext))
+                } else if (endpoint.Matches(DeviceStateHandler.Endpoint.UpdateContext))
                 {
                     _player._state.UpdateContext(DeviceStateHandler.PlayCommandHelper.GetContext(data.GetObj()));
                     _player._state.Updated();
                 }
                 else
                 {
-                    LOGGER.Warn("Endpoint left unhandled: " + endpoint);
+                    LOGGER.Warn("Endpoint left unhandled: " + endpoint.Val);
                 }
             }
 
@@ -482,9 +483,10 @@ namespace player
                 _events.PlaybackPaused();
                 
                 if (_releaseLineFuture != null) _releaseLineFuture.Cancel();
+                
                 _releaseLineFuture = new ScheduledExecutorService.ScheduledFuture<int>(() =>
                 {
-                    if (!_state.IsActive()) return 0;
+                    if (!_state.IsPaused()) return 0;
                     
                     _events.InactiveSession(true);
                     _sink.Pause();

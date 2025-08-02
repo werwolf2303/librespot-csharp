@@ -1,8 +1,13 @@
+using System;
+using System.Threading;
 using System.Windows.Forms;
+using lib.audio;
+using lib.metadata;
+using player;
 
 namespace librespot
 {
-    partial class TestForm : Form
+    partial class TestForm : Form, Player.IEventsListener
     {
         /// <summary>
         /// Required designer variable.
@@ -15,6 +20,8 @@ namespace librespot
         private System.Windows.Forms.PictureBox pictureBox;
         private System.Windows.Forms.TrackBar trackBarTime;
         private System.Windows.Forms.TrackBar trackBarVolume;
+
+        private Player player;
         
         protected override void Dispose(bool disposing)
         {
@@ -25,11 +32,33 @@ namespace librespot
             base.Dispose(disposing);
         }
 
-        public TestForm()
+        public TestForm(Player _player) 
         {
+            this.player = _player;
             InitializeComponent();
+            
+            player.AddEventsListener(this);
         }
-        
+
+        protected override void OnShown(EventArgs e)
+        {
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    if (this.player.CurrentPlayable() != null)
+                    {
+                        trackBarTime.Invoke((Action)(() =>
+                        {
+                            if (player.Time() == -1) return;
+                            trackBarTime.Value = this.player.Time();
+                        }));
+                    }
+                    Thread.Sleep(1000);
+                }
+            }).Start();
+        }
+
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -58,6 +87,10 @@ namespace librespot
             this.btnPrevious.TabIndex = 0;
             this.btnPrevious.Text = "Previous";
             this.btnPrevious.UseVisualStyleBackColor = true;
+            this.btnPrevious.Click += (sender, e) => 
+            {
+                player.Previous();
+            };
             // 
             // btnPlayPause
             // 
@@ -67,6 +100,10 @@ namespace librespot
             this.btnPlayPause.TabIndex = 1;
             this.btnPlayPause.Text = "Play/Pause";
             this.btnPlayPause.UseVisualStyleBackColor = true;
+            this.btnPlayPause.Click += (sender, e) =>
+            {
+                player.PlayPause();
+            };
             // 
             // btnNext
             // 
@@ -76,6 +113,10 @@ namespace librespot
             this.btnNext.TabIndex = 2;
             this.btnNext.Text = "Next";
             this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += (sender, e) =>
+            {
+                player.Next();
+            };
             // 
             // pictureBox
             // 
@@ -92,15 +133,27 @@ namespace librespot
             this.trackBarTime.Name = "trackBarTime";
             this.trackBarTime.Size = new System.Drawing.Size(600, 45);
             this.trackBarTime.TabIndex = 4;
+            this.trackBarTime.ValueChanged += (sender, e) =>
+            {
+                if (trackBarTime.Value >= trackBarTime.Minimum && trackBarTime.Value <= trackBarTime.Maximum)
+                {
+                    player.Seek(trackBarTime.Value);
+                }
+            };
             // 
             // trackBarVolume
             // 
             this.trackBarVolume.Location = new System.Drawing.Point(700, 380);
-            this.trackBarVolume.Maximum = 100;
+            this.trackBarVolume.Maximum = 65536;
             this.trackBarVolume.Name = "trackBarVolume";
             this.trackBarVolume.Size = new System.Drawing.Size(80, 45);
             this.trackBarVolume.TabIndex = 5;
             this.trackBarVolume.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.trackBarVolume.Minimum = 0;
+            this.trackBarVolume.ValueChanged += (sender, e) =>
+            {
+                player.SetVolume(trackBarVolume.Value);
+            };
             // 
             // Form1
             // 
@@ -121,5 +174,65 @@ namespace librespot
         }
 
         #endregion
+
+        public void OnContextChanged(Player player, string newUri)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata)
+        {
+            trackBarTime.Minimum = 0;
+            trackBarTime.Maximum = metadata._track.Duration;
+            
+        }
+
+        public void OnPlaybackEnded(Player player)
+        {
+        }
+
+        public void OnPlaybackPaused(Player player, long trackTime)
+        {
+        }
+
+        public void OnPlaybackResumed(Player player, long trackTime)
+        {
+        }
+
+        public void OnPlaybackFailed(Player player, Exception ex)
+        {
+        }
+
+        public void OnTrackSeeked(Player player, long trackTime)
+        {
+        }
+
+        public void OnMetadataAvailable(Player player, MetadataWrapper metadata)
+        {
+        }
+
+        public void OnPlaybackHaltStateChanged(Player player, bool halted, long trackTime)
+        {
+        }
+
+        public void OnInactiveSession(Player player, bool timeout)
+        {
+        }
+
+        public void OnVolumeChanged(Player player, float volume)
+        {
+        }
+
+        public void OnPanicState(Player player)
+        {
+        }
+
+        public void OnStartedLoading(Player player)
+        {
+        }
+
+        public void OnFinishedLoading(Player player)
+        {
+        }
     }
 }

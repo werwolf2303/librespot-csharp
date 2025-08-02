@@ -144,7 +144,7 @@ namespace player
         {
             lock (_funcLock)
             {
-                return _state.IsPlaying && !_state.IsPaused;
+                return _state.IsPlaying && _state.IsPaused;
             }
         }
         

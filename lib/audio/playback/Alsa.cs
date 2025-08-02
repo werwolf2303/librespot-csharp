@@ -1,7 +1,8 @@
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using decoder_api;
+using lib.audio.decoders;
 using sink_api;
 
 namespace lib.audio.playback
@@ -49,12 +50,21 @@ namespace lib.audio.playback
         
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_hw_params_set_channels(IntPtr pcm, IntPtr pcm_hw_params, uint channels);
+        
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_hw_params_can_pause(IntPtr pcm_hw_params);
+
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_pause(IntPtr pcm, int value);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_hw_params(IntPtr pcm, IntPtr pcm_hw_params);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_prepare(IntPtr pcm);
+        
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_drop(IntPtr pcm);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_writei(IntPtr pcm, byte[] buffer, long sizeInFrames);
@@ -81,23 +91,26 @@ namespace lib.audio.playback
     {
         private IntPtr _pcmHandle;
         private Thread _playbackThread;
-        private volatile bool _paused;
-        private volatile bool _stopped;
         private OutputAudioFormat _audioFormat;
-        private byte[] _buffer;
-        private BlockingStream _stream;
         private int _bytesPerFrame;
         private volatile float _volume = 1.0f;
-
+        private volatile bool _stopped;
+        private volatile bool _paused;
+        private bool _wasPaused;
+        private BlockingStream _mainBuffer;
+        private byte[] _buffer;
+        private Object _writeLock = new Object();
+        private Object _pauseLock = new Object();
+        private int _lastBytesRead;
+        private bool _alsaPausingSupported;
+        
         public void Init(OutputAudioFormat audioFormat)
         {
+            _bytesPerFrame = (audioFormat.getSampleSizeInBits() / 8) * audioFormat.getChannels();
+            _buffer = new byte[Decoder.BUFFER_SIZE * _bytesPerFrame];
+            _mainBuffer = new BlockingStream(4096 * _bytesPerFrame);
             _audioFormat = audioFormat;
-            _stream = new BlockingStream();
-            _paused = false;
             _stopped = true;
-
-            _bytesPerFrame = (_audioFormat.getSampleSizeInBits() / 8) * _audioFormat.getChannels();
-            _buffer = new byte[4096 * _bytesPerFrame];
 
             CheckAlsaError(AlsaWrapper.snd_pcm_open(out _pcmHandle, "default", 0, 0), "snd_pcm_open");
 
@@ -123,6 +136,8 @@ namespace lib.audio.playback
 
             CheckAlsaError(AlsaWrapper.snd_pcm_hw_params(_pcmHandle, hwParams), "snd_pcm_hw_params");
 
+            _alsaPausingSupported = AlsaWrapper.snd_pcm_hw_params_can_pause(hwParams) == 1;
+
             if (hwParams != IntPtr.Zero)
             {
                 Marshal.FreeHGlobal(hwParams);
@@ -143,15 +158,39 @@ namespace lib.audio.playback
             while (true)
             {
                 if (_stopped) break;
+
                 if (_paused)
                 {
-                    Thread.Sleep(100);
-                    continue;
+                    lock (_pauseLock)
+                    {
+                        Monitor.Wait(_pauseLock);
+                    }
+                    _wasPaused = true;
+                }
+                
+                int bytesRead;
+                if (_alsaPausingSupported)
+                {
+                    bytesRead = _mainBuffer.Read(_buffer, 0, _buffer.Length);
+                }
+                else
+                {
+                    if (_wasPaused)
+                    {
+                        bytesRead = _lastBytesRead;
+                        _wasPaused = false;
+                    }
+                    else bytesRead = _mainBuffer.Read(_buffer, 0, _buffer.Length);
+
+                    _lastBytesRead = bytesRead;
                 }
 
-                int bytesRead = _stream.Read(_buffer, 0, _buffer.Length);
                 if (bytesRead == 0)
                 {
+                    lock (_writeLock)
+                    {
+                        Monitor.PulseAll(_writeLock);
+                    }
                     Thread.Sleep(10);
                     continue;
                 }
@@ -248,7 +287,7 @@ namespace lib.audio.playback
                     AlsaWrapper.snd_pcm_prepare(_pcmHandle);
                     result = AlsaWrapper.snd_pcm_recover(_pcmHandle, result, 1);
                 }
-                if (result < 0)
+                if (result < 0 && !_paused) 
                 {
                     _stopped = true;
                     throw new AlsaWrapper.AlsaException();
@@ -340,7 +379,6 @@ namespace lib.audio.playback
         private static void WriteUInt32(byte[] buffer, int offset, uint value, bool bigEndian) =>
             WriteInt32(buffer, offset, (int)value, bigEndian);
 
-
         void CreatePlaybackThread()
         {
             _playbackThread = new Thread(Run);
@@ -351,12 +389,9 @@ namespace lib.audio.playback
         {
             if (_stopped)
             {
-                if (_stream.CanSeek) _stream.Seek(0, SeekOrigin.Begin);
                 _stopped = false;
                 CreatePlaybackThread();
             }
-
-            _paused = false;
         }
 
         public void SetVolume(float volume)
@@ -368,50 +403,29 @@ namespace lib.audio.playback
 
         public void Suspend()
         {
+            if (_pcmHandle != IntPtr.Zero)
+                AlsaWrapper.snd_pcm_pause(_pcmHandle, 1);
             _paused = true;
         }
 
         public void Resume()
-        {
+        { 
+            if (_pcmHandle != IntPtr.Zero)
+                AlsaWrapper.snd_pcm_pause(_pcmHandle, 0);
             _paused = false;
+            lock (_pauseLock)
+            {
+                Monitor.PulseAll(_pauseLock);
+            }
         }
 
         public void Write(byte[] buffer, int offset, int count)
         {
-            int frameSize = _audioFormat.getFrameSize(); 
-            int framesToWrite = count / frameSize;
+            _mainBuffer.Write(buffer, offset, count);
 
-            byte[] chunk = new byte[count];
-            Array.Copy(buffer, offset, chunk, 0, count);
-
-            while (true)
+            lock (_writeLock)
             {
-                long available = AlsaWrapper.snd_pcm_avail_update(_pcmHandle);
-                if (available < 0)
-                {
-                    throw new Exception($"ALSA avail error: {available}");
-                }
-
-                if (available >= framesToWrite)
-                {
-                    break;
-                }
-
-                int waitResult = AlsaWrapper.snd_pcm_wait(_pcmHandle, 1000);
-                if (waitResult <= 0)
-                {
-                    throw new Exception("ALSA wait timeout or error");
-                }
-            }
-
-            int written = AlsaWrapper.snd_pcm_writei(_pcmHandle, chunk, framesToWrite);
-            if (written < 0)
-            {                
-                int recoverResult = AlsaWrapper.snd_pcm_recover(_pcmHandle, written, 1);
-                if (recoverResult < 0)
-                {
-                    throw new AlsaWrapper.AlsaException($"ALSA write error: {written}");
-                }
+                Monitor.Wait(_writeLock);
             }
         }
 

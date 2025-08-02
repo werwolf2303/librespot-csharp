@@ -110,7 +110,7 @@ namespace lib.dealer
             {
                 foreach (String midPrefix in _reqListeners.Keys)
                 {
-                    if (midPrefix.StartsWith(mid))
+                    if (mid.StartsWith(midPrefix))
                     {
                         RequestListener listener = _reqListeners[midPrefix];
                         interesting = true;
@@ -371,7 +371,7 @@ namespace lib.dealer
 
             internal void SendReply(String key, RequestResult result)
             {
-                bool success = result == RequestResult.Success;
+                String success = result == RequestResult.Success ? "true" : "false";
                 _ws.Send("{\"type\":\"reply\", \"key\": \"" + key + "\", \"payload\": {\"success\": " + success + "}}");
             }
 
@@ -414,6 +414,7 @@ namespace lib.dealer
                 ws.OnOpen += OnOpen;
                 ws.OnMessage += OnMessage;
                 ws.OnError += OnError;
+                ws.OnClose += OnClose;
             }
 
             private void OnOpen(object sender, EventArgs e)
@@ -490,6 +491,14 @@ namespace lib.dealer
                 if (_holder.Closed) return;
                 
                 LOGGER.Warn("An exception occurred. Reconnecting...", e.Exception);
+                _holder.Dispose();
+            }
+            
+            private void OnClose(object sender, CloseEventArgs e)
+            {
+                if (_holder.Closed) return;
+                
+                LOGGER.WarnFormat("Dealer connection closed. (code: {0}, reason: {1})", e.Code, e.Reason);
                 _holder.Dispose();
             }
         }

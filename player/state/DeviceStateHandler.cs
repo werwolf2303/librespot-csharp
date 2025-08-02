@@ -299,11 +299,11 @@ namespace player.state
             public static readonly Endpoint AddToQueue = new Endpoint("add_to_queue");
             public static readonly Endpoint Transfer = new Endpoint("transfer");
             
-            private String val;
+            public String Val;
 
             private Endpoint(String val)
             {
-                this.val = val;
+                this.Val = val;
             }
 
             public Endpoint()
@@ -314,11 +314,16 @@ namespace player.state
             {
                 foreach (Endpoint e in GetAll<Endpoint>())
                 {
-                    if (e.val.Equals(value))
+                    if (e.Val.Equals(value))
                         return e;
                 }
                 
                 throw new ArgumentException("Unknown endpoint for " + value);
+            }
+
+            public bool Matches(Endpoint e)
+            {
+                return Val == e.Val;
             }
         }
 

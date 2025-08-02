@@ -63,10 +63,11 @@ namespace lib.common
 
                     if (!_isRunning) break;
 
-                    if (waitTime == -1)
-                    {
+                    if (waitTime <= -1) 
+                    { 
                         _wakeup.WaitOne();
-                    } else _wakeup.WaitOne((int)Math.Min(waitTime, int.MaxValue));
+                    }
+                    else _wakeup.WaitOne((int)Math.Min(waitTime, int.MaxValue));
                 }
             });
             _workerThread.Name = "ScheduledExecutorService-worker";
