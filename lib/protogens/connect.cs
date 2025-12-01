@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: connect.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace Connectstate
 {
 
@@ -11,17 +11,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClusterUpdate()
-        {
-            AckId = "";
-            DevicesThatChangeds = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"cluster")]
         public Cluster Cluster { get; set; }
@@ -31,10 +21,10 @@ namespace Connectstate
 
         [global::ProtoBuf.ProtoMember(3, Name = @"ack_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string AckId { get; set; }
+        public string AckId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(4, Name = @"devices_that_changed")]
-        public global::System.Collections.Generic.List<string> DevicesThatChangeds { get; private set; }
+        public global::System.Collections.Generic.List<string> DevicesThatChangeds { get; } = new global::System.Collections.Generic.List<string>();
 
     }
 
@@ -43,15 +33,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Device()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"device_info")]
         public DeviceInfo DeviceInfo { get; set; }
@@ -72,31 +54,21 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Cluster()
-        {
-            ActiveDeviceId = "";
-            Devices = new global::System.Collections.Generic.Dictionary<string, DeviceInfo>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"timestamp")]
         public long Timestamp { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"active_device_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string ActiveDeviceId { get; set; }
+        public string ActiveDeviceId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(3, Name = @"player_state")]
         public PlayerState PlayerState { get; set; }
 
         [global::ProtoBuf.ProtoMember(4, Name = @"device")]
         [global::ProtoBuf.ProtoMap]
-        public global::System.Collections.Generic.Dictionary<string, DeviceInfo> Devices { get; private set; }
+        public global::System.Collections.Generic.Dictionary<string, DeviceInfo> Devices { get; } = new global::System.Collections.Generic.Dictionary<string, DeviceInfo>();
 
         [global::ProtoBuf.ProtoMember(5, Name = @"transfer_data")]
         public byte[] TransferData { get; set; }
@@ -120,21 +92,11 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PutStateRequest()
-        {
-            CallbackUrl = "";
-            LastCommandSentByDeviceId = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"callback_url")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string CallbackUrl { get; set; }
+        public string CallbackUrl { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"device")]
         public Device Device { get; set; }
@@ -153,7 +115,7 @@ namespace Connectstate
 
         [global::ProtoBuf.ProtoMember(7, Name = @"last_command_sent_by_device_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string LastCommandSentByDeviceId { get; set; }
+        public string LastCommandSentByDeviceId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(8, Name = @"last_command_message_id")]
         public uint LastCommandMessageId { get; set; }
@@ -177,20 +139,11 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PrivateDeviceInfo()
-        {
-            Platform = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"platform")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Platform { get; set; }
+        public string Platform { get; set; } = "";
 
     }
 
@@ -199,20 +152,11 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public SubscribeRequest()
-        {
-            CallbackUrl = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"callback_url")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string CallbackUrl { get; set; }
+        public string CallbackUrl { get; set; } = "";
 
     }
 
@@ -221,28 +165,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public DeviceInfo()
-        {
-            Name = "";
-            DeviceSoftwareVersion = "";
-            SpircVersion = "";
-            DeviceId = "";
-            ClientId = "";
-            Brand = "";
-            Model = "";
-            MetadataMaps = new global::System.Collections.Generic.Dictionary<string, string>();
-            ProductId = "";
-            DeduplicationId = "";
-            DeviceAliases = new global::System.Collections.Generic.List<DeviceAliasesEntry>();
-            PublicIp = "";
-            License = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"can_play")]
         public bool CanPlay { get; set; }
@@ -252,25 +175,25 @@ namespace Connectstate
 
         [global::ProtoBuf.ProtoMember(3, Name = @"name")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(4, Name = @"capabilities")]
         public Capabilities Capabilities { get; set; }
 
         [global::ProtoBuf.ProtoMember(6, Name = @"device_software_version")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string DeviceSoftwareVersion { get; set; }
+        public string DeviceSoftwareVersion { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(7, Name = @"device_type")]
         public DeviceType DeviceType { get; set; }
 
         [global::ProtoBuf.ProtoMember(9, Name = @"spirc_version")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string SpircVersion { get; set; }
+        public string SpircVersion { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(10, Name = @"device_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string DeviceId { get; set; }
+        public string DeviceId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(11, Name = @"is_private_session")]
         public bool IsPrivateSession { get; set; }
@@ -280,59 +203,51 @@ namespace Connectstate
 
         [global::ProtoBuf.ProtoMember(13, Name = @"client_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string ClientId { get; set; }
+        public string ClientId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(14, Name = @"brand")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Brand { get; set; }
+        public string Brand { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(15, Name = @"model")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Model { get; set; }
+        public string Model { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(16, Name = @"metadata_map")]
         [global::ProtoBuf.ProtoMap]
-        public global::System.Collections.Generic.Dictionary<string, string> MetadataMaps { get; private set; }
+        public global::System.Collections.Generic.Dictionary<string, string> MetadataMaps { get; } = new global::System.Collections.Generic.Dictionary<string, string>();
 
         [global::ProtoBuf.ProtoMember(17, Name = @"product_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string ProductId { get; set; }
+        public string ProductId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(18, Name = @"deduplication_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string DeduplicationId { get; set; }
+        public string DeduplicationId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(19, Name = @"selected_alias_id")]
         public uint SelectedAliasId { get; set; }
 
         [global::ProtoBuf.ProtoMember(20, Name = @"device_aliases")]
-        public global::System.Collections.Generic.List<DeviceAliasesEntry> DeviceAliases { get; private set; }
+        public global::System.Collections.Generic.List<DeviceAliasesEntry> DeviceAliases { get; } = new global::System.Collections.Generic.List<DeviceAliasesEntry>();
 
         [global::ProtoBuf.ProtoMember(21, Name = @"is_offline")]
         public bool IsOffline { get; set; }
 
         [global::ProtoBuf.ProtoMember(22, Name = @"public_ip")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string PublicIp { get; set; }
+        public string PublicIp { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(23, Name = @"license")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string License { get; set; }
+        public string License { get; set; } = "";
 
         [global::ProtoBuf.ProtoContract()]
         public partial class DeviceAliasesEntry : global::ProtoBuf.IExtensible
         {
             private global::ProtoBuf.IExtension __pbn__extensionData;
             global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            {
-                return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-            }
-            public DeviceAliasesEntry()
-            {
-                OnConstructor();
-            }
-
-            partial void OnConstructor();
+                => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
             [global::ProtoBuf.ProtoMember(1, Name = @"key")]
             public uint Key { get; set; }
@@ -349,23 +264,14 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public DeviceAlias()
-        {
-            Name = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"id")]
         public uint Id { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"name")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(3, Name = @"is_group")]
         public bool IsGroup { get; set; }
@@ -377,16 +283,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Capabilities()
-        {
-            SupportedTypes = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(2, Name = @"can_be_player")]
         public bool CanBePlayer { get; set; }
@@ -407,7 +304,7 @@ namespace Connectstate
         public int VolumeSteps { get; set; }
 
         [global::ProtoBuf.ProtoMember(9, Name = @"supported_types")]
-        public global::System.Collections.Generic.List<string> SupportedTypes { get; private set; }
+        public global::System.Collections.Generic.List<string> SupportedTypes { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(10, Name = @"command_acks")]
         public bool CommandAcks { get; set; }
@@ -467,15 +364,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CapabilitySupportDetails()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"fully_supported")]
         public bool FullySupported { get; set; }
@@ -493,15 +382,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ConnectCommandOptions()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"message_id")]
         public int MessageId { get; set; }
@@ -513,15 +394,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LogoutCommand()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"command_options")]
         public ConnectCommandOptions CommandOptions { get; set; }
@@ -533,15 +406,7 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public SetVolumeCommand()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"volume")]
         public int Volume { get; set; }
@@ -556,20 +421,11 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public RenameCommand()
-        {
-            RenameTo = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"rename_to")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string RenameTo { get; set; }
+        public string RenameTo { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"command_options")]
         public ConnectCommandOptions CommandOptions { get; set; }
@@ -581,20 +437,11 @@ namespace Connectstate
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public SetBackendMetadataCommand()
-        {
-            Metadatas = new global::System.Collections.Generic.Dictionary<string, string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"metadata")]
         [global::ProtoBuf.ProtoMap]
-        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; private set; }
+        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; } = new global::System.Collections.Generic.Dictionary<string, string>();
 
     }
 
@@ -721,4 +568,4 @@ namespace Connectstate
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

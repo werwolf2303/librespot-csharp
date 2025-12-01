@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: pubsub.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace Spotify
 {
 
@@ -11,15 +11,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Subscription()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"uri")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -28,14 +20,8 @@ namespace Spotify
             get { return __pbn__Uri ?? ""; }
             set { __pbn__Uri = value; }
         }
-        public bool ShouldSerializeUri()
-        {
-            return __pbn__Uri != null;
-        }
-        public void ResetUri()
-        {
-            __pbn__Uri = null;
-        }
+        public bool ShouldSerializeUri() => __pbn__Uri != null;
+        public void ResetUri() => __pbn__Uri = null;
         private string __pbn__Uri;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"expiry")]
@@ -44,14 +30,8 @@ namespace Spotify
             get { return __pbn__Expiry.GetValueOrDefault(); }
             set { __pbn__Expiry = value; }
         }
-        public bool ShouldSerializeExpiry()
-        {
-            return __pbn__Expiry != null;
-        }
-        public void ResetExpiry()
-        {
-            __pbn__Expiry = null;
-        }
+        public bool ShouldSerializeExpiry() => __pbn__Expiry != null;
+        public void ResetExpiry() => __pbn__Expiry = null;
         private int? __pbn__Expiry;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"status_code")]
@@ -60,18 +40,12 @@ namespace Spotify
             get { return __pbn__StatusCode.GetValueOrDefault(); }
             set { __pbn__StatusCode = value; }
         }
-        public bool ShouldSerializeStatusCode()
-        {
-            return __pbn__StatusCode != null;
-        }
-        public void ResetStatusCode()
-        {
-            __pbn__StatusCode = null;
-        }
+        public bool ShouldSerializeStatusCode() => __pbn__StatusCode != null;
+        public void ResetStatusCode() => __pbn__StatusCode = null;
         private int? __pbn__StatusCode;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

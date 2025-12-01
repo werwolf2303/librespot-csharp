@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: extended_metadata.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.extendedmetadata.proto
 {
 
@@ -11,15 +11,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ExtensionQuery()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"extension_kind")]
         [global::System.ComponentModel.DefaultValue(ExtensionKind.UnknownExtension)]
@@ -28,14 +20,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__ExtensionKind ?? ExtensionKind.UnknownExtension; }
             set { __pbn__ExtensionKind = value; }
         }
-        public bool ShouldSerializeExtensionKind()
-        {
-            return __pbn__ExtensionKind != null;
-        }
-        public void ResetExtensionKind()
-        {
-            __pbn__ExtensionKind = null;
-        }
+        public bool ShouldSerializeExtensionKind() => __pbn__ExtensionKind != null;
+        public void ResetExtensionKind() => __pbn__ExtensionKind = null;
         private ExtensionKind? __pbn__ExtensionKind;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"etag")]
@@ -45,14 +31,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__Etag ?? ""; }
             set { __pbn__Etag = value; }
         }
-        public bool ShouldSerializeEtag()
-        {
-            return __pbn__Etag != null;
-        }
-        public void ResetEtag()
-        {
-            __pbn__Etag = null;
-        }
+        public bool ShouldSerializeEtag() => __pbn__Etag != null;
+        public void ResetEtag() => __pbn__Etag = null;
         private string __pbn__Etag;
 
     }
@@ -62,16 +42,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityRequest()
-        {
-            Queries = new global::System.Collections.Generic.List<ExtensionQuery>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"entity_uri")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -80,18 +51,12 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__EntityUri ?? ""; }
             set { __pbn__EntityUri = value; }
         }
-        public bool ShouldSerializeEntityUri()
-        {
-            return __pbn__EntityUri != null;
-        }
-        public void ResetEntityUri()
-        {
-            __pbn__EntityUri = null;
-        }
+        public bool ShouldSerializeEntityUri() => __pbn__EntityUri != null;
+        public void ResetEntityUri() => __pbn__EntityUri = null;
         private string __pbn__EntityUri;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"query")]
-        public global::System.Collections.Generic.List<ExtensionQuery> Queries { get; private set; }
+        public global::System.Collections.Generic.List<ExtensionQuery> Queries { get; } = new global::System.Collections.Generic.List<ExtensionQuery>();
 
     }
 
@@ -100,15 +65,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public BatchedEntityRequestHeader()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"country")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -117,14 +74,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__Country ?? ""; }
             set { __pbn__Country = value; }
         }
-        public bool ShouldSerializeCountry()
-        {
-            return __pbn__Country != null;
-        }
-        public void ResetCountry()
-        {
-            __pbn__Country = null;
-        }
+        public bool ShouldSerializeCountry() => __pbn__Country != null;
+        public void ResetCountry() => __pbn__Country = null;
         private string __pbn__Country;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"catalogue")]
@@ -134,14 +85,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__Catalogue ?? ""; }
             set { __pbn__Catalogue = value; }
         }
-        public bool ShouldSerializeCatalogue()
-        {
-            return __pbn__Catalogue != null;
-        }
-        public void ResetCatalogue()
-        {
-            __pbn__Catalogue = null;
-        }
+        public bool ShouldSerializeCatalogue() => __pbn__Catalogue != null;
+        public void ResetCatalogue() => __pbn__Catalogue = null;
         private string __pbn__Catalogue;
 
     }
@@ -151,22 +96,13 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public BatchedEntityRequest()
-        {
-            EntityRequests = new global::System.Collections.Generic.List<EntityRequest>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"header")]
         public BatchedEntityRequestHeader Header { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"entity_request")]
-        public global::System.Collections.Generic.List<EntityRequest> EntityRequests { get; private set; }
+        public global::System.Collections.Generic.List<EntityRequest> EntityRequests { get; } = new global::System.Collections.Generic.List<EntityRequest>();
 
     }
 
@@ -175,15 +111,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityExtensionDataArrayHeader()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"provider_error_status")]
         public int ProviderErrorStatus
@@ -191,14 +119,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__ProviderErrorStatus.GetValueOrDefault(); }
             set { __pbn__ProviderErrorStatus = value; }
         }
-        public bool ShouldSerializeProviderErrorStatus()
-        {
-            return __pbn__ProviderErrorStatus != null;
-        }
-        public void ResetProviderErrorStatus()
-        {
-            __pbn__ProviderErrorStatus = null;
-        }
+        public bool ShouldSerializeProviderErrorStatus() => __pbn__ProviderErrorStatus != null;
+        public void ResetProviderErrorStatus() => __pbn__ProviderErrorStatus = null;
         private int? __pbn__ProviderErrorStatus;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"cache_ttl_in_seconds")]
@@ -207,14 +129,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__CacheTtlInSeconds.GetValueOrDefault(); }
             set { __pbn__CacheTtlInSeconds = value; }
         }
-        public bool ShouldSerializeCacheTtlInSeconds()
-        {
-            return __pbn__CacheTtlInSeconds != null;
-        }
-        public void ResetCacheTtlInSeconds()
-        {
-            __pbn__CacheTtlInSeconds = null;
-        }
+        public bool ShouldSerializeCacheTtlInSeconds() => __pbn__CacheTtlInSeconds != null;
+        public void ResetCacheTtlInSeconds() => __pbn__CacheTtlInSeconds = null;
         private long? __pbn__CacheTtlInSeconds;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"offline_ttl_in_seconds")]
@@ -223,14 +139,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__OfflineTtlInSeconds.GetValueOrDefault(); }
             set { __pbn__OfflineTtlInSeconds = value; }
         }
-        public bool ShouldSerializeOfflineTtlInSeconds()
-        {
-            return __pbn__OfflineTtlInSeconds != null;
-        }
-        public void ResetOfflineTtlInSeconds()
-        {
-            __pbn__OfflineTtlInSeconds = null;
-        }
+        public bool ShouldSerializeOfflineTtlInSeconds() => __pbn__OfflineTtlInSeconds != null;
+        public void ResetOfflineTtlInSeconds() => __pbn__OfflineTtlInSeconds = null;
         private long? __pbn__OfflineTtlInSeconds;
 
     }
@@ -240,16 +150,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityExtensionDataArray()
-        {
-            ExtensionDatas = new global::System.Collections.Generic.List<EntityExtensionData>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"header")]
         public EntityExtensionDataArrayHeader Header { get; set; }
@@ -261,18 +162,12 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__ExtensionKind ?? ExtensionKind.UnknownExtension; }
             set { __pbn__ExtensionKind = value; }
         }
-        public bool ShouldSerializeExtensionKind()
-        {
-            return __pbn__ExtensionKind != null;
-        }
-        public void ResetExtensionKind()
-        {
-            __pbn__ExtensionKind = null;
-        }
+        public bool ShouldSerializeExtensionKind() => __pbn__ExtensionKind != null;
+        public void ResetExtensionKind() => __pbn__ExtensionKind = null;
         private ExtensionKind? __pbn__ExtensionKind;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"extension_data")]
-        public global::System.Collections.Generic.List<EntityExtensionData> ExtensionDatas { get; private set; }
+        public global::System.Collections.Generic.List<EntityExtensionData> ExtensionDatas { get; } = new global::System.Collections.Generic.List<EntityExtensionData>();
 
     }
 
@@ -281,15 +176,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public BatchedExtensionResponseHeader()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
     }
 
@@ -298,25 +185,16 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public BatchedExtensionResponse()
-        {
-            ExtendedMetadatas = new global::System.Collections.Generic.List<EntityExtensionDataArray>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"header")]
         public BatchedExtensionResponseHeader Header { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"extended_metadata")]
-        public global::System.Collections.Generic.List<EntityExtensionDataArray> ExtendedMetadatas { get; private set; }
+        public global::System.Collections.Generic.List<EntityExtensionDataArray> ExtendedMetadatas { get; } = new global::System.Collections.Generic.List<EntityExtensionDataArray>();
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

@@ -94,7 +94,7 @@ namespace lib.core
 
             List<String> urls = pool[type];
             if (urls == null || urls.Count == 0) throw new Exception("Illegal state");
-            return urls[new Random().Next(0, urls.Count - 1)];
+            return urls[new Random().Next(0, urls.Count)];
         }
 
         public String getRandomDealer()
@@ -104,7 +104,7 @@ namespace lib.core
 
         public String getRandomSpclient()
         {
-            return getRandomOf("spclient");
+            return "spclient.wg.spotify.com:443";
         }
 
         public String getRandomAccesspoint()

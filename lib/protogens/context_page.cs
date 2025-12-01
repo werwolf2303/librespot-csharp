@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: context_page.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto
 {
 
@@ -11,17 +11,7 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ContextPage()
-        {
-            Metadatas = new global::System.Collections.Generic.Dictionary<string, string>();
-            Tracks = new global::System.Collections.Generic.List<ContextTrack>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"page_url")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -30,14 +20,8 @@ namespace spotify.player.proto
             get { return __pbn__PageUrl ?? ""; }
             set { __pbn__PageUrl = value; }
         }
-        public bool ShouldSerializePageUrl()
-        {
-            return __pbn__PageUrl != null;
-        }
-        public void ResetPageUrl()
-        {
-            __pbn__PageUrl = null;
-        }
+        public bool ShouldSerializePageUrl() => __pbn__PageUrl != null;
+        public void ResetPageUrl() => __pbn__PageUrl = null;
         private string __pbn__PageUrl;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"next_page_url")]
@@ -47,22 +31,16 @@ namespace spotify.player.proto
             get { return __pbn__NextPageUrl ?? ""; }
             set { __pbn__NextPageUrl = value; }
         }
-        public bool ShouldSerializeNextPageUrl()
-        {
-            return __pbn__NextPageUrl != null;
-        }
-        public void ResetNextPageUrl()
-        {
-            __pbn__NextPageUrl = null;
-        }
+        public bool ShouldSerializeNextPageUrl() => __pbn__NextPageUrl != null;
+        public void ResetNextPageUrl() => __pbn__NextPageUrl = null;
         private string __pbn__NextPageUrl;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"metadata")]
         [global::ProtoBuf.ProtoMap]
-        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; private set; }
+        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; } = new global::System.Collections.Generic.Dictionary<string, string>();
 
         [global::ProtoBuf.ProtoMember(4, Name = @"tracks")]
-        public global::System.Collections.Generic.List<ContextTrack> Tracks { get; private set; }
+        public global::System.Collections.Generic.List<ContextTrack> Tracks { get; } = new global::System.Collections.Generic.List<ContextTrack>();
 
         [global::ProtoBuf.ProtoMember(5, Name = @"loading")]
         public bool Loading
@@ -70,18 +48,12 @@ namespace spotify.player.proto
             get { return __pbn__Loading.GetValueOrDefault(); }
             set { __pbn__Loading = value; }
         }
-        public bool ShouldSerializeLoading()
-        {
-            return __pbn__Loading != null;
-        }
-        public void ResetLoading()
-        {
-            __pbn__Loading = null;
-        }
+        public bool ShouldSerializeLoading() => __pbn__Loading != null;
+        public void ResetLoading() => __pbn__Loading = null;
         private bool? __pbn__Loading;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

@@ -2,8 +2,6 @@ syntax = "proto2";
 
 package spotify.extendedmetadata.proto;
 
-import "google/protobuf/any.proto";
-
 option optimize_for = CODE_SIZE;
 option java_package = "com.spotify.extendedmetadata";
 
@@ -18,5 +16,10 @@ message EntityExtensionDataHeader {
 message EntityExtensionData {
 	optional spotify.extendedmetadata.proto.EntityExtensionDataHeader header = 1;
 	optional string entity_uri = 2;
-	optional .google.protobuf.Any extension_data = 3;
+	optional Any extension_data = 3;
+}
+
+message Any {
+  optional string type_url = 1;
+  optional bytes value = 2;
 }

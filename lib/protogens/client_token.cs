@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: client_token.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.clienttoken.http.v0
 {
 
@@ -11,15 +11,7 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientTokenRequest()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"request_type")]
         public ClientTokenRequestType RequestType { get; set; }
@@ -27,34 +19,22 @@ namespace spotify.clienttoken.http.v0
         [global::ProtoBuf.ProtoMember(2, Name = @"client_data")]
         public ClientDataRequest ClientData
         {
-            get { return __pbn__request.Is(2) ? ((ClientDataRequest)__pbn__request.Object) : default(ClientDataRequest); }
+            get { return __pbn__request.Is(2) ? ((ClientDataRequest)__pbn__request.Object) : default; }
             set { __pbn__request = new global::ProtoBuf.DiscriminatedUnionObject(2, value); }
         }
-        public bool ShouldSerializeClientData()
-        {
-            return __pbn__request.Is(2);
-        }
-        public void ResetClientData()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__request, 2);
-        }
+        public bool ShouldSerializeClientData() => __pbn__request.Is(2);
+        public void ResetClientData() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__request, 2);
 
         private global::ProtoBuf.DiscriminatedUnionObject __pbn__request;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"challenge_answers")]
         public ChallengeAnswersRequest ChallengeAnswers
         {
-            get { return __pbn__request.Is(3) ? ((ChallengeAnswersRequest)__pbn__request.Object) : default(ChallengeAnswersRequest); }
+            get { return __pbn__request.Is(3) ? ((ChallengeAnswersRequest)__pbn__request.Object) : default; }
             set { __pbn__request = new global::ProtoBuf.DiscriminatedUnionObject(3, value); }
         }
-        public bool ShouldSerializeChallengeAnswers()
-        {
-            return __pbn__request.Is(3);
-        }
-        public void ResetChallengeAnswers()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__request, 3);
-        }
+        public bool ShouldSerializeChallengeAnswers() => __pbn__request.Is(3);
+        public void ResetChallengeAnswers() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__request, 3);
 
     }
 
@@ -63,25 +43,15 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientDataRequest()
-        {
-            ClientVersion = "";
-            ClientId = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"client_version")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string ClientVersion { get; set; }
+        public string ClientVersion { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"client_id")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string ClientId { get; set; }
+        public string ClientId { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(3, Name = @"connectivity_sdk_data")]
         public global::spotify.clienttoken.data.v0.ConnectivitySdkData ConnectivitySdkData { get; set; }
@@ -93,24 +63,14 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ChallengeAnswersRequest()
-        {
-            State = "";
-            Answers = new global::System.Collections.Generic.List<ChallengeAnswer>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"state")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string State { get; set; }
+        public string State { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"answers")]
-        public global::System.Collections.Generic.List<ChallengeAnswer> Answers { get; private set; }
+        public global::System.Collections.Generic.List<ChallengeAnswer> Answers { get; } = new global::System.Collections.Generic.List<ChallengeAnswer>();
 
     }
 
@@ -119,15 +79,7 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientTokenResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"response_type")]
         public ClientTokenResponseType ResponseType { get; set; }
@@ -135,34 +87,22 @@ namespace spotify.clienttoken.http.v0
         [global::ProtoBuf.ProtoMember(2, Name = @"granted_token")]
         public GrantedTokenResponse GrantedToken
         {
-            get { return __pbn__response.Is(2) ? ((GrantedTokenResponse)__pbn__response.Object) : default(GrantedTokenResponse); }
+            get { return __pbn__response.Is(2) ? ((GrantedTokenResponse)__pbn__response.Object) : default; }
             set { __pbn__response = new global::ProtoBuf.DiscriminatedUnionObject(2, value); }
         }
-        public bool ShouldSerializeGrantedToken()
-        {
-            return __pbn__response.Is(2);
-        }
-        public void ResetGrantedToken()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__response, 2);
-        }
+        public bool ShouldSerializeGrantedToken() => __pbn__response.Is(2);
+        public void ResetGrantedToken() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__response, 2);
 
         private global::ProtoBuf.DiscriminatedUnionObject __pbn__response;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"challenges")]
         public ChallengesResponse Challenges
         {
-            get { return __pbn__response.Is(3) ? ((ChallengesResponse)__pbn__response.Object) : default(ChallengesResponse); }
+            get { return __pbn__response.Is(3) ? ((ChallengesResponse)__pbn__response.Object) : default; }
             set { __pbn__response = new global::ProtoBuf.DiscriminatedUnionObject(3, value); }
         }
-        public bool ShouldSerializeChallenges()
-        {
-            return __pbn__response.Is(3);
-        }
-        public void ResetChallenges()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__response, 3);
-        }
+        public bool ShouldSerializeChallenges() => __pbn__response.Is(3);
+        public void ResetChallenges() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__response, 3);
 
     }
 
@@ -171,20 +111,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public TokenDomain()
-        {
-            Domain = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"domain")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Domain { get; set; }
+        public string Domain { get; set; } = "";
 
     }
 
@@ -193,21 +124,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public GrantedTokenResponse()
-        {
-            Token = "";
-            Domains = new global::System.Collections.Generic.List<TokenDomain>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"token")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Token { get; set; }
+        public string Token { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"expires_after_seconds")]
         public int ExpiresAfterSeconds { get; set; }
@@ -216,7 +137,7 @@ namespace spotify.clienttoken.http.v0
         public int RefreshAfterSeconds { get; set; }
 
         [global::ProtoBuf.ProtoMember(4, Name = @"domains")]
-        public global::System.Collections.Generic.List<TokenDomain> Domains { get; private set; }
+        public global::System.Collections.Generic.List<TokenDomain> Domains { get; } = new global::System.Collections.Generic.List<TokenDomain>();
 
     }
 
@@ -225,24 +146,14 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ChallengesResponse()
-        {
-            State = "";
-            Challenges = new global::System.Collections.Generic.List<Challenge>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"state")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string State { get; set; }
+        public string State { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"challenges")]
-        public global::System.Collections.Generic.List<Challenge> Challenges { get; private set; }
+        public global::System.Collections.Generic.List<Challenge> Challenges { get; } = new global::System.Collections.Generic.List<Challenge>();
 
     }
 
@@ -251,20 +162,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientSecretParameters()
-        {
-            Salt = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"salt")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Salt { get; set; }
+        public string Salt { get; set; } = "";
 
     }
 
@@ -273,24 +175,14 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EvaluateJSParameters()
-        {
-            Code = "";
-            Libraries = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"code")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Code { get; set; }
+        public string Code { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"libraries")]
-        public global::System.Collections.Generic.List<string> Libraries { get; private set; }
+        public global::System.Collections.Generic.List<string> Libraries { get; } = new global::System.Collections.Generic.List<string>();
 
     }
 
@@ -299,23 +191,14 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public HashCashParameters()
-        {
-            Prefix = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"length")]
         public int Length { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"prefix")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Prefix { get; set; }
+        public string Prefix { get; set; } = "";
 
     }
 
@@ -324,15 +207,7 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Challenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"type")]
         public ChallengeType Type { get; set; }
@@ -340,49 +215,31 @@ namespace spotify.clienttoken.http.v0
         [global::ProtoBuf.ProtoMember(2, Name = @"client_secret_parameters")]
         public ClientSecretParameters ClientSecretParameters
         {
-            get { return __pbn__parameters.Is(2) ? ((ClientSecretParameters)__pbn__parameters.Object) : default(ClientSecretParameters); }
+            get { return __pbn__parameters.Is(2) ? ((ClientSecretParameters)__pbn__parameters.Object) : default; }
             set { __pbn__parameters = new global::ProtoBuf.DiscriminatedUnionObject(2, value); }
         }
-        public bool ShouldSerializeClientSecretParameters()
-        {
-            return __pbn__parameters.Is(2);
-        }
-        public void ResetClientSecretParameters()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 2);
-        }
+        public bool ShouldSerializeClientSecretParameters() => __pbn__parameters.Is(2);
+        public void ResetClientSecretParameters() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 2);
 
         private global::ProtoBuf.DiscriminatedUnionObject __pbn__parameters;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"evaluate_js_parameters")]
         public EvaluateJSParameters EvaluateJsParameters
         {
-            get { return __pbn__parameters.Is(3) ? ((EvaluateJSParameters)__pbn__parameters.Object) : default(EvaluateJSParameters); }
+            get { return __pbn__parameters.Is(3) ? ((EvaluateJSParameters)__pbn__parameters.Object) : default; }
             set { __pbn__parameters = new global::ProtoBuf.DiscriminatedUnionObject(3, value); }
         }
-        public bool ShouldSerializeEvaluateJsParameters()
-        {
-            return __pbn__parameters.Is(3);
-        }
-        public void ResetEvaluateJsParameters()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 3);
-        }
+        public bool ShouldSerializeEvaluateJsParameters() => __pbn__parameters.Is(3);
+        public void ResetEvaluateJsParameters() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 3);
 
         [global::ProtoBuf.ProtoMember(4, Name = @"evaluate_hashcash_parameters")]
         public HashCashParameters EvaluateHashcashParameters
         {
-            get { return __pbn__parameters.Is(4) ? ((HashCashParameters)__pbn__parameters.Object) : default(HashCashParameters); }
+            get { return __pbn__parameters.Is(4) ? ((HashCashParameters)__pbn__parameters.Object) : default; }
             set { __pbn__parameters = new global::ProtoBuf.DiscriminatedUnionObject(4, value); }
         }
-        public bool ShouldSerializeEvaluateHashcashParameters()
-        {
-            return __pbn__parameters.Is(4);
-        }
-        public void ResetEvaluateHashcashParameters()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 4);
-        }
+        public bool ShouldSerializeEvaluateHashcashParameters() => __pbn__parameters.Is(4);
+        public void ResetEvaluateHashcashParameters() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__parameters, 4);
 
     }
 
@@ -391,20 +248,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientSecretHMACAnswer()
-        {
-            Hmac = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"hmac")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Hmac { get; set; }
+        public string Hmac { get; set; } = "";
 
     }
 
@@ -413,20 +261,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EvaluateJSAnswer()
-        {
-            Result = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"result")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Result { get; set; }
+        public string Result { get; set; } = "";
 
     }
 
@@ -435,20 +274,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public HashCashAnswer()
-        {
-            Suffix = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"suffix")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Suffix { get; set; }
+        public string Suffix { get; set; } = "";
 
     }
 
@@ -457,15 +287,7 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ChallengeAnswer()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1)]
         public ChallengeType ChallengeType { get; set; }
@@ -473,49 +295,31 @@ namespace spotify.clienttoken.http.v0
         [global::ProtoBuf.ProtoMember(2, Name = @"client_secret")]
         public ClientSecretHMACAnswer ClientSecret
         {
-            get { return __pbn__answer.Is(2) ? ((ClientSecretHMACAnswer)__pbn__answer.Object) : default(ClientSecretHMACAnswer); }
+            get { return __pbn__answer.Is(2) ? ((ClientSecretHMACAnswer)__pbn__answer.Object) : default; }
             set { __pbn__answer = new global::ProtoBuf.DiscriminatedUnionObject(2, value); }
         }
-        public bool ShouldSerializeClientSecret()
-        {
-            return __pbn__answer.Is(2);
-        }
-        public void ResetClientSecret()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 2);
-        }
+        public bool ShouldSerializeClientSecret() => __pbn__answer.Is(2);
+        public void ResetClientSecret() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 2);
 
         private global::ProtoBuf.DiscriminatedUnionObject __pbn__answer;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"evaluate_js")]
         public EvaluateJSAnswer EvaluateJs
         {
-            get { return __pbn__answer.Is(3) ? ((EvaluateJSAnswer)__pbn__answer.Object) : default(EvaluateJSAnswer); }
+            get { return __pbn__answer.Is(3) ? ((EvaluateJSAnswer)__pbn__answer.Object) : default; }
             set { __pbn__answer = new global::ProtoBuf.DiscriminatedUnionObject(3, value); }
         }
-        public bool ShouldSerializeEvaluateJs()
-        {
-            return __pbn__answer.Is(3);
-        }
-        public void ResetEvaluateJs()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 3);
-        }
+        public bool ShouldSerializeEvaluateJs() => __pbn__answer.Is(3);
+        public void ResetEvaluateJs() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 3);
 
         [global::ProtoBuf.ProtoMember(4, Name = @"hash_cash")]
         public HashCashAnswer HashCash
         {
-            get { return __pbn__answer.Is(4) ? ((HashCashAnswer)__pbn__answer.Object) : default(HashCashAnswer); }
+            get { return __pbn__answer.Is(4) ? ((HashCashAnswer)__pbn__answer.Object) : default; }
             set { __pbn__answer = new global::ProtoBuf.DiscriminatedUnionObject(4, value); }
         }
-        public bool ShouldSerializeHashCash()
-        {
-            return __pbn__answer.Is(4);
-        }
-        public void ResetHashCash()
-        {
-            global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 4);
-        }
+        public bool ShouldSerializeHashCash() => __pbn__answer.Is(4);
+        public void ResetHashCash() => global::ProtoBuf.DiscriminatedUnionObject.Reset(ref __pbn__answer, 4);
 
     }
 
@@ -524,20 +328,11 @@ namespace spotify.clienttoken.http.v0
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientTokenBadRequest()
-        {
-            Message = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"message")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Message { get; set; }
+        public string Message { get; set; } = "";
 
     }
 
@@ -578,4 +373,4 @@ namespace spotify.clienttoken.http.v0
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

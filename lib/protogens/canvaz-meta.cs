@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: canvaz-meta.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace com.spotify.canvaz
 {
 
@@ -23,4 +23,4 @@ namespace com.spotify.canvaz
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

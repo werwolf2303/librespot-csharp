@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -144,6 +145,8 @@ namespace lib.core
 
                 return true;
             });
+            
+            client.Proxy = configuration.Proxy;
 
             return client;
         }
@@ -1134,11 +1137,14 @@ namespace lib.core
 
             // Network
             public int ConnectionTimeout;
+            
+            // Proxy
+            public WebProxy Proxy;
 
             private Configuration(TimeProvider.Method timeSynchronizationMethod, int timeManualCorrection,
                 bool cacheEnabled, String cacheDir, bool doCacheCleanUp,
                 bool storeCredentials, String storedCredentialsFile,
-                bool retryOnChunkError, int connectionTimeout)
+                bool retryOnChunkError, int connectionTimeout, WebProxy proxy)
             {
                 TimeSynchronizationMethod = timeSynchronizationMethod;
                 TimeManualCorrection = timeManualCorrection;
@@ -1149,6 +1155,7 @@ namespace lib.core
                 StoredCredentialsFile = storedCredentialsFile;
                 RetryOnChunkError = retryOnChunkError;
                 ConnectionTimeout = connectionTimeout;
+                Proxy = proxy;
             }
 
             public class Builder
@@ -1171,6 +1178,9 @@ namespace lib.core
 
                 // Network
                 private int _connectionTimeout;
+                
+                // Proxy
+                private WebProxy _proxy;
 
                 public Builder()
                 {
@@ -1229,13 +1239,19 @@ namespace lib.core
                     _connectionTimeout = connectionTimeout;
                     return this;
                 }
+                
+                public Builder SetProxy(WebProxy proxy)
+                {
+                    _proxy = proxy;
+                    return this;
+                }
 
                 public Configuration Build()
                 {
                     return new Configuration(_timeSynchronizationMethod, _timeManualCorrection,
                         _cacheEnabled, _cacheDir, _doCacheCleanUp,
                         _storeCredentials, _storedCredentialsFile,
-                        _retryOnChunkError, _connectionTimeout);
+                        _retryOnChunkError, _connectionTimeout, _proxy);
                 }
             }
         }

@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: mercury.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace Spotify
 {
 
@@ -11,19 +11,10 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public MercuryMultiGetRequest()
-        {
-            Requests = new global::System.Collections.Generic.List<MercuryRequest>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"request")]
-        public global::System.Collections.Generic.List<MercuryRequest> Requests { get; private set; }
+        public global::System.Collections.Generic.List<MercuryRequest> Requests { get; } = new global::System.Collections.Generic.List<MercuryRequest>();
 
     }
 
@@ -32,19 +23,10 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public MercuryMultiGetReply()
-        {
-            Replies = new global::System.Collections.Generic.List<MercuryReply>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"reply")]
-        public global::System.Collections.Generic.List<MercuryReply> Replies { get; private set; }
+        public global::System.Collections.Generic.List<MercuryReply> Replies { get; } = new global::System.Collections.Generic.List<MercuryReply>();
 
     }
 
@@ -53,15 +35,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public MercuryRequest()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"uri")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -70,14 +44,8 @@ namespace Spotify
             get { return __pbn__Uri ?? ""; }
             set { __pbn__Uri = value; }
         }
-        public bool ShouldSerializeUri()
-        {
-            return __pbn__Uri != null;
-        }
-        public void ResetUri()
-        {
-            __pbn__Uri = null;
-        }
+        public bool ShouldSerializeUri() => __pbn__Uri != null;
+        public void ResetUri() => __pbn__Uri = null;
         private string __pbn__Uri;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"content_type")]
@@ -87,14 +55,8 @@ namespace Spotify
             get { return __pbn__ContentType ?? ""; }
             set { __pbn__ContentType = value; }
         }
-        public bool ShouldSerializeContentType()
-        {
-            return __pbn__ContentType != null;
-        }
-        public void ResetContentType()
-        {
-            __pbn__ContentType = null;
-        }
+        public bool ShouldSerializeContentType() => __pbn__ContentType != null;
+        public void ResetContentType() => __pbn__ContentType = null;
         private string __pbn__ContentType;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"body")]
@@ -103,14 +65,8 @@ namespace Spotify
             get { return __pbn__Body; }
             set { __pbn__Body = value; }
         }
-        public bool ShouldSerializeBody()
-        {
-            return __pbn__Body != null;
-        }
-        public void ResetBody()
-        {
-            __pbn__Body = null;
-        }
+        public bool ShouldSerializeBody() => __pbn__Body != null;
+        public void ResetBody() => __pbn__Body = null;
         private byte[] __pbn__Body;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"etag")]
@@ -119,14 +75,8 @@ namespace Spotify
             get { return __pbn__Etag; }
             set { __pbn__Etag = value; }
         }
-        public bool ShouldSerializeEtag()
-        {
-            return __pbn__Etag != null;
-        }
-        public void ResetEtag()
-        {
-            __pbn__Etag = null;
-        }
+        public bool ShouldSerializeEtag() => __pbn__Etag != null;
+        public void ResetEtag() => __pbn__Etag = null;
         private byte[] __pbn__Etag;
 
     }
@@ -136,15 +86,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public MercuryReply()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"status_code", DataFormat = global::ProtoBuf.DataFormat.ZigZag)]
         public int StatusCode
@@ -152,14 +94,8 @@ namespace Spotify
             get { return __pbn__StatusCode.GetValueOrDefault(); }
             set { __pbn__StatusCode = value; }
         }
-        public bool ShouldSerializeStatusCode()
-        {
-            return __pbn__StatusCode != null;
-        }
-        public void ResetStatusCode()
-        {
-            __pbn__StatusCode = null;
-        }
+        public bool ShouldSerializeStatusCode() => __pbn__StatusCode != null;
+        public void ResetStatusCode() => __pbn__StatusCode = null;
         private int? __pbn__StatusCode;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"status_message")]
@@ -169,14 +105,8 @@ namespace Spotify
             get { return __pbn__StatusMessage ?? ""; }
             set { __pbn__StatusMessage = value; }
         }
-        public bool ShouldSerializeStatusMessage()
-        {
-            return __pbn__StatusMessage != null;
-        }
-        public void ResetStatusMessage()
-        {
-            __pbn__StatusMessage = null;
-        }
+        public bool ShouldSerializeStatusMessage() => __pbn__StatusMessage != null;
+        public void ResetStatusMessage() => __pbn__StatusMessage = null;
         private string __pbn__StatusMessage;
 
         [global::ProtoBuf.ProtoMember(3)]
@@ -186,14 +116,8 @@ namespace Spotify
             get { return __pbn__cache_policy ?? CachePolicy.CacheNo; }
             set { __pbn__cache_policy = value; }
         }
-        public bool ShouldSerializecache_policy()
-        {
-            return __pbn__cache_policy != null;
-        }
-        public void Resetcache_policy()
-        {
-            __pbn__cache_policy = null;
-        }
+        public bool ShouldSerializecache_policy() => __pbn__cache_policy != null;
+        public void Resetcache_policy() => __pbn__cache_policy = null;
         private CachePolicy? __pbn__cache_policy;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"ttl", DataFormat = global::ProtoBuf.DataFormat.ZigZag)]
@@ -202,14 +126,8 @@ namespace Spotify
             get { return __pbn__Ttl.GetValueOrDefault(); }
             set { __pbn__Ttl = value; }
         }
-        public bool ShouldSerializeTtl()
-        {
-            return __pbn__Ttl != null;
-        }
-        public void ResetTtl()
-        {
-            __pbn__Ttl = null;
-        }
+        public bool ShouldSerializeTtl() => __pbn__Ttl != null;
+        public void ResetTtl() => __pbn__Ttl = null;
         private int? __pbn__Ttl;
 
         [global::ProtoBuf.ProtoMember(5, Name = @"etag")]
@@ -218,14 +136,8 @@ namespace Spotify
             get { return __pbn__Etag; }
             set { __pbn__Etag = value; }
         }
-        public bool ShouldSerializeEtag()
-        {
-            return __pbn__Etag != null;
-        }
-        public void ResetEtag()
-        {
-            __pbn__Etag = null;
-        }
+        public bool ShouldSerializeEtag() => __pbn__Etag != null;
+        public void ResetEtag() => __pbn__Etag = null;
         private byte[] __pbn__Etag;
 
         [global::ProtoBuf.ProtoMember(6, Name = @"content_type")]
@@ -235,14 +147,8 @@ namespace Spotify
             get { return __pbn__ContentType ?? ""; }
             set { __pbn__ContentType = value; }
         }
-        public bool ShouldSerializeContentType()
-        {
-            return __pbn__ContentType != null;
-        }
-        public void ResetContentType()
-        {
-            __pbn__ContentType = null;
-        }
+        public bool ShouldSerializeContentType() => __pbn__ContentType != null;
+        public void ResetContentType() => __pbn__ContentType = null;
         private string __pbn__ContentType;
 
         [global::ProtoBuf.ProtoMember(7, Name = @"body")]
@@ -251,14 +157,8 @@ namespace Spotify
             get { return __pbn__Body; }
             set { __pbn__Body = value; }
         }
-        public bool ShouldSerializeBody()
-        {
-            return __pbn__Body != null;
-        }
-        public void ResetBody()
-        {
-            __pbn__Body = null;
-        }
+        public bool ShouldSerializeBody() => __pbn__Body != null;
+        public void ResetBody() => __pbn__Body = null;
         private byte[] __pbn__Body;
 
         [global::ProtoBuf.ProtoContract()]
@@ -279,16 +179,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Header()
-        {
-            UserFields = new global::System.Collections.Generic.List<UserField>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"uri")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -297,14 +188,8 @@ namespace Spotify
             get { return __pbn__Uri ?? ""; }
             set { __pbn__Uri = value; }
         }
-        public bool ShouldSerializeUri()
-        {
-            return __pbn__Uri != null;
-        }
-        public void ResetUri()
-        {
-            __pbn__Uri = null;
-        }
+        public bool ShouldSerializeUri() => __pbn__Uri != null;
+        public void ResetUri() => __pbn__Uri = null;
         private string __pbn__Uri;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"content_type")]
@@ -314,14 +199,8 @@ namespace Spotify
             get { return __pbn__ContentType ?? ""; }
             set { __pbn__ContentType = value; }
         }
-        public bool ShouldSerializeContentType()
-        {
-            return __pbn__ContentType != null;
-        }
-        public void ResetContentType()
-        {
-            __pbn__ContentType = null;
-        }
+        public bool ShouldSerializeContentType() => __pbn__ContentType != null;
+        public void ResetContentType() => __pbn__ContentType = null;
         private string __pbn__ContentType;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"method")]
@@ -331,14 +210,8 @@ namespace Spotify
             get { return __pbn__Method ?? ""; }
             set { __pbn__Method = value; }
         }
-        public bool ShouldSerializeMethod()
-        {
-            return __pbn__Method != null;
-        }
-        public void ResetMethod()
-        {
-            __pbn__Method = null;
-        }
+        public bool ShouldSerializeMethod() => __pbn__Method != null;
+        public void ResetMethod() => __pbn__Method = null;
         private string __pbn__Method;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"status_code", DataFormat = global::ProtoBuf.DataFormat.ZigZag)]
@@ -347,18 +220,12 @@ namespace Spotify
             get { return __pbn__StatusCode.GetValueOrDefault(); }
             set { __pbn__StatusCode = value; }
         }
-        public bool ShouldSerializeStatusCode()
-        {
-            return __pbn__StatusCode != null;
-        }
-        public void ResetStatusCode()
-        {
-            __pbn__StatusCode = null;
-        }
+        public bool ShouldSerializeStatusCode() => __pbn__StatusCode != null;
+        public void ResetStatusCode() => __pbn__StatusCode = null;
         private int? __pbn__StatusCode;
 
         [global::ProtoBuf.ProtoMember(6, Name = @"user_fields")]
-        public global::System.Collections.Generic.List<UserField> UserFields { get; private set; }
+        public global::System.Collections.Generic.List<UserField> UserFields { get; } = new global::System.Collections.Generic.List<UserField>();
 
     }
 
@@ -367,15 +234,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public UserField()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"key")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -384,14 +243,8 @@ namespace Spotify
             get { return __pbn__Key ?? ""; }
             set { __pbn__Key = value; }
         }
-        public bool ShouldSerializeKey()
-        {
-            return __pbn__Key != null;
-        }
-        public void ResetKey()
-        {
-            __pbn__Key = null;
-        }
+        public bool ShouldSerializeKey() => __pbn__Key != null;
+        public void ResetKey() => __pbn__Key = null;
         private string __pbn__Key;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"value")]
@@ -400,18 +253,12 @@ namespace Spotify
             get { return __pbn__Value; }
             set { __pbn__Value = value; }
         }
-        public bool ShouldSerializeValue()
-        {
-            return __pbn__Value != null;
-        }
-        public void ResetValue()
-        {
-            __pbn__Value = null;
-        }
+        public bool ShouldSerializeValue() => __pbn__Value != null;
+        public void ResetValue() => __pbn__Value = null;
         private byte[] __pbn__Value;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

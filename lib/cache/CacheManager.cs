@@ -59,7 +59,7 @@ public class CacheManager : IDisposable
                 foreach (string id in entriesToRemove)
                 {
                     entries.Remove(id);
-                    journal.remove(id);
+                    journal.Remove(id);
                 }
 
                 if (conf.DoCacheCleanUp)
@@ -67,7 +67,7 @@ public class CacheManager : IDisposable
                     List<string> expiredEntries = new List<string>();
                     foreach (string id in entries)
                     {
-                        JournalHeader header = journal.getHeader(id, HEADER_TIMESTAMP);
+                        JournalHeader header = journal.GetHeader(id, HEADER_TIMESTAMP);
                         if (header == null) continue;
 
                         var timestamp = new BigInteger(header.value) * 1000;
@@ -111,7 +111,7 @@ public class CacheManager : IDisposable
 
     private void Remove(string streamId)
     {
-        journal.remove(streamId);
+        journal.Remove(streamId);
 
         FileInfo file = GetCacheFile(parent, streamId);
         if (file.Exists)
@@ -202,7 +202,7 @@ public class CacheManager : IDisposable
             try
             {
                 byte[] timestampBytes = new BigInteger(Utils.getUnixTimeStampInMilliseconds() / 1000).ToByteArray().Reverse().ToArray();
-                journal.setHeader(streamId, HEADER_TIMESTAMP, timestampBytes);
+                journal.SetHeader(streamId, HEADER_TIMESTAMP, timestampBytes);
                 updatedTimestamp = true;
             }
             catch (IOException ex)
@@ -215,7 +215,7 @@ public class CacheManager : IDisposable
         {
             try
             {
-                journal.setHeader(streamId, id, value);
+                journal.SetHeader(streamId, id, value);
             }
             finally
             {
@@ -225,12 +225,12 @@ public class CacheManager : IDisposable
 
         public List<JournalHeader> GetAllHeaders()
         {
-            return journal.getHeaders(streamId);
+            return journal.GetHeaders(streamId);
         }
 
         public byte[] GetHeader(byte id)
         {
-            JournalHeader header = journal.getHeader(streamId, id);
+            JournalHeader header = journal.GetHeader(streamId, id);
             return header == null ? null : header.value;
         }
 
@@ -244,7 +244,7 @@ public class CacheManager : IDisposable
                     return false;
             }
 
-            return journal.hasChunk(streamId, index);
+            return journal.HasChunk(streamId, index);
         }
 
         public void ReadChunk(int index, IGeneralWriteableStream stream)
@@ -268,7 +268,7 @@ public class CacheManager : IDisposable
 
                 if (index == 0)
                 {
-                    JournalHeader header = journal.getHeader(streamId, HEADER_HASH);
+                    JournalHeader header = journal.GetHeader(streamId, HEADER_HASH);
                     if (header != null)
                     {
                         try
@@ -278,7 +278,7 @@ public class CacheManager : IDisposable
                                 byte[] hash = md5.ComputeHash(buffer);
                                 if (!hash.SequenceEqual(header.value)) 
                                 {
-                                    journal.setChunk(streamId, index, false);
+                                    journal.SetChunk(streamId, index, false);
                                     throw new BadChunkHashException(streamId, header.value, hash);
                                 }
                             }
@@ -305,7 +305,7 @@ public class CacheManager : IDisposable
 
             try
             {
-                journal.setChunk(streamId, index, true);
+                journal.SetChunk(streamId, index, true);
 
                 if (index == 0)
                 {
@@ -314,7 +314,7 @@ public class CacheManager : IDisposable
                         using (MD5 md5 = MD5.Create())
                         {
                             byte[] hash = md5.ComputeHash(buffer);
-                            journal.setHeader(streamId, HEADER_HASH, hash);
+                            journal.SetHeader(streamId, HEADER_HASH, hash);
                         }
                     }
                     catch (Exception ex)

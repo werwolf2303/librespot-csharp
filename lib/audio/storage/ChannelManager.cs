@@ -15,7 +15,7 @@ namespace lib.audio.storage
         public static int CHUNK_SIZE = 128 * 1024;
         private static ILog LOGGER = LogManager.GetLogger(typeof(ChannelManager));
         private Dictionary<short, Channel> _channels = new Dictionary<short, Channel>();
-        private int _seqHolder = 0;
+        private int _seqHolder;
         private Object _seqHolderLock = new Object();
         private QueuedTaskScheduler _queuedTaskScheduler =
             new QueuedTaskScheduler(new NameThreadFactory((action => "channel-queue-" + action.GetHashCode())),
@@ -27,7 +27,7 @@ namespace lib.audio.storage
             _session = session;
         }
 
-        internal void requestChunk(byte[] fileId, int index, AudioFile file)
+        internal void RequestChunk(byte[] fileId, int index, AudioFile file)
         {
             int start = index * CHUNK_SIZE / 4;
             int end = (index + 1) * CHUNK_SIZE / 4;

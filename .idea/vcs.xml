@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AaltoTLS_" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/websocket-sharp_" vcs="Git" />
   </component>
 </project>

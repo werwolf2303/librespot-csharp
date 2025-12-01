@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: playback.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto.transfer
 {
 
@@ -11,15 +11,7 @@ namespace spotify.player.proto.transfer
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Playback()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"timestamp")]
         public long Timestamp
@@ -27,14 +19,8 @@ namespace spotify.player.proto.transfer
             get { return __pbn__Timestamp.GetValueOrDefault(); }
             set { __pbn__Timestamp = value; }
         }
-        public bool ShouldSerializeTimestamp()
-        {
-            return __pbn__Timestamp != null;
-        }
-        public void ResetTimestamp()
-        {
-            __pbn__Timestamp = null;
-        }
+        public bool ShouldSerializeTimestamp() => __pbn__Timestamp != null;
+        public void ResetTimestamp() => __pbn__Timestamp = null;
         private long? __pbn__Timestamp;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"position_as_of_timestamp")]
@@ -43,14 +29,8 @@ namespace spotify.player.proto.transfer
             get { return __pbn__PositionAsOfTimestamp.GetValueOrDefault(); }
             set { __pbn__PositionAsOfTimestamp = value; }
         }
-        public bool ShouldSerializePositionAsOfTimestamp()
-        {
-            return __pbn__PositionAsOfTimestamp != null;
-        }
-        public void ResetPositionAsOfTimestamp()
-        {
-            __pbn__PositionAsOfTimestamp = null;
-        }
+        public bool ShouldSerializePositionAsOfTimestamp() => __pbn__PositionAsOfTimestamp != null;
+        public void ResetPositionAsOfTimestamp() => __pbn__PositionAsOfTimestamp = null;
         private int? __pbn__PositionAsOfTimestamp;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"playback_speed")]
@@ -59,14 +39,8 @@ namespace spotify.player.proto.transfer
             get { return __pbn__PlaybackSpeed.GetValueOrDefault(); }
             set { __pbn__PlaybackSpeed = value; }
         }
-        public bool ShouldSerializePlaybackSpeed()
-        {
-            return __pbn__PlaybackSpeed != null;
-        }
-        public void ResetPlaybackSpeed()
-        {
-            __pbn__PlaybackSpeed = null;
-        }
+        public bool ShouldSerializePlaybackSpeed() => __pbn__PlaybackSpeed != null;
+        public void ResetPlaybackSpeed() => __pbn__PlaybackSpeed = null;
         private double? __pbn__PlaybackSpeed;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"is_paused")]
@@ -75,14 +49,8 @@ namespace spotify.player.proto.transfer
             get { return __pbn__IsPaused.GetValueOrDefault(); }
             set { __pbn__IsPaused = value; }
         }
-        public bool ShouldSerializeIsPaused()
-        {
-            return __pbn__IsPaused != null;
-        }
-        public void ResetIsPaused()
-        {
-            __pbn__IsPaused = null;
-        }
+        public bool ShouldSerializeIsPaused() => __pbn__IsPaused != null;
+        public void ResetIsPaused() => __pbn__IsPaused = null;
         private bool? __pbn__IsPaused;
 
         [global::ProtoBuf.ProtoMember(5, Name = @"current_track")]
@@ -92,4 +60,4 @@ namespace spotify.player.proto.transfer
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

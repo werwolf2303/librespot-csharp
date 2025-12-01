@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: restrictions.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto
 {
 
@@ -11,102 +11,73 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Restrictions()
-        {
-            DisallowPausingReasons = new global::System.Collections.Generic.List<string>();
-            DisallowResumingReasons = new global::System.Collections.Generic.List<string>();
-            DisallowSeekingReasons = new global::System.Collections.Generic.List<string>();
-            DisallowPeekingPrevReasons = new global::System.Collections.Generic.List<string>();
-            DisallowPeekingNextReasons = new global::System.Collections.Generic.List<string>();
-            DisallowSkippingPrevReasons = new global::System.Collections.Generic.List<string>();
-            DisallowSkippingNextReasons = new global::System.Collections.Generic.List<string>();
-            DisallowTogglingRepeatContextReasons = new global::System.Collections.Generic.List<string>();
-            DisallowTogglingRepeatTrackReasons = new global::System.Collections.Generic.List<string>();
-            DisallowTogglingShuffleReasons = new global::System.Collections.Generic.List<string>();
-            DisallowSetQueueReasons = new global::System.Collections.Generic.List<string>();
-            DisallowInterruptingPlaybackReasons = new global::System.Collections.Generic.List<string>();
-            DisallowTransferringPlaybackReasons = new global::System.Collections.Generic.List<string>();
-            DisallowRemoteControlReasons = new global::System.Collections.Generic.List<string>();
-            DisallowInsertingIntoNextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowInsertingIntoContextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowReorderingInNextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowReorderingInContextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowRemovingFromNextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowRemovingFromContextTracksReasons = new global::System.Collections.Generic.List<string>();
-            DisallowUpdatingContextReasons = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"disallow_pausing_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowPausingReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowPausingReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(2, Name = @"disallow_resuming_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowResumingReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowResumingReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(3, Name = @"disallow_seeking_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowSeekingReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowSeekingReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(4, Name = @"disallow_peeking_prev_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowPeekingPrevReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowPeekingPrevReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(5, Name = @"disallow_peeking_next_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowPeekingNextReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowPeekingNextReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(6, Name = @"disallow_skipping_prev_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowSkippingPrevReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowSkippingPrevReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(7, Name = @"disallow_skipping_next_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowSkippingNextReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowSkippingNextReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(8, Name = @"disallow_toggling_repeat_context_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowTogglingRepeatContextReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowTogglingRepeatContextReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(9, Name = @"disallow_toggling_repeat_track_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowTogglingRepeatTrackReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowTogglingRepeatTrackReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(10, Name = @"disallow_toggling_shuffle_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowTogglingShuffleReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowTogglingShuffleReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(11, Name = @"disallow_set_queue_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowSetQueueReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowSetQueueReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(12, Name = @"disallow_interrupting_playback_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowInterruptingPlaybackReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowInterruptingPlaybackReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(13, Name = @"disallow_transferring_playback_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowTransferringPlaybackReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowTransferringPlaybackReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(14, Name = @"disallow_remote_control_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowRemoteControlReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowRemoteControlReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(15, Name = @"disallow_inserting_into_next_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowInsertingIntoNextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowInsertingIntoNextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(16, Name = @"disallow_inserting_into_context_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowInsertingIntoContextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowInsertingIntoContextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(17, Name = @"disallow_reordering_in_next_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowReorderingInNextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowReorderingInNextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(18, Name = @"disallow_reordering_in_context_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowReorderingInContextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowReorderingInContextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(19, Name = @"disallow_removing_from_next_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowRemovingFromNextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowRemovingFromNextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(20, Name = @"disallow_removing_from_context_tracks_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowRemovingFromContextTracksReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowRemovingFromContextTracksReasons { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(21, Name = @"disallow_updating_context_reasons")]
-        public global::System.Collections.Generic.List<string> DisallowUpdatingContextReasons { get; private set; }
+        public global::System.Collections.Generic.List<string> DisallowUpdatingContextReasons { get; } = new global::System.Collections.Generic.List<string>();
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

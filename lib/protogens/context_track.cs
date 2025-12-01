@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: context_track.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto
 {
 
@@ -11,16 +11,7 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ContextTrack()
-        {
-            Metadatas = new global::System.Collections.Generic.Dictionary<string, string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"uri")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -29,14 +20,8 @@ namespace spotify.player.proto
             get { return __pbn__Uri ?? ""; }
             set { __pbn__Uri = value; }
         }
-        public bool ShouldSerializeUri()
-        {
-            return __pbn__Uri != null;
-        }
-        public void ResetUri()
-        {
-            __pbn__Uri = null;
-        }
+        public bool ShouldSerializeUri() => __pbn__Uri != null;
+        public void ResetUri() => __pbn__Uri = null;
         private string __pbn__Uri;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"uid")]
@@ -46,14 +31,8 @@ namespace spotify.player.proto
             get { return __pbn__Uid ?? ""; }
             set { __pbn__Uid = value; }
         }
-        public bool ShouldSerializeUid()
-        {
-            return __pbn__Uid != null;
-        }
-        public void ResetUid()
-        {
-            __pbn__Uid = null;
-        }
+        public bool ShouldSerializeUid() => __pbn__Uid != null;
+        public void ResetUid() => __pbn__Uid = null;
         private string __pbn__Uid;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"gid")]
@@ -62,22 +41,16 @@ namespace spotify.player.proto
             get { return __pbn__Gid; }
             set { __pbn__Gid = value; }
         }
-        public bool ShouldSerializeGid()
-        {
-            return __pbn__Gid != null;
-        }
-        public void ResetGid()
-        {
-            __pbn__Gid = null;
-        }
+        public bool ShouldSerializeGid() => __pbn__Gid != null;
+        public void ResetGid() => __pbn__Gid = null;
         private byte[] __pbn__Gid;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"metadata")]
         [global::ProtoBuf.ProtoMap]
-        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; private set; }
+        public global::System.Collections.Generic.Dictionary<string, string> Metadatas { get; } = new global::System.Collections.Generic.Dictionary<string, string>();
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: canvaz.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace com.spotify.canvazcache
 {
 
@@ -11,30 +11,19 @@ namespace com.spotify.canvazcache
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Artist()
-        {
-            Uri = "";
-            Name = "";
-            Avatar = "";
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"uri")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Uri { get; set; }
+        public string Uri { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(2, Name = @"name")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [global::ProtoBuf.ProtoMember(3, Name = @"avatar")]
         [global::System.ComponentModel.DefaultValue("")]
-        public string Avatar { get; set; }
+        public string Avatar { get; set; } = "";
 
     }
 
@@ -43,19 +32,10 @@ namespace com.spotify.canvazcache
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityCanvazResponse()
-        {
-            Canvases = new global::System.Collections.Generic.List<Canvaz>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"canvases")]
-        public global::System.Collections.Generic.List<Canvaz> Canvases { get; private set; }
+        public global::System.Collections.Generic.List<Canvaz> Canvases { get; } = new global::System.Collections.Generic.List<Canvaz>();
 
         [global::ProtoBuf.ProtoMember(2, Name = @"ttl_in_seconds")]
         public long TtlInSeconds { get; set; }
@@ -65,41 +45,26 @@ namespace com.spotify.canvazcache
         {
             private global::ProtoBuf.IExtension __pbn__extensionData;
             global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            {
-                return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-            }
-            public Canvaz()
-            {
-                Id = "";
-                Url = "";
-                FileId = "";
-                EntityUri = "";
-                UploadedBy = "";
-                Etag = "";
-                CanvasUri = "";
-                OnConstructor();
-            }
-
-            partial void OnConstructor();
+                => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
             [global::ProtoBuf.ProtoMember(1, Name = @"id")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string Id { get; set; }
+            public string Id { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(2, Name = @"url")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string Url { get; set; }
+            public string Url { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(3, Name = @"file_id")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string FileId { get; set; }
+            public string FileId { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(4, Name = @"type")]
             public global::com.spotify.canvaz.Type Type { get; set; }
 
             [global::ProtoBuf.ProtoMember(5, Name = @"entity_uri")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string EntityUri { get; set; }
+            public string EntityUri { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(6, Name = @"artist")]
             public Artist Artist { get; set; }
@@ -109,15 +74,15 @@ namespace com.spotify.canvazcache
 
             [global::ProtoBuf.ProtoMember(8, Name = @"uploaded_by")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string UploadedBy { get; set; }
+            public string UploadedBy { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(9, Name = @"etag")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string Etag { get; set; }
+            public string Etag { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(11, Name = @"canvas_uri")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string CanvasUri { get; set; }
+            public string CanvasUri { get; set; } = "";
 
         }
 
@@ -128,44 +93,25 @@ namespace com.spotify.canvazcache
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityCanvazRequest()
-        {
-            Entities = new global::System.Collections.Generic.List<Entity>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"entities")]
-        public global::System.Collections.Generic.List<Entity> Entities { get; private set; }
+        public global::System.Collections.Generic.List<Entity> Entities { get; } = new global::System.Collections.Generic.List<Entity>();
 
         [global::ProtoBuf.ProtoContract()]
         public partial class Entity : global::ProtoBuf.IExtensible
         {
             private global::ProtoBuf.IExtension __pbn__extensionData;
             global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            {
-                return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-            }
-            public Entity()
-            {
-                EntityUri = "";
-                Etag = "";
-                OnConstructor();
-            }
-
-            partial void OnConstructor();
+                => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
             [global::ProtoBuf.ProtoMember(1, Name = @"entity_uri")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string EntityUri { get; set; }
+            public string EntityUri { get; set; } = "";
 
             [global::ProtoBuf.ProtoMember(2, Name = @"etag")]
             [global::System.ComponentModel.DefaultValue("")]
-            public string Etag { get; set; }
+            public string Etag { get; set; } = "";
 
         }
 
@@ -173,4 +119,4 @@ namespace com.spotify.canvazcache
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

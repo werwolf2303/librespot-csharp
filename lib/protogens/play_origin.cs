@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: play_origin.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto
 {
 
@@ -11,16 +11,7 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PlayOrigin()
-        {
-            FeatureClasses = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"feature_identifier")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -29,14 +20,8 @@ namespace spotify.player.proto
             get { return __pbn__FeatureIdentifier ?? ""; }
             set { __pbn__FeatureIdentifier = value; }
         }
-        public bool ShouldSerializeFeatureIdentifier()
-        {
-            return __pbn__FeatureIdentifier != null;
-        }
-        public void ResetFeatureIdentifier()
-        {
-            __pbn__FeatureIdentifier = null;
-        }
+        public bool ShouldSerializeFeatureIdentifier() => __pbn__FeatureIdentifier != null;
+        public void ResetFeatureIdentifier() => __pbn__FeatureIdentifier = null;
         private string __pbn__FeatureIdentifier;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"feature_version")]
@@ -46,14 +31,8 @@ namespace spotify.player.proto
             get { return __pbn__FeatureVersion ?? ""; }
             set { __pbn__FeatureVersion = value; }
         }
-        public bool ShouldSerializeFeatureVersion()
-        {
-            return __pbn__FeatureVersion != null;
-        }
-        public void ResetFeatureVersion()
-        {
-            __pbn__FeatureVersion = null;
-        }
+        public bool ShouldSerializeFeatureVersion() => __pbn__FeatureVersion != null;
+        public void ResetFeatureVersion() => __pbn__FeatureVersion = null;
         private string __pbn__FeatureVersion;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"view_uri")]
@@ -63,14 +42,8 @@ namespace spotify.player.proto
             get { return __pbn__ViewUri ?? ""; }
             set { __pbn__ViewUri = value; }
         }
-        public bool ShouldSerializeViewUri()
-        {
-            return __pbn__ViewUri != null;
-        }
-        public void ResetViewUri()
-        {
-            __pbn__ViewUri = null;
-        }
+        public bool ShouldSerializeViewUri() => __pbn__ViewUri != null;
+        public void ResetViewUri() => __pbn__ViewUri = null;
         private string __pbn__ViewUri;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"external_referrer")]
@@ -80,14 +53,8 @@ namespace spotify.player.proto
             get { return __pbn__ExternalReferrer ?? ""; }
             set { __pbn__ExternalReferrer = value; }
         }
-        public bool ShouldSerializeExternalReferrer()
-        {
-            return __pbn__ExternalReferrer != null;
-        }
-        public void ResetExternalReferrer()
-        {
-            __pbn__ExternalReferrer = null;
-        }
+        public bool ShouldSerializeExternalReferrer() => __pbn__ExternalReferrer != null;
+        public void ResetExternalReferrer() => __pbn__ExternalReferrer = null;
         private string __pbn__ExternalReferrer;
 
         [global::ProtoBuf.ProtoMember(5, Name = @"referrer_identifier")]
@@ -97,14 +64,8 @@ namespace spotify.player.proto
             get { return __pbn__ReferrerIdentifier ?? ""; }
             set { __pbn__ReferrerIdentifier = value; }
         }
-        public bool ShouldSerializeReferrerIdentifier()
-        {
-            return __pbn__ReferrerIdentifier != null;
-        }
-        public void ResetReferrerIdentifier()
-        {
-            __pbn__ReferrerIdentifier = null;
-        }
+        public bool ShouldSerializeReferrerIdentifier() => __pbn__ReferrerIdentifier != null;
+        public void ResetReferrerIdentifier() => __pbn__ReferrerIdentifier = null;
         private string __pbn__ReferrerIdentifier;
 
         [global::ProtoBuf.ProtoMember(6, Name = @"device_identifier")]
@@ -114,21 +75,15 @@ namespace spotify.player.proto
             get { return __pbn__DeviceIdentifier ?? ""; }
             set { __pbn__DeviceIdentifier = value; }
         }
-        public bool ShouldSerializeDeviceIdentifier()
-        {
-            return __pbn__DeviceIdentifier != null;
-        }
-        public void ResetDeviceIdentifier()
-        {
-            __pbn__DeviceIdentifier = null;
-        }
+        public bool ShouldSerializeDeviceIdentifier() => __pbn__DeviceIdentifier != null;
+        public void ResetDeviceIdentifier() => __pbn__DeviceIdentifier = null;
         private string __pbn__DeviceIdentifier;
 
         [global::ProtoBuf.ProtoMember(7, Name = @"feature_classes")]
-        public global::System.Collections.Generic.List<string> FeatureClasses { get; private set; }
+        public global::System.Collections.Generic.List<string> FeatureClasses { get; } = new global::System.Collections.Generic.List<string>();
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

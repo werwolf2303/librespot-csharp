@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: storage-resolve.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.download.proto
 {
 
@@ -11,22 +11,13 @@ namespace spotify.download.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public StorageResolveResponse()
-        {
-            Cdnurls = new global::System.Collections.Generic.List<string>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1)]
         public Result result { get; set; }
 
         [global::ProtoBuf.ProtoMember(2, Name = @"cdnurl")]
-        public global::System.Collections.Generic.List<string> Cdnurls { get; private set; }
+        public global::System.Collections.Generic.List<string> Cdnurls { get; } = new global::System.Collections.Generic.List<string>();
 
         [global::ProtoBuf.ProtoMember(4, Name = @"fileid")]
         public byte[] Fileid { get; set; }
@@ -46,4 +37,4 @@ namespace spotify.download.proto
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

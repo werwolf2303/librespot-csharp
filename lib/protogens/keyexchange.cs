@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: keyexchange.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace Spotify
 {
 
@@ -11,30 +11,19 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientHello()
-        {
-            FingerprintsSupporteds = new global::System.Collections.Generic.List<Fingerprint>();
-            CryptosuitesSupporteds = new global::System.Collections.Generic.List<Cryptosuite>();
-            PowschemesSupporteds = new global::System.Collections.Generic.List<Powscheme>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"build_info", IsRequired = true)]
         public BuildInfo BuildInfo { get; set; }
 
         [global::ProtoBuf.ProtoMember(20, Name = @"fingerprints_supported")]
-        public global::System.Collections.Generic.List<Fingerprint> FingerprintsSupporteds { get; private set; }
+        public global::System.Collections.Generic.List<Fingerprint> FingerprintsSupporteds { get; } = new global::System.Collections.Generic.List<Fingerprint>();
 
         [global::ProtoBuf.ProtoMember(30, Name = @"cryptosuites_supported")]
-        public global::System.Collections.Generic.List<Cryptosuite> CryptosuitesSupporteds { get; private set; }
+        public global::System.Collections.Generic.List<Cryptosuite> CryptosuitesSupporteds { get; } = new global::System.Collections.Generic.List<Cryptosuite>();
 
         [global::ProtoBuf.ProtoMember(40, Name = @"powschemes_supported")]
-        public global::System.Collections.Generic.List<Powscheme> PowschemesSupporteds { get; private set; }
+        public global::System.Collections.Generic.List<Powscheme> PowschemesSupporteds { get; } = new global::System.Collections.Generic.List<Powscheme>();
 
         [global::ProtoBuf.ProtoMember(50, Name = @"login_crypto_hello", IsRequired = true)]
         public LoginCryptoHelloUnion LoginCryptoHello { get; set; }
@@ -48,14 +37,8 @@ namespace Spotify
             get { return __pbn__Padding; }
             set { __pbn__Padding = value; }
         }
-        public bool ShouldSerializePadding()
-        {
-            return __pbn__Padding != null;
-        }
-        public void ResetPadding()
-        {
-            __pbn__Padding = null;
-        }
+        public bool ShouldSerializePadding() => __pbn__Padding != null;
+        public void ResetPadding() => __pbn__Padding = null;
         private byte[] __pbn__Padding;
 
         [global::ProtoBuf.ProtoMember(80, Name = @"feature_set")]
@@ -68,22 +51,13 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public BuildInfo()
-        {
-            ProductFlags = new global::System.Collections.Generic.List<ProductFlags>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"product", IsRequired = true)]
         public Product Product { get; set; }
 
         [global::ProtoBuf.ProtoMember(20, Name = @"product_flags")]
-        public global::System.Collections.Generic.List<ProductFlags> ProductFlags { get; private set; }
+        public global::System.Collections.Generic.List<ProductFlags> ProductFlags { get; } = new global::System.Collections.Generic.List<ProductFlags>();
 
         [global::ProtoBuf.ProtoMember(30, Name = @"platform", IsRequired = true)]
         public Platform Platform { get; set; }
@@ -98,15 +72,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoHelloUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"diffie_hellman")]
         public LoginCryptoDiffieHellmanHello DiffieHellman { get; set; }
@@ -118,15 +84,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoDiffieHellmanHello()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"gc", IsRequired = true)]
         public byte[] Gc { get; set; }
@@ -141,15 +99,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FeatureSet()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"autoupdate2")]
         public bool Autoupdate2
@@ -157,14 +107,8 @@ namespace Spotify
             get { return __pbn__Autoupdate2.GetValueOrDefault(); }
             set { __pbn__Autoupdate2 = value; }
         }
-        public bool ShouldSerializeAutoupdate2()
-        {
-            return __pbn__Autoupdate2 != null;
-        }
-        public void ResetAutoupdate2()
-        {
-            __pbn__Autoupdate2 = null;
-        }
+        public bool ShouldSerializeAutoupdate2() => __pbn__Autoupdate2 != null;
+        public void ResetAutoupdate2() => __pbn__Autoupdate2 = null;
         private bool? __pbn__Autoupdate2;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"current_location")]
@@ -173,14 +117,8 @@ namespace Spotify
             get { return __pbn__CurrentLocation.GetValueOrDefault(); }
             set { __pbn__CurrentLocation = value; }
         }
-        public bool ShouldSerializeCurrentLocation()
-        {
-            return __pbn__CurrentLocation != null;
-        }
-        public void ResetCurrentLocation()
-        {
-            __pbn__CurrentLocation = null;
-        }
+        public bool ShouldSerializeCurrentLocation() => __pbn__CurrentLocation != null;
+        public void ResetCurrentLocation() => __pbn__CurrentLocation = null;
         private bool? __pbn__CurrentLocation;
 
     }
@@ -190,15 +128,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public APResponseMessage()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"challenge")]
         public APChallenge Challenge { get; set; }
@@ -216,15 +146,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public APChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"login_crypto_challenge", IsRequired = true)]
         public LoginCryptoChallengeUnion LoginCryptoChallenge { get; set; }
@@ -247,14 +169,8 @@ namespace Spotify
             get { return __pbn__Padding; }
             set { __pbn__Padding = value; }
         }
-        public bool ShouldSerializePadding()
-        {
-            return __pbn__Padding != null;
-        }
-        public void ResetPadding()
-        {
-            __pbn__Padding = null;
-        }
+        public bool ShouldSerializePadding() => __pbn__Padding != null;
+        public void ResetPadding() => __pbn__Padding = null;
         private byte[] __pbn__Padding;
 
     }
@@ -264,15 +180,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoChallengeUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"diffie_hellman")]
         public LoginCryptoDiffieHellmanChallenge DiffieHellman { get; set; }
@@ -284,15 +192,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoDiffieHellmanChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"gs", IsRequired = true)]
         public byte[] Gs { get; set; }
@@ -310,15 +210,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintChallengeUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"grain")]
         public FingerprintGrainChallenge Grain { get; set; }
@@ -333,15 +225,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintGrainChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"kek", IsRequired = true)]
         public byte[] Kek { get; set; }
@@ -353,15 +237,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintHmacRipemdChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"challenge", IsRequired = true)]
         public byte[] Challenge { get; set; }
@@ -373,15 +249,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PoWChallengeUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"hash_cash")]
         public PoWHashCashChallenge HashCash { get; set; }
@@ -393,15 +261,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PoWHashCashChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"prefix")]
         public byte[] Prefix
@@ -409,14 +269,8 @@ namespace Spotify
             get { return __pbn__Prefix; }
             set { __pbn__Prefix = value; }
         }
-        public bool ShouldSerializePrefix()
-        {
-            return __pbn__Prefix != null;
-        }
-        public void ResetPrefix()
-        {
-            __pbn__Prefix = null;
-        }
+        public bool ShouldSerializePrefix() => __pbn__Prefix != null;
+        public void ResetPrefix() => __pbn__Prefix = null;
         private byte[] __pbn__Prefix;
 
         [global::ProtoBuf.ProtoMember(20, Name = @"length")]
@@ -425,14 +279,8 @@ namespace Spotify
             get { return __pbn__Length.GetValueOrDefault(); }
             set { __pbn__Length = value; }
         }
-        public bool ShouldSerializeLength()
-        {
-            return __pbn__Length != null;
-        }
-        public void ResetLength()
-        {
-            __pbn__Length = null;
-        }
+        public bool ShouldSerializeLength() => __pbn__Length != null;
+        public void ResetLength() => __pbn__Length = null;
         private int? __pbn__Length;
 
         [global::ProtoBuf.ProtoMember(30, Name = @"target")]
@@ -441,14 +289,8 @@ namespace Spotify
             get { return __pbn__Target.GetValueOrDefault(); }
             set { __pbn__Target = value; }
         }
-        public bool ShouldSerializeTarget()
-        {
-            return __pbn__Target != null;
-        }
-        public void ResetTarget()
-        {
-            __pbn__Target = null;
-        }
+        public bool ShouldSerializeTarget() => __pbn__Target != null;
+        public void ResetTarget() => __pbn__Target = null;
         private int? __pbn__Target;
 
     }
@@ -458,15 +300,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoChallengeUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"shannon")]
         public CryptoShannonChallenge Shannon { get; set; }
@@ -481,15 +315,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoShannonChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
     }
 
@@ -498,15 +324,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoRc4Sha1HmacChallenge()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
     }
 
@@ -515,15 +333,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public UpgradeRequiredMessage()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"upgrade_signed_part", IsRequired = true)]
         public byte[] UpgradeSignedPart { get; set; }
@@ -538,14 +348,8 @@ namespace Spotify
             get { return __pbn__HttpSuffix ?? ""; }
             set { __pbn__HttpSuffix = value; }
         }
-        public bool ShouldSerializeHttpSuffix()
-        {
-            return __pbn__HttpSuffix != null;
-        }
-        public void ResetHttpSuffix()
-        {
-            __pbn__HttpSuffix = null;
-        }
+        public bool ShouldSerializeHttpSuffix() => __pbn__HttpSuffix != null;
+        public void ResetHttpSuffix() => __pbn__HttpSuffix = null;
         private string __pbn__HttpSuffix;
 
     }
@@ -555,15 +359,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public APLoginFailed()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"error_code", IsRequired = true)]
         public ErrorCode ErrorCode { get; set; }
@@ -574,14 +370,8 @@ namespace Spotify
             get { return __pbn__RetryDelay.GetValueOrDefault(); }
             set { __pbn__RetryDelay = value; }
         }
-        public bool ShouldSerializeRetryDelay()
-        {
-            return __pbn__RetryDelay != null;
-        }
-        public void ResetRetryDelay()
-        {
-            __pbn__RetryDelay = null;
-        }
+        public bool ShouldSerializeRetryDelay() => __pbn__RetryDelay != null;
+        public void ResetRetryDelay() => __pbn__RetryDelay = null;
         private int? __pbn__RetryDelay;
 
         [global::ProtoBuf.ProtoMember(30, Name = @"expiry")]
@@ -590,14 +380,8 @@ namespace Spotify
             get { return __pbn__Expiry.GetValueOrDefault(); }
             set { __pbn__Expiry = value; }
         }
-        public bool ShouldSerializeExpiry()
-        {
-            return __pbn__Expiry != null;
-        }
-        public void ResetExpiry()
-        {
-            __pbn__Expiry = null;
-        }
+        public bool ShouldSerializeExpiry() => __pbn__Expiry != null;
+        public void ResetExpiry() => __pbn__Expiry = null;
         private int? __pbn__Expiry;
 
         [global::ProtoBuf.ProtoMember(40, Name = @"error_description")]
@@ -607,14 +391,8 @@ namespace Spotify
             get { return __pbn__ErrorDescription ?? ""; }
             set { __pbn__ErrorDescription = value; }
         }
-        public bool ShouldSerializeErrorDescription()
-        {
-            return __pbn__ErrorDescription != null;
-        }
-        public void ResetErrorDescription()
-        {
-            __pbn__ErrorDescription = null;
-        }
+        public bool ShouldSerializeErrorDescription() => __pbn__ErrorDescription != null;
+        public void ResetErrorDescription() => __pbn__ErrorDescription = null;
         private string __pbn__ErrorDescription;
 
     }
@@ -624,15 +402,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientResponsePlaintext()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"login_crypto_response", IsRequired = true)]
         public LoginCryptoResponseUnion LoginCryptoResponse { get; set; }
@@ -650,15 +420,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoResponseUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"diffie_hellman")]
         public LoginCryptoDiffieHellmanResponse DiffieHellman { get; set; }
@@ -670,15 +432,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCryptoDiffieHellmanResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"hmac", IsRequired = true)]
         public byte[] Hmac { get; set; }
@@ -690,15 +444,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PoWResponseUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"hash_cash")]
         public PoWHashCashResponse HashCash { get; set; }
@@ -710,15 +456,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PoWHashCashResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"hash_suffix", IsRequired = true)]
         public byte[] HashSuffix { get; set; }
@@ -730,15 +468,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoResponseUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"shannon")]
         public CryptoShannonResponse Shannon { get; set; }
@@ -753,15 +483,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoShannonResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"dummy")]
         public int Dummy
@@ -769,14 +491,8 @@ namespace Spotify
             get { return __pbn__Dummy.GetValueOrDefault(); }
             set { __pbn__Dummy = value; }
         }
-        public bool ShouldSerializeDummy()
-        {
-            return __pbn__Dummy != null;
-        }
-        public void ResetDummy()
-        {
-            __pbn__Dummy = null;
-        }
+        public bool ShouldSerializeDummy() => __pbn__Dummy != null;
+        public void ResetDummy() => __pbn__Dummy = null;
         private int? __pbn__Dummy;
 
     }
@@ -786,15 +502,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public CryptoRc4Sha1HmacResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"dummy")]
         public int Dummy
@@ -802,14 +510,8 @@ namespace Spotify
             get { return __pbn__Dummy.GetValueOrDefault(); }
             set { __pbn__Dummy = value; }
         }
-        public bool ShouldSerializeDummy()
-        {
-            return __pbn__Dummy != null;
-        }
-        public void ResetDummy()
-        {
-            __pbn__Dummy = null;
-        }
+        public bool ShouldSerializeDummy() => __pbn__Dummy != null;
+        public void ResetDummy() => __pbn__Dummy = null;
         private int? __pbn__Dummy;
 
     }
@@ -934,4 +636,4 @@ namespace Spotify
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

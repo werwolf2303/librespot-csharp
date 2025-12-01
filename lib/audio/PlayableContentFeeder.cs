@@ -11,7 +11,6 @@ using lib.core;
 using lib.dealer;
 using lib.metadata;
 using log4net;
-using Newtonsoft.Json.Linq;
 using ProtoBuf;
 using spotify.download.proto;
 using spotify.metadata.proto;
@@ -37,6 +36,7 @@ namespace lib.audio
             
             foreach (Track alt in track.Alternatives) {
                 if (alt.Files.Count > 0) {
+                    track.Files.Clear();
                     track.Files.AddRange(alt.Files);
                     return track;
                 }

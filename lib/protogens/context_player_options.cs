@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: context_player_options.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto
 {
 
@@ -11,15 +11,7 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ContextPlayerOptions()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"shuffling_context")]
         public bool ShufflingContext
@@ -27,14 +19,8 @@ namespace spotify.player.proto
             get { return __pbn__ShufflingContext.GetValueOrDefault(); }
             set { __pbn__ShufflingContext = value; }
         }
-        public bool ShouldSerializeShufflingContext()
-        {
-            return __pbn__ShufflingContext != null;
-        }
-        public void ResetShufflingContext()
-        {
-            __pbn__ShufflingContext = null;
-        }
+        public bool ShouldSerializeShufflingContext() => __pbn__ShufflingContext != null;
+        public void ResetShufflingContext() => __pbn__ShufflingContext = null;
         private bool? __pbn__ShufflingContext;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"repeating_context")]
@@ -43,14 +29,8 @@ namespace spotify.player.proto
             get { return __pbn__RepeatingContext.GetValueOrDefault(); }
             set { __pbn__RepeatingContext = value; }
         }
-        public bool ShouldSerializeRepeatingContext()
-        {
-            return __pbn__RepeatingContext != null;
-        }
-        public void ResetRepeatingContext()
-        {
-            __pbn__RepeatingContext = null;
-        }
+        public bool ShouldSerializeRepeatingContext() => __pbn__RepeatingContext != null;
+        public void ResetRepeatingContext() => __pbn__RepeatingContext = null;
         private bool? __pbn__RepeatingContext;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"repeating_track")]
@@ -59,14 +39,8 @@ namespace spotify.player.proto
             get { return __pbn__RepeatingTrack.GetValueOrDefault(); }
             set { __pbn__RepeatingTrack = value; }
         }
-        public bool ShouldSerializeRepeatingTrack()
-        {
-            return __pbn__RepeatingTrack != null;
-        }
-        public void ResetRepeatingTrack()
-        {
-            __pbn__RepeatingTrack = null;
-        }
+        public bool ShouldSerializeRepeatingTrack() => __pbn__RepeatingTrack != null;
+        public void ResetRepeatingTrack() => __pbn__RepeatingTrack = null;
         private bool? __pbn__RepeatingTrack;
 
     }
@@ -76,15 +50,7 @@ namespace spotify.player.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ContextPlayerOptionOverrides()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"shuffling_context")]
         public bool ShufflingContext
@@ -92,14 +58,8 @@ namespace spotify.player.proto
             get { return __pbn__ShufflingContext.GetValueOrDefault(); }
             set { __pbn__ShufflingContext = value; }
         }
-        public bool ShouldSerializeShufflingContext()
-        {
-            return __pbn__ShufflingContext != null;
-        }
-        public void ResetShufflingContext()
-        {
-            __pbn__ShufflingContext = null;
-        }
+        public bool ShouldSerializeShufflingContext() => __pbn__ShufflingContext != null;
+        public void ResetShufflingContext() => __pbn__ShufflingContext = null;
         private bool? __pbn__ShufflingContext;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"repeating_context")]
@@ -108,14 +68,8 @@ namespace spotify.player.proto
             get { return __pbn__RepeatingContext.GetValueOrDefault(); }
             set { __pbn__RepeatingContext = value; }
         }
-        public bool ShouldSerializeRepeatingContext()
-        {
-            return __pbn__RepeatingContext != null;
-        }
-        public void ResetRepeatingContext()
-        {
-            __pbn__RepeatingContext = null;
-        }
+        public bool ShouldSerializeRepeatingContext() => __pbn__RepeatingContext != null;
+        public void ResetRepeatingContext() => __pbn__RepeatingContext = null;
         private bool? __pbn__RepeatingContext;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"repeating_track")]
@@ -124,18 +78,12 @@ namespace spotify.player.proto
             get { return __pbn__RepeatingTrack.GetValueOrDefault(); }
             set { __pbn__RepeatingTrack = value; }
         }
-        public bool ShouldSerializeRepeatingTrack()
-        {
-            return __pbn__RepeatingTrack != null;
-        }
-        public void ResetRepeatingTrack()
-        {
-            __pbn__RepeatingTrack = null;
-        }
+        public bool ShouldSerializeRepeatingTrack() => __pbn__RepeatingTrack != null;
+        public void ResetRepeatingTrack() => __pbn__RepeatingTrack = null;
         private bool? __pbn__RepeatingTrack;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

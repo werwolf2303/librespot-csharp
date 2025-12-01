@@ -16,14 +16,14 @@ namespace lib.cache
         private static int MAX_HEADERS = 8;
         private static int JOURNAL_ENTRY_SIZE = MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (1 + MAX_HEADER_LENGTH) * MAX_HEADERS;
         private static byte[] ZERO_ARRAY = new byte[JOURNAL_ENTRY_SIZE];
-        private static FileStream io;
-        private Dictionary<String, Entry> entries = new Dictionary<string, Entry>(1024);
+        private static FileStream _io;
+        private Dictionary<String, Entry> _entries = new Dictionary<string, Entry>(1024);
 
         public void Dispose()
         {
-            entries.Clear();
+            _entries.Clear();
             ZERO_ARRAY = new byte[JOURNAL_ENTRY_SIZE];
-            io.Dispose();
+            _io.Dispose();
         }
 
         /// <exception cref="IOException"></exception>
@@ -39,11 +39,11 @@ namespace lib.cache
                 }
             }
 
-            io = new FileStream(file, FileMode.Open, FileAccess.ReadWrite);
+            _io = new FileStream(file, FileMode.Open, FileAccess.ReadWrite);
         }
 
         /// <exception cref="IOException"></exception>
-        private static bool checkId(FileStream io, int first, byte[] id)
+        private static bool CheckId(FileStream io, int first, byte[] id)
         {
             for (int i = 0; i < id.Length; i++)
             {
@@ -58,7 +58,7 @@ namespace lib.cache
             return true;
         }
 
-        private static String trimArrayToNullTerminator(byte[] bytes)
+        private static String TrimArrayToNullTerminator(byte[] bytes)
         {
             for (int i = 0; i < bytes.Length; i++)
                 if (bytes[i] == 0)
@@ -67,57 +67,57 @@ namespace lib.cache
         }
 
         /// <exception cref="ArgumentException"></exception>
-        public bool hasChunk(String streamId, int index)
-        {
-            if (index < 0 || index > MAX_HEADERS) throw new ArgumentException("Illegal argument");
-
-            Entry entry = find(streamId);
-            if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
-
-            lock (io) { 
-                return entry.hasChunk(index);
-            }
-        }
-
-        /// <exception cref="IOException"></exception>
-        public void setChunk(String streamId, int index, bool val)
+        public bool HasChunk(String streamId, int index)
         {
             if (index < 0 || index > MAX_CHUNKS) throw new ArgumentException("Illegal argument");
 
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            lock (io) { 
+            lock (_io) { 
+                return entry.hasChunk(index);
+            }
+        }
+
+        /// <exception cref="IOException"></exception>
+        public void SetChunk(String streamId, int index, bool val)
+        {
+            if (index < 0 || index > MAX_CHUNKS) throw new ArgumentException("Illegal argument");
+
+            Entry entry = find(streamId);
+            if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
+
+            lock (_io) { 
                 entry.setChunk(index, val);
             }
         }
 
         /// <exception cref="IOException"></exception>
-        public List<JournalHeader> getHeaders(String streamId)
+        public List<JournalHeader> GetHeaders(String streamId)
         {
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            lock (io)
+            lock (_io)
             {
                 return entry.getHeaders();
             }
         }
 
         /// <exception cref="IOException"></exception>
-        public JournalHeader getHeader(String streamId, int id)
+        public JournalHeader GetHeader(String streamId, int id)
         {
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            lock (io)
+            lock (_io)
             {
                 return entry.getHeader(id);
             }
         }
 
         /// <exception cref="IOException"></exception>
-        public void setHeader(String streamId, int headerId, byte[] value)
+        public void SetHeader(String streamId, int headerId, byte[] value)
         {
             String strValue = Utils.bytesToHex(value);
 
@@ -127,24 +127,24 @@ namespace lib.cache
             Entry entry = find(streamId);
             if (entry == null) throw new JournalException("Couldn't find entry on journal: " + streamId);
 
-            lock (io)
+            lock (_io)
             {
                 entry.setHeader(headerId, strValue);
             }
         }
 
         /// <exception cref="IOException"></exception>
-        public void remove(String streamId)
+        public void Remove(String streamId)
         {
             Entry entry = find(streamId);
             if (entry == null) return;
 
-            lock (io)
+            lock (_io)
             {
                 entry.remove();
             }
 
-            entries.Remove(streamId);
+            _entries.Remove(streamId);
         }
 
         /// <exception cref="IOException"></exception>
@@ -152,16 +152,16 @@ namespace lib.cache
         {
             List<string> list = new List<string>(1024);
 
-            lock (io)
+            lock (_io)
             {
-                io.Seek(0, SeekOrigin.Begin);
+                _io.Seek(0, SeekOrigin.Begin);
 
                 int i = 0;
                 while (true)
                 {
-                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                    _io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
 
-                    int first = io.ReadByte();
+                    int first = _io.ReadByte();
                     if (first == -1) // EOF
                         break;
 
@@ -174,11 +174,11 @@ namespace lib.cache
 
                     byte[] id = new byte[MAX_ID_LENGTH];
                     id[0] = (byte)first;
-                    io.Read(id, 1, MAX_ID_LENGTH - 1);
+                    _io.Read(id, 1, MAX_ID_LENGTH - 1);
 
-                    String idStr = trimArrayToNullTerminator(id);
+                    String idStr = TrimArrayToNullTerminator(id);
                     Entry entry = new Entry(idStr, i * JOURNAL_ENTRY_SIZE);
-                    entries.Add(idStr, entry);
+                    _entries.Add(idStr, entry);
                     list.Add(idStr);
 
                     i++;
@@ -193,21 +193,21 @@ namespace lib.cache
         {
             if (id.Length > MAX_ID_LENGTH) throw new ArgumentException("Illegal argument");
 
-            Entry entry = entries.TryGetValue(id, out Entry result) ? result : null;
+            Entry entry = _entries.TryGetValue(id, out Entry result) ? result : null;
             if (entry != null) return entry;
 
             byte[] idBytes = Encoding.ASCII.GetBytes(id);
 
-            lock (io)
+            lock (_io)
             {
-                io.Seek(0, SeekOrigin.Begin);
+                _io.Seek(0, SeekOrigin.Begin);
 
                 int i = 0;
                 while (true)
                 {
-                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                    _io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
 
-                    int first = io.ReadByte();
+                    int first = _io.ReadByte();
                     if (first == -1) // EOF
                         return null;
 
@@ -218,10 +218,10 @@ namespace lib.cache
                         continue;
                     }
 
-                    if (checkId(io, first, idBytes))
+                    if (CheckId(_io, first, idBytes))
                     {
                         entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
-                        entries.Add(id, entry);
+                        _entries.Add(id, entry);
                         return entry;
                     }
 
@@ -235,22 +235,22 @@ namespace lib.cache
         {
             if (find(id) != null) return;
 
-            lock (io)
+            lock (_io)
             {
-                io.Seek(0, SeekOrigin.Begin);
+                _io.Seek(0, SeekOrigin.Begin);
 
                 int i = 0;
                 while (true)
                 {
-                    io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
+                    _io.Seek((long)i * JOURNAL_ENTRY_SIZE, SeekOrigin.Begin);
 
-                    int first = io.ReadByte();
+                    int first = _io.ReadByte();
                     if (first == 0 || first == -1)
                     {
                         // First empty spot or EOF
                         Entry entry = new Entry(id, i * JOURNAL_ENTRY_SIZE);
                         entry.writeId();
-                        entries.Add(id, entry);
+                        _entries.Add(id, entry);
                         return;
                     }
 
@@ -262,9 +262,9 @@ namespace lib.cache
         /// <exception cref="IOException"></exception>
         public void close()
         {
-            lock (io)
+            lock (_io)
             {
-                io.Close();
+                _io.Close();
             }
         }
 
@@ -291,17 +291,17 @@ namespace lib.cache
             /// <exception cref="IOException"></exception>
             public void writeId()
             {
-                io.Seek(offset, SeekOrigin.Begin);
+                _io.Seek(offset, SeekOrigin.Begin);
                 var bytes = Encoding.ASCII.GetBytes(id);
-                io.Write(bytes, 0, bytes.Length);
-                io.Write(ZERO_ARRAY, 0, JOURNAL_ENTRY_SIZE - id.Length);
+                _io.Write(bytes, 0, bytes.Length);
+                _io.Write(ZERO_ARRAY, 0, JOURNAL_ENTRY_SIZE - id.Length);
             }
 
             /// <exception cref="IOException"></exception>
             public void remove()
             {
-                io.Seek(offset, SeekOrigin.Begin);
-                io.WriteByte(0);
+                _io.Seek(offset, SeekOrigin.Begin);
+                _io.WriteByte(0);
             }
 
             /// <exception cref="IOException"></exception>
@@ -309,8 +309,8 @@ namespace lib.cache
             {
                 for (int i = 0; i < MAX_HEADERS; i++)
                 {
-                    io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
-                    if ((io.ReadByte() & 0xFF) == headerId)
+                    _io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
+                    if ((_io.ReadByte() & 0xFF) == headerId)
                         return i;
                 }
 
@@ -325,8 +325,8 @@ namespace lib.cache
                 {
                     for (int i = 0; i < MAX_HEADERS; i++)
                     {
-                        io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
-                        if (io.ReadByte() == 0)
+                        _io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
+                        if (_io.ReadByte() == 0)
                         {
                             index = i;
                             break;
@@ -336,10 +336,10 @@ namespace lib.cache
                     if (index == -1) throw new Exception("Illegal state");
                 }
 
-                io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
-                io.WriteByte((byte) id);
+                _io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
+                _io.WriteByte((byte) id);
                 var bytes = Encoding.ASCII.GetBytes(value);
-                io.Write(bytes, 0, bytes.Length);
+                _io.Write(bytes, 0, bytes.Length);
             }
 
             /// <exception cref="IOException"></exception>
@@ -348,15 +348,15 @@ namespace lib.cache
                 List<JournalHeader> list = new List<JournalHeader>(MAX_HEADERS);
                 for (int i = 0; i < MAX_HEADERS; i++)
                 {
-                    io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
+                    _io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + i * (MAX_HEADER_LENGTH + 1), SeekOrigin.Begin);
                     int headerId;
-                    if ((headerId = io.ReadByte()) == 0)
+                    if ((headerId = _io.ReadByte()) == 0)
                         continue;
 
                     byte[] read = new byte[MAX_HEADER_LENGTH];
-                    io.Read(read, (int) io.Position, MAX_HEADER_LENGTH);
+                    _io.Read(read, (int) _io.Position, MAX_HEADER_LENGTH);
 
-                    list.Add(new JournalHeader((byte)headerId, trimArrayToNullTerminator(read)));
+                    list.Add(new JournalHeader((byte)headerId, TrimArrayToNullTerminator(read)));
                 }
 
                 return list;
@@ -368,30 +368,30 @@ namespace lib.cache
                 int index = findHeader(id);
                 if (index == -1) return null;
 
-                io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1) + 1, SeekOrigin.Begin);
+                _io.Seek(offset + MAX_ID_LENGTH + MAX_CHUNKS_SIZE + (long)index * (MAX_HEADER_LENGTH + 1) + 1, SeekOrigin.Begin);
                 byte[] read = new byte[MAX_HEADER_LENGTH];
-                io.Read(read, 0, MAX_HEADER_LENGTH);
+                _io.Read(read, 0, MAX_HEADER_LENGTH);
 
-                return new JournalHeader(id, trimArrayToNullTerminator(read));
+                return new JournalHeader(id, TrimArrayToNullTerminator(read));
             }
 
             /// <exception cref="IOException"></exception>
             public void setChunk(int index, bool val)
             {
                 int pos = offset + MAX_ID_LENGTH + (index / 8);
-                io.Seek(pos, SeekOrigin.Begin);
-                int read = io.ReadByte();
+                _io.Seek(pos, SeekOrigin.Begin);
+                int read = _io.ReadByte();
                 if (val) read |= (1 << (index % 8));
                 else read &= ~(1 << (index % 8));
-                io.Seek(pos, SeekOrigin.Begin);
-                io.WriteByte(BitConverter.GetBytes(read)[0]);
+                _io.Seek(pos, SeekOrigin.Begin);
+                _io.WriteByte(BitConverter.GetBytes(read)[0]);
             }
 
             /// <exception cref="IOException"></exception>
             public bool hasChunk(int index)
             {
-                io.Seek(offset + MAX_ID_LENGTH + (index / 8), SeekOrigin.Begin);
-                return ((io.ReadByte() >> index % 8) & 1) == 1;
+                _io.Seek(offset + MAX_ID_LENGTH + (index / 8), SeekOrigin.Begin);
+                return ((_io.ReadByte() >> index % 8) & 1) == 1;
             }
         }
     }

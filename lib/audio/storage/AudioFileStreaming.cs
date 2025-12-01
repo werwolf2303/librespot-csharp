@@ -62,7 +62,7 @@ namespace lib.audio.storage
             {
                 try
                 {
-                    _session.GetChannel().requestChunk(fileId, index, file);
+                    _session.GetChannel().RequestChunk(fileId, index, file);
                 }
                 catch (IOException ex)
                 {
@@ -98,7 +98,7 @@ namespace lib.audio.storage
                 return false;
 
             JournalHeader cdnHeader;
-            if ((cdnHeader = JournalHeader.find(headers, AudioFileFetch.HEADER_CON)) != null)
+            if ((cdnHeader = JournalHeader.find(headers, AudioFileFetch.HEADER_CDN)) != null)
                 throw new AudioFileFetch.StorageNotAvailable(Encoding.UTF8.GetString(cdnHeader.value));
 
             foreach (JournalHeader header in headers)

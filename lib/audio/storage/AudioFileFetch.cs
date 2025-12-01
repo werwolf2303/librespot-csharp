@@ -11,7 +11,7 @@ namespace lib.audio.storage
     public class AudioFileFetch : AudioFile
     {
         public static byte HEADER_SIZE = 0x3;
-        public static byte HEADER_CON = 0x4;
+        public static byte HEADER_CDN = 0x4;
         private static ILog LOGGER = LogManager.GetLogger(typeof(AudioFileFetch));
         private CacheManager.Handler _cache;
         private int _size = -1;
@@ -59,9 +59,10 @@ namespace lib.audio.storage
                     _exception = null;
                     Monitor.PulseAll(_lock);
                 }
-                else
+                else if (id == HEADER_CDN)
                 {
                     _exception = new StorageNotAvailable(Encoding.UTF8.GetString(bytes));
+                    Monitor.PulseAll(_lock);
                 }
             }
         }

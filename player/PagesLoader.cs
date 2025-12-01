@@ -138,7 +138,6 @@ namespace player
             }
             catch (Exception ex)
             {
-                throw;
                 return false;
             }
         }

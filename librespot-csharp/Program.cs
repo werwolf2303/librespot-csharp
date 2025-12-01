@@ -51,13 +51,12 @@ namespace librespot
             configuration.SetStoreCredentials(true);
             configuration.SetStoredCredentialsFile("credentials.json");
             configuration.SetCacheEnabled(false);
+            configuration.SetProxy(new WebProxy("127.0.0.1", 8080));
 
             Session.Builder builder = new Session.Builder(configuration.Build());
 
             builder.OAuth();
             Session session = builder.Create();
-
-            session.GetClient().Proxy = new WebProxy("127.0.0.1", 8080);
             
             PlayerConfiguration playercfg = new PlayerConfiguration.Builder()
                 .SetOutput(PlayerConfiguration.AudioOutput.MIXER)
@@ -67,7 +66,7 @@ namespace librespot
 
             Player player = new Player(playercfg, session);
             
-            //player.Load("spotify:track:5WHTFyqSii0lmT9R21abT8", false, false);
+            player.Load("spotify:track:5WHTFyqSii0lmT9R21abT8", true, false);
             
             //Application.Run(new TestForm(player));
         }

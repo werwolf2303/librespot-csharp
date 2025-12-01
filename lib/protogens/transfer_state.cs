@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: transfer_state.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto.transfer
 {
 
@@ -11,15 +11,7 @@ namespace spotify.player.proto.transfer
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public TransferState()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"options")]
         public global::spotify.player.proto.ContextPlayerOptions Options { get; set; }
@@ -39,18 +31,12 @@ namespace spotify.player.proto.transfer
             get { return __pbn__CreationTimestamp.GetValueOrDefault(); }
             set { __pbn__CreationTimestamp = value; }
         }
-        public bool ShouldSerializeCreationTimestamp()
-        {
-            return __pbn__CreationTimestamp != null;
-        }
-        public void ResetCreationTimestamp()
-        {
-            __pbn__CreationTimestamp = null;
-        }
+        public bool ShouldSerializeCreationTimestamp() => __pbn__CreationTimestamp != null;
+        public void ResetCreationTimestamp() => __pbn__CreationTimestamp = null;
         private long? __pbn__CreationTimestamp;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: playlist_annotate3.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotifyplaylistannotate3.proto
 {
 
@@ -11,15 +11,7 @@ namespace spotifyplaylistannotate3.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public TakedownRequest()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"abuse_report_state")]
         [global::System.ComponentModel.DefaultValue(AbuseReportState.Ok)]
@@ -28,14 +20,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__AbuseReportState ?? AbuseReportState.Ok; }
             set { __pbn__AbuseReportState = value; }
         }
-        public bool ShouldSerializeAbuseReportState()
-        {
-            return __pbn__AbuseReportState != null;
-        }
-        public void ResetAbuseReportState()
-        {
-            __pbn__AbuseReportState = null;
-        }
+        public bool ShouldSerializeAbuseReportState() => __pbn__AbuseReportState != null;
+        public void ResetAbuseReportState() => __pbn__AbuseReportState = null;
         private AbuseReportState? __pbn__AbuseReportState;
 
     }
@@ -45,15 +31,7 @@ namespace spotifyplaylistannotate3.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public AnnotateRequest()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"description")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -62,14 +40,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__Description ?? ""; }
             set { __pbn__Description = value; }
         }
-        public bool ShouldSerializeDescription()
-        {
-            return __pbn__Description != null;
-        }
-        public void ResetDescription()
-        {
-            __pbn__Description = null;
-        }
+        public bool ShouldSerializeDescription() => __pbn__Description != null;
+        public void ResetDescription() => __pbn__Description = null;
         private string __pbn__Description;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"image_uri")]
@@ -79,14 +51,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__ImageUri ?? ""; }
             set { __pbn__ImageUri = value; }
         }
-        public bool ShouldSerializeImageUri()
-        {
-            return __pbn__ImageUri != null;
-        }
-        public void ResetImageUri()
-        {
-            __pbn__ImageUri = null;
-        }
+        public bool ShouldSerializeImageUri() => __pbn__ImageUri != null;
+        public void ResetImageUri() => __pbn__ImageUri = null;
         private string __pbn__ImageUri;
 
     }
@@ -96,15 +62,7 @@ namespace spotifyplaylistannotate3.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public TranscodedPicture()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"target_name")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -113,14 +71,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__TargetName ?? ""; }
             set { __pbn__TargetName = value; }
         }
-        public bool ShouldSerializeTargetName()
-        {
-            return __pbn__TargetName != null;
-        }
-        public void ResetTargetName()
-        {
-            __pbn__TargetName = null;
-        }
+        public bool ShouldSerializeTargetName() => __pbn__TargetName != null;
+        public void ResetTargetName() => __pbn__TargetName = null;
         private string __pbn__TargetName;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"uri")]
@@ -130,14 +82,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__Uri ?? ""; }
             set { __pbn__Uri = value; }
         }
-        public bool ShouldSerializeUri()
-        {
-            return __pbn__Uri != null;
-        }
-        public void ResetUri()
-        {
-            __pbn__Uri = null;
-        }
+        public bool ShouldSerializeUri() => __pbn__Uri != null;
+        public void ResetUri() => __pbn__Uri = null;
         private string __pbn__Uri;
 
     }
@@ -147,16 +93,7 @@ namespace spotifyplaylistannotate3.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PlaylistAnnotation()
-        {
-            TranscodedPictures = new global::System.Collections.Generic.List<TranscodedPicture>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"description")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -165,14 +102,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__Description ?? ""; }
             set { __pbn__Description = value; }
         }
-        public bool ShouldSerializeDescription()
-        {
-            return __pbn__Description != null;
-        }
-        public void ResetDescription()
-        {
-            __pbn__Description = null;
-        }
+        public bool ShouldSerializeDescription() => __pbn__Description != null;
+        public void ResetDescription() => __pbn__Description = null;
         private string __pbn__Description;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"picture")]
@@ -182,14 +113,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__Picture ?? ""; }
             set { __pbn__Picture = value; }
         }
-        public bool ShouldSerializePicture()
-        {
-            return __pbn__Picture != null;
-        }
-        public void ResetPicture()
-        {
-            __pbn__Picture = null;
-        }
+        public bool ShouldSerializePicture() => __pbn__Picture != null;
+        public void ResetPicture() => __pbn__Picture = null;
         private string __pbn__Picture;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"deprecated_render_features")]
@@ -200,18 +125,12 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__DeprecatedRenderFeatures ?? RenderFeatures.NormalFeatures; }
             set { __pbn__DeprecatedRenderFeatures = value; }
         }
-        public bool ShouldSerializeDeprecatedRenderFeatures()
-        {
-            return __pbn__DeprecatedRenderFeatures != null;
-        }
-        public void ResetDeprecatedRenderFeatures()
-        {
-            __pbn__DeprecatedRenderFeatures = null;
-        }
+        public bool ShouldSerializeDeprecatedRenderFeatures() => __pbn__DeprecatedRenderFeatures != null;
+        public void ResetDeprecatedRenderFeatures() => __pbn__DeprecatedRenderFeatures = null;
         private RenderFeatures? __pbn__DeprecatedRenderFeatures;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"transcoded_picture")]
-        public global::System.Collections.Generic.List<TranscodedPicture> TranscodedPictures { get; private set; }
+        public global::System.Collections.Generic.List<TranscodedPicture> TranscodedPictures { get; } = new global::System.Collections.Generic.List<TranscodedPicture>();
 
         [global::ProtoBuf.ProtoMember(6, Name = @"is_abuse_reporting_enabled")]
         [global::System.ComponentModel.DefaultValue(true)]
@@ -220,14 +139,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__IsAbuseReportingEnabled ?? true; }
             set { __pbn__IsAbuseReportingEnabled = value; }
         }
-        public bool ShouldSerializeIsAbuseReportingEnabled()
-        {
-            return __pbn__IsAbuseReportingEnabled != null;
-        }
-        public void ResetIsAbuseReportingEnabled()
-        {
-            __pbn__IsAbuseReportingEnabled = null;
-        }
+        public bool ShouldSerializeIsAbuseReportingEnabled() => __pbn__IsAbuseReportingEnabled != null;
+        public void ResetIsAbuseReportingEnabled() => __pbn__IsAbuseReportingEnabled = null;
         private bool? __pbn__IsAbuseReportingEnabled;
 
         [global::ProtoBuf.ProtoMember(7, Name = @"abuse_report_state")]
@@ -237,14 +150,8 @@ namespace spotifyplaylistannotate3.proto
             get { return __pbn__AbuseReportState ?? AbuseReportState.Ok; }
             set { __pbn__AbuseReportState = value; }
         }
-        public bool ShouldSerializeAbuseReportState()
-        {
-            return __pbn__AbuseReportState != null;
-        }
-        public void ResetAbuseReportState()
-        {
-            __pbn__AbuseReportState = null;
-        }
+        public bool ShouldSerializeAbuseReportState() => __pbn__AbuseReportState != null;
+        public void ResetAbuseReportState() => __pbn__AbuseReportState = null;
         private AbuseReportState? __pbn__AbuseReportState;
 
     }
@@ -269,4 +176,4 @@ namespace spotifyplaylistannotate3.proto
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

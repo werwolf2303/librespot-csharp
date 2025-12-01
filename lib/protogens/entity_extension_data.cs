@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: entity_extension_data.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.extendedmetadata.proto
 {
 
@@ -11,15 +11,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityExtensionDataHeader()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"status_code")]
         public int StatusCode
@@ -27,14 +19,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__StatusCode.GetValueOrDefault(); }
             set { __pbn__StatusCode = value; }
         }
-        public bool ShouldSerializeStatusCode()
-        {
-            return __pbn__StatusCode != null;
-        }
-        public void ResetStatusCode()
-        {
-            __pbn__StatusCode = null;
-        }
+        public bool ShouldSerializeStatusCode() => __pbn__StatusCode != null;
+        public void ResetStatusCode() => __pbn__StatusCode = null;
         private int? __pbn__StatusCode;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"etag")]
@@ -44,14 +30,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__Etag ?? ""; }
             set { __pbn__Etag = value; }
         }
-        public bool ShouldSerializeEtag()
-        {
-            return __pbn__Etag != null;
-        }
-        public void ResetEtag()
-        {
-            __pbn__Etag = null;
-        }
+        public bool ShouldSerializeEtag() => __pbn__Etag != null;
+        public void ResetEtag() => __pbn__Etag = null;
         private string __pbn__Etag;
 
         [global::ProtoBuf.ProtoMember(3, Name = @"locale")]
@@ -61,14 +41,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__Locale ?? ""; }
             set { __pbn__Locale = value; }
         }
-        public bool ShouldSerializeLocale()
-        {
-            return __pbn__Locale != null;
-        }
-        public void ResetLocale()
-        {
-            __pbn__Locale = null;
-        }
+        public bool ShouldSerializeLocale() => __pbn__Locale != null;
+        public void ResetLocale() => __pbn__Locale = null;
         private string __pbn__Locale;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"cache_ttl_in_seconds")]
@@ -77,14 +51,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__CacheTtlInSeconds.GetValueOrDefault(); }
             set { __pbn__CacheTtlInSeconds = value; }
         }
-        public bool ShouldSerializeCacheTtlInSeconds()
-        {
-            return __pbn__CacheTtlInSeconds != null;
-        }
-        public void ResetCacheTtlInSeconds()
-        {
-            __pbn__CacheTtlInSeconds = null;
-        }
+        public bool ShouldSerializeCacheTtlInSeconds() => __pbn__CacheTtlInSeconds != null;
+        public void ResetCacheTtlInSeconds() => __pbn__CacheTtlInSeconds = null;
         private long? __pbn__CacheTtlInSeconds;
 
         [global::ProtoBuf.ProtoMember(5, Name = @"offline_ttl_in_seconds")]
@@ -93,14 +61,8 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__OfflineTtlInSeconds.GetValueOrDefault(); }
             set { __pbn__OfflineTtlInSeconds = value; }
         }
-        public bool ShouldSerializeOfflineTtlInSeconds()
-        {
-            return __pbn__OfflineTtlInSeconds != null;
-        }
-        public void ResetOfflineTtlInSeconds()
-        {
-            __pbn__OfflineTtlInSeconds = null;
-        }
+        public bool ShouldSerializeOfflineTtlInSeconds() => __pbn__OfflineTtlInSeconds != null;
+        public void ResetOfflineTtlInSeconds() => __pbn__OfflineTtlInSeconds = null;
         private long? __pbn__OfflineTtlInSeconds;
 
     }
@@ -110,15 +72,7 @@ namespace spotify.extendedmetadata.proto
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public EntityExtensionData()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"header")]
         public EntityExtensionDataHeader Header { get; set; }
@@ -130,17 +84,45 @@ namespace spotify.extendedmetadata.proto
             get { return __pbn__EntityUri ?? ""; }
             set { __pbn__EntityUri = value; }
         }
-        public bool ShouldSerializeEntityUri()
-        {
-            return __pbn__EntityUri != null;
-        }
-        public void ResetEntityUri()
-        {
-            __pbn__EntityUri = null;
-        }
+        public bool ShouldSerializeEntityUri() => __pbn__EntityUri != null;
+        public void ResetEntityUri() => __pbn__EntityUri = null;
         private string __pbn__EntityUri;
+
+        [global::ProtoBuf.ProtoMember(3, Name = @"extension_data")]
+        public Any ExtensionData { get; set; }
+
+    }
+
+    [global::ProtoBuf.ProtoContract()]
+    public partial class Any : global::ProtoBuf.IExtensible
+    {
+        private global::ProtoBuf.IExtension __pbn__extensionData;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
+
+        [global::ProtoBuf.ProtoMember(1, Name = @"type_url")]
+        [global::System.ComponentModel.DefaultValue("")]
+        public string TypeUrl
+        {
+            get { return __pbn__TypeUrl ?? ""; }
+            set { __pbn__TypeUrl = value; }
+        }
+        public bool ShouldSerializeTypeUrl() => __pbn__TypeUrl != null;
+        public void ResetTypeUrl() => __pbn__TypeUrl = null;
+        private string __pbn__TypeUrl;
+
+        [global::ProtoBuf.ProtoMember(2, Name = @"value")]
+        public byte[] Value
+        {
+            get { return __pbn__Value; }
+            set { __pbn__Value = value; }
+        }
+        public bool ShouldSerializeValue() => __pbn__Value != null;
+        public void ResetValue() => __pbn__Value = null;
+        private byte[] __pbn__Value;
+
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

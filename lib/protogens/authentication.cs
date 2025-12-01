@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: authentication.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace Spotify
 {
 
@@ -11,15 +11,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientResponseEncrypted()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"login_credentials", IsRequired = true)]
         public LoginCredentials LoginCredentials { get; set; }
@@ -31,14 +23,8 @@ namespace Spotify
             get { return __pbn__AccountCreation ?? AccountCreation.AccountCreationAlwaysPrompt; }
             set { __pbn__AccountCreation = value; }
         }
-        public bool ShouldSerializeAccountCreation()
-        {
-            return __pbn__AccountCreation != null;
-        }
-        public void ResetAccountCreation()
-        {
-            __pbn__AccountCreation = null;
-        }
+        public bool ShouldSerializeAccountCreation() => __pbn__AccountCreation != null;
+        public void ResetAccountCreation() => __pbn__AccountCreation = null;
         private AccountCreation? __pbn__AccountCreation;
 
         [global::ProtoBuf.ProtoMember(30, Name = @"fingerprint_response")]
@@ -57,14 +43,8 @@ namespace Spotify
             get { return __pbn__PlatformModel ?? ""; }
             set { __pbn__PlatformModel = value; }
         }
-        public bool ShouldSerializePlatformModel()
-        {
-            return __pbn__PlatformModel != null;
-        }
-        public void ResetPlatformModel()
-        {
-            __pbn__PlatformModel = null;
-        }
+        public bool ShouldSerializePlatformModel() => __pbn__PlatformModel != null;
+        public void ResetPlatformModel() => __pbn__PlatformModel = null;
         private string __pbn__PlatformModel;
 
         [global::ProtoBuf.ProtoMember(70, Name = @"version_string")]
@@ -74,14 +54,8 @@ namespace Spotify
             get { return __pbn__VersionString ?? ""; }
             set { __pbn__VersionString = value; }
         }
-        public bool ShouldSerializeVersionString()
-        {
-            return __pbn__VersionString != null;
-        }
-        public void ResetVersionString()
-        {
-            __pbn__VersionString = null;
-        }
+        public bool ShouldSerializeVersionString() => __pbn__VersionString != null;
+        public void ResetVersionString() => __pbn__VersionString = null;
         private string __pbn__VersionString;
 
         [global::ProtoBuf.ProtoMember(80, Name = @"appkey")]
@@ -97,15 +71,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LoginCredentials()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"username")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -114,14 +80,8 @@ namespace Spotify
             get { return __pbn__Username ?? ""; }
             set { __pbn__Username = value; }
         }
-        public bool ShouldSerializeUsername()
-        {
-            return __pbn__Username != null;
-        }
-        public void ResetUsername()
-        {
-            __pbn__Username = null;
-        }
+        public bool ShouldSerializeUsername() => __pbn__Username != null;
+        public void ResetUsername() => __pbn__Username = null;
         private string __pbn__Username;
 
         [global::ProtoBuf.ProtoMember(20, Name = @"typ", IsRequired = true)]
@@ -133,14 +93,8 @@ namespace Spotify
             get { return __pbn__AuthData; }
             set { __pbn__AuthData = value; }
         }
-        public bool ShouldSerializeAuthData()
-        {
-            return __pbn__AuthData != null;
-        }
-        public void ResetAuthData()
-        {
-            __pbn__AuthData = null;
-        }
+        public bool ShouldSerializeAuthData() => __pbn__AuthData != null;
+        public void ResetAuthData() => __pbn__AuthData = null;
         private byte[] __pbn__AuthData;
 
     }
@@ -150,15 +104,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintResponseUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"grain")]
         public FingerprintGrainResponse Grain { get; set; }
@@ -173,15 +119,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintGrainResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"encrypted_key", IsRequired = true)]
         public byte[] EncryptedKey { get; set; }
@@ -193,15 +131,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public FingerprintHmacRipemdResponse()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"hmac", IsRequired = true)]
         public byte[] Hmac { get; set; }
@@ -213,15 +143,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PeerTicketUnion()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"public_key")]
         public PeerTicketPublicKey PublicKey { get; set; }
@@ -236,15 +158,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PeerTicketPublicKey()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"public_key", IsRequired = true)]
         public byte[] PublicKey { get; set; }
@@ -256,15 +170,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public PeerTicketOld()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"peer_ticket", IsRequired = true)]
         public byte[] PeerTicket { get; set; }
@@ -279,15 +185,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public SystemInfo()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"cpu_family", IsRequired = true)]
         public CpuFamily CpuFamily { get; set; }
@@ -298,14 +196,8 @@ namespace Spotify
             get { return __pbn__CpuSubtype.GetValueOrDefault(); }
             set { __pbn__CpuSubtype = value; }
         }
-        public bool ShouldSerializeCpuSubtype()
-        {
-            return __pbn__CpuSubtype != null;
-        }
-        public void ResetCpuSubtype()
-        {
-            __pbn__CpuSubtype = null;
-        }
+        public bool ShouldSerializeCpuSubtype() => __pbn__CpuSubtype != null;
+        public void ResetCpuSubtype() => __pbn__CpuSubtype = null;
         private uint? __pbn__CpuSubtype;
 
         [global::ProtoBuf.ProtoMember(30, Name = @"cpu_ext")]
@@ -314,14 +206,8 @@ namespace Spotify
             get { return __pbn__CpuExt.GetValueOrDefault(); }
             set { __pbn__CpuExt = value; }
         }
-        public bool ShouldSerializeCpuExt()
-        {
-            return __pbn__CpuExt != null;
-        }
-        public void ResetCpuExt()
-        {
-            __pbn__CpuExt = null;
-        }
+        public bool ShouldSerializeCpuExt() => __pbn__CpuExt != null;
+        public void ResetCpuExt() => __pbn__CpuExt = null;
         private uint? __pbn__CpuExt;
 
         [global::ProtoBuf.ProtoMember(40, Name = @"brand")]
@@ -331,14 +217,8 @@ namespace Spotify
             get { return __pbn__Brand ?? Brand.BrandUnbranded; }
             set { __pbn__Brand = value; }
         }
-        public bool ShouldSerializeBrand()
-        {
-            return __pbn__Brand != null;
-        }
-        public void ResetBrand()
-        {
-            __pbn__Brand = null;
-        }
+        public bool ShouldSerializeBrand() => __pbn__Brand != null;
+        public void ResetBrand() => __pbn__Brand = null;
         private Brand? __pbn__Brand;
 
         [global::ProtoBuf.ProtoMember(50, Name = @"brand_flags")]
@@ -347,14 +227,8 @@ namespace Spotify
             get { return __pbn__BrandFlags.GetValueOrDefault(); }
             set { __pbn__BrandFlags = value; }
         }
-        public bool ShouldSerializeBrandFlags()
-        {
-            return __pbn__BrandFlags != null;
-        }
-        public void ResetBrandFlags()
-        {
-            __pbn__BrandFlags = null;
-        }
+        public bool ShouldSerializeBrandFlags() => __pbn__BrandFlags != null;
+        public void ResetBrandFlags() => __pbn__BrandFlags = null;
         private uint? __pbn__BrandFlags;
 
         [global::ProtoBuf.ProtoMember(60, Name = @"os", IsRequired = true)]
@@ -366,14 +240,8 @@ namespace Spotify
             get { return __pbn__OsVersion.GetValueOrDefault(); }
             set { __pbn__OsVersion = value; }
         }
-        public bool ShouldSerializeOsVersion()
-        {
-            return __pbn__OsVersion != null;
-        }
-        public void ResetOsVersion()
-        {
-            __pbn__OsVersion = null;
-        }
+        public bool ShouldSerializeOsVersion() => __pbn__OsVersion != null;
+        public void ResetOsVersion() => __pbn__OsVersion = null;
         private uint? __pbn__OsVersion;
 
         [global::ProtoBuf.ProtoMember(80, Name = @"os_ext")]
@@ -382,14 +250,8 @@ namespace Spotify
             get { return __pbn__OsExt.GetValueOrDefault(); }
             set { __pbn__OsExt = value; }
         }
-        public bool ShouldSerializeOsExt()
-        {
-            return __pbn__OsExt != null;
-        }
-        public void ResetOsExt()
-        {
-            __pbn__OsExt = null;
-        }
+        public bool ShouldSerializeOsExt() => __pbn__OsExt != null;
+        public void ResetOsExt() => __pbn__OsExt = null;
         private uint? __pbn__OsExt;
 
         [global::ProtoBuf.ProtoMember(90, Name = @"system_information_string")]
@@ -399,14 +261,8 @@ namespace Spotify
             get { return __pbn__SystemInformationString ?? ""; }
             set { __pbn__SystemInformationString = value; }
         }
-        public bool ShouldSerializeSystemInformationString()
-        {
-            return __pbn__SystemInformationString != null;
-        }
-        public void ResetSystemInformationString()
-        {
-            __pbn__SystemInformationString = null;
-        }
+        public bool ShouldSerializeSystemInformationString() => __pbn__SystemInformationString != null;
+        public void ResetSystemInformationString() => __pbn__SystemInformationString = null;
         private string __pbn__SystemInformationString;
 
         [global::ProtoBuf.ProtoMember(100, Name = @"device_id")]
@@ -416,14 +272,8 @@ namespace Spotify
             get { return __pbn__DeviceId ?? ""; }
             set { __pbn__DeviceId = value; }
         }
-        public bool ShouldSerializeDeviceId()
-        {
-            return __pbn__DeviceId != null;
-        }
-        public void ResetDeviceId()
-        {
-            __pbn__DeviceId = null;
-        }
+        public bool ShouldSerializeDeviceId() => __pbn__DeviceId != null;
+        public void ResetDeviceId() => __pbn__DeviceId = null;
         private string __pbn__DeviceId;
 
     }
@@ -433,15 +283,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public LibspotifyAppKey()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"version", IsRequired = true)]
         public uint Version { get; set; }
@@ -465,15 +307,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientInfo()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"limited")]
         public bool Limited
@@ -481,14 +315,8 @@ namespace Spotify
             get { return __pbn__Limited.GetValueOrDefault(); }
             set { __pbn__Limited = value; }
         }
-        public bool ShouldSerializeLimited()
-        {
-            return __pbn__Limited != null;
-        }
-        public void ResetLimited()
-        {
-            __pbn__Limited = null;
-        }
+        public bool ShouldSerializeLimited() => __pbn__Limited != null;
+        public void ResetLimited() => __pbn__Limited = null;
         private bool? __pbn__Limited;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"fb")]
@@ -501,14 +329,8 @@ namespace Spotify
             get { return __pbn__Language ?? ""; }
             set { __pbn__Language = value; }
         }
-        public bool ShouldSerializeLanguage()
-        {
-            return __pbn__Language != null;
-        }
-        public void ResetLanguage()
-        {
-            __pbn__Language = null;
-        }
+        public bool ShouldSerializeLanguage() => __pbn__Language != null;
+        public void ResetLanguage() => __pbn__Language = null;
         private string __pbn__Language;
 
     }
@@ -518,15 +340,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public ClientInfoFacebook()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"machine_id")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -535,14 +349,8 @@ namespace Spotify
             get { return __pbn__MachineId ?? ""; }
             set { __pbn__MachineId = value; }
         }
-        public bool ShouldSerializeMachineId()
-        {
-            return __pbn__MachineId != null;
-        }
-        public void ResetMachineId()
-        {
-            __pbn__MachineId = null;
-        }
+        public bool ShouldSerializeMachineId() => __pbn__MachineId != null;
+        public void ResetMachineId() => __pbn__MachineId = null;
         private string __pbn__MachineId;
 
     }
@@ -552,15 +360,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public APWelcome()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(10, Name = @"canonical_username", IsRequired = true)]
         public string CanonicalUsername { get; set; }
@@ -583,14 +383,8 @@ namespace Spotify
             get { return __pbn__LfsSecret; }
             set { __pbn__LfsSecret = value; }
         }
-        public bool ShouldSerializeLfsSecret()
-        {
-            return __pbn__LfsSecret != null;
-        }
-        public void ResetLfsSecret()
-        {
-            __pbn__LfsSecret = null;
-        }
+        public bool ShouldSerializeLfsSecret() => __pbn__LfsSecret != null;
+        public void ResetLfsSecret() => __pbn__LfsSecret = null;
         private byte[] __pbn__LfsSecret;
 
         [global::ProtoBuf.ProtoMember(60, Name = @"account_info")]
@@ -606,15 +400,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public AccountInfo()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"spotify")]
         public AccountInfoSpotify Spotify { get; set; }
@@ -629,15 +415,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public AccountInfoSpotify()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
     }
 
@@ -646,15 +424,7 @@ namespace Spotify
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public AccountInfoFacebook()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"access_token")]
         [global::System.ComponentModel.DefaultValue("")]
@@ -663,14 +433,8 @@ namespace Spotify
             get { return __pbn__AccessToken ?? ""; }
             set { __pbn__AccessToken = value; }
         }
-        public bool ShouldSerializeAccessToken()
-        {
-            return __pbn__AccessToken != null;
-        }
-        public void ResetAccessToken()
-        {
-            __pbn__AccessToken = null;
-        }
+        public bool ShouldSerializeAccessToken() => __pbn__AccessToken != null;
+        public void ResetAccessToken() => __pbn__AccessToken = null;
         private string __pbn__AccessToken;
 
         [global::ProtoBuf.ProtoMember(2, Name = @"machine_id")]
@@ -680,14 +444,8 @@ namespace Spotify
             get { return __pbn__MachineId ?? ""; }
             set { __pbn__MachineId = value; }
         }
-        public bool ShouldSerializeMachineId()
-        {
-            return __pbn__MachineId != null;
-        }
-        public void ResetMachineId()
-        {
-            __pbn__MachineId = null;
-        }
+        public bool ShouldSerializeMachineId() => __pbn__MachineId != null;
+        public void ResetMachineId() => __pbn__MachineId = null;
         private string __pbn__MachineId;
 
     }
@@ -814,4 +572,4 @@ namespace Spotify
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: session.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto.transfer
 {
 
@@ -11,15 +11,7 @@ namespace spotify.player.proto.transfer
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Session()
-        {
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"play_origin")]
         public global::spotify.player.proto.PlayOrigin PlayOrigin { get; set; }
@@ -34,14 +26,8 @@ namespace spotify.player.proto.transfer
             get { return __pbn__CurrentUid ?? ""; }
             set { __pbn__CurrentUid = value; }
         }
-        public bool ShouldSerializeCurrentUid()
-        {
-            return __pbn__CurrentUid != null;
-        }
-        public void ResetCurrentUid()
-        {
-            __pbn__CurrentUid = null;
-        }
+        public bool ShouldSerializeCurrentUid() => __pbn__CurrentUid != null;
+        public void ResetCurrentUid() => __pbn__CurrentUid = null;
         private string __pbn__CurrentUid;
 
         [global::ProtoBuf.ProtoMember(4, Name = @"option_overrides")]
@@ -51,4 +37,4 @@ namespace spotify.player.proto.transfer
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

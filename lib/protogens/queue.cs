@@ -2,7 +2,7 @@
 // Consider using 'partial classes' to extend these types
 // Input: queue.proto
 
-#pragma warning disable 0612, 1591, 3021
+#pragma warning disable CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192
 namespace spotify.player.proto.transfer
 {
 
@@ -11,19 +11,10 @@ namespace spotify.player.proto.transfer
     {
         private global::ProtoBuf.IExtension __pbn__extensionData;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-        {
-            return global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
-        }
-        public Queue()
-        {
-            Tracks = new global::System.Collections.Generic.List<global::spotify.player.proto.ContextTrack>();
-            OnConstructor();
-        }
-
-        partial void OnConstructor();
+            => global::ProtoBuf.Extensible.GetExtensionObject(ref __pbn__extensionData, createIfMissing);
 
         [global::ProtoBuf.ProtoMember(1, Name = @"tracks")]
-        public global::System.Collections.Generic.List<global::spotify.player.proto.ContextTrack> Tracks { get; private set; }
+        public global::System.Collections.Generic.List<global::spotify.player.proto.ContextTrack> Tracks { get; } = new global::System.Collections.Generic.List<global::spotify.player.proto.ContextTrack>();
 
         [global::ProtoBuf.ProtoMember(2, Name = @"is_playing_queue")]
         public bool IsPlayingQueue
@@ -31,18 +22,12 @@ namespace spotify.player.proto.transfer
             get { return __pbn__IsPlayingQueue.GetValueOrDefault(); }
             set { __pbn__IsPlayingQueue = value; }
         }
-        public bool ShouldSerializeIsPlayingQueue()
-        {
-            return __pbn__IsPlayingQueue != null;
-        }
-        public void ResetIsPlayingQueue()
-        {
-            __pbn__IsPlayingQueue = null;
-        }
+        public bool ShouldSerializeIsPlayingQueue() => __pbn__IsPlayingQueue != null;
+        public void ResetIsPlayingQueue() => __pbn__IsPlayingQueue = null;
         private bool? __pbn__IsPlayingQueue;
 
     }
 
 }
 
-#pragma warning restore 0612, 1591, 3021
+#pragma warning restore CS0612, CS1591, CS3021, IDE1006, RCS1036, RCS1057, RCS1085, RCS1192

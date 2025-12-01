@@ -1,11 +1,13 @@
 using System;
-using System.Collections.Generic;
+using System.IO;
 using lib.common;
 using lib.json;
 using lib.mercury;
 using log4net;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities;
+using spotify.login5.v3;
+using spotify.login5.v3.credentials;
 
 namespace lib.core
 {
@@ -14,69 +16,61 @@ namespace lib.core
         private static ILog LOGGER = LogManager.GetLogger(typeof(TokenProvider));
         private static int TOKEN_EXPIRE_THRESHOLD = 10;
         private Session _session;
-        private List<StoredToken> _tokens = new List<StoredToken>();
+        private StoredToken _token;
         
         internal TokenProvider(Session session)
         {
             _session = session;
         }
-
-        private StoredToken FindTokenWithAllScopes(String[] scopes)
-        {
-            foreach (StoredToken token in _tokens)
-                if (token.HasScopes(scopes))
-                    return token;
-
-            return null;
-        }
-
-        public StoredToken GetToken(params string[] scopes)
+        
+        public StoredToken GetToken()
         {
             lock (this)
             {
-                if (scopes.Length == 0) throw new Exception("At least one scope must be specified");
-
-                StoredToken token = FindTokenWithAllScopes(scopes);
-                if (token != null)
+                if (_token != null)
                 {
-                    if (token.Expired()) _tokens.Remove(token);
-                    return token;
+                    if (_token.Expired()) _token = null;
+                    return _token;
                 }
                 
-                LOGGER.DebugFormat("Token expired or not suitable, requesting again. (scopes: {0}, oldToken: {1})", Arrays.ToString(scopes), token);
-                GenericJson resp = _session.GetMercury()
-                    .SendSync(MercuryRequests.RequestToken(_session.GetDeviceId(), String.Join(",", scopes)));
-                token = new StoredToken(resp.Obj);
+                LOGGER.DebugFormat("Token expired or not suitable, requesting again. (oldToken: {0})", _token);
+
+                Login5Api api = new Login5Api(_session);
+                LoginResponse resp = api.Login5(new LoginRequest
+                {
+                    StoredCredential = new StoredCredential
+                    {
+                        Username = _session.Username(),
+                        Data = _session.GetAPWelcome().ReusableAuthCredentials
+                    }
+                });
+                if (resp.Ok == null) throw new IOException("Login5 returned an error: " + resp.Error);
+                LoginOk ok = resp.Ok;
+
+                _token = new StoredToken(ok.AccessToken, ok.AccessTokenExpiresIn);
                 
-                LOGGER.DebugFormat("Updated token successfully! (scopes: {0}, newToken: {1})", Arrays.ToString(scopes), token);
-                _tokens.Add(token);
-                
-                return token;
+                LOGGER.DebugFormat("Updated token successfully! (newToken: {0})", _token);
+
+                return _token;
             }
         }
 
-        public String Get(String scope)
+        public String Get()
         {
-            return GetToken(scope).AccessToken;
+            return GetToken().AccessToken;
         }
 
         public class StoredToken
         {
             public int ExpiresIn;
             public String AccessToken;
-            public String[] Scopes;
             public long Timestamp;
 
-            internal StoredToken(JObject obj)
+            internal StoredToken(String accessToken, int expiresIn)
             {
                 Timestamp = Utils.getUnixTimeStampInMilliseconds();
-                ExpiresIn = obj["expiresIn"].ToObject<int>();
-                AccessToken = obj["accessToken"].ToObject<string>();
-                
-                JArray scopesArray = obj["scope"] as JArray;
-                Scopes = new String[scopesArray.Count];
-                for (int i = 0; i < scopesArray.Count; i++)
-                    Scopes[i] = scopesArray[i].ToObject<string>();
+                ExpiresIn = expiresIn;
+                AccessToken = accessToken;
             }
 
             public bool Expired()
@@ -87,26 +81,8 @@ namespace lib.core
 
             public override string ToString()
             {
-                return String.Format("StoredToken(expiresIn={0}, accessToken={1}, scopes={2}, timestamp={3})",
-                    ExpiresIn, Utils.truncateMiddle(AccessToken, 12), Arrays.ToString(Scopes), Timestamp);
-            }
-
-            public bool HasScope(String scope)
-            {
-                foreach (String s in Scopes)
-                    if (s.Equals(scope))
-                        return true;
-                
-                return false;
-            }
-
-            public bool HasScopes(String[] sc)
-            {
-                foreach (String s in sc)
-                    if (!HasScope(s))
-                        return false;
-
-                return true;
+                return String.Format("StoredToken(expiresIn={0}, accessToken={1}, timestamp={2})",
+                    ExpiresIn, Utils.truncateMiddle(AccessToken, 12), Timestamp);
             }
         }
     }

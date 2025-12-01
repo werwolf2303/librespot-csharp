@@ -82,7 +82,7 @@ namespace lib.dealer
                     break;
             }
 
-            request.Authorization = "Bearer " + _session.GetTokens().Get("playlist-read");
+            request.Authorization = "Bearer " + _session.GetTokens().Get();
             headers.Add("client-token", _clientToken);
             
             request.ContentType = "application/x-protobuf";
@@ -127,37 +127,49 @@ namespace lib.dealer
 
         public Track GetMetadata4Track(TrackId track)
         {
-            HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/track/" + track.HexId());
-            StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Track>(resp.GetResponseStream());
+            BatchedExtensionResponse response = GetExtendedMetadata(ExtensionKind.TrackV4, track);
+            
+            CheckExtendedMetadataResponse(response);
+            
+            return Serializer.Deserialize<Track>(new MemoryStream(response.ExtendedMetadatas[0].ExtensionDatas[0].ExtensionData.Value));
         }
 
         public Episode GetMetadata4Episode(EpisodeId episode)
         {
-            HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/episode/" + episode.HexId());
-            StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Episode>(resp.GetResponseStream());
+            BatchedExtensionResponse response = GetExtendedMetadata(ExtensionKind.EpisodeV4, episode);
+            
+            CheckExtendedMetadataResponse(response);
+            
+            return Serializer.Deserialize<Episode>(new MemoryStream(response.ExtendedMetadatas[0].ExtensionDatas[0].ExtensionData.Value));
+
         }
 
         public Album GetMetadata4Album(AlbumId album)
         {
-            HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/album/" + album.HexId());
-            StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Album>(resp.GetResponseStream());
+            BatchedExtensionResponse response = GetExtendedMetadata(ExtensionKind.AlbumV4, album);
+            
+            CheckExtendedMetadataResponse(response);
+            
+            return Serializer.Deserialize<Album>(new MemoryStream(response.ExtendedMetadatas[0].ExtensionDatas[0].ExtensionData.Value));
+
         }
 
         public Artist GetMetadata4Artist(ArtistId artist)
         {
-            HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/artist/" + artist.HexId());
-            StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Artist>(resp.GetResponseStream());
+            BatchedExtensionResponse response = GetExtendedMetadata(ExtensionKind.ArtistV4, artist);
+            
+            CheckExtendedMetadataResponse(response);
+            
+            return Serializer.Deserialize<Artist>(new MemoryStream(response.ExtendedMetadatas[0].ExtensionDatas[0].ExtensionData.Value));
         }
 
         public Show GetMetadata4Show(ShowId show)
         {
-            HttpResponse resp = Send(RequestMethod.GET, "/metadata/4/show/" + show.HexId()); 
-            StatusCodeException.CheckStatus(resp);
-            return Serializer.Deserialize<Show>(resp.GetResponseStream());
+            BatchedExtensionResponse response = GetExtendedMetadata(ExtensionKind.ShowV4, show);
+            
+            CheckExtendedMetadataResponse(response);
+            
+            return Serializer.Deserialize<Show>(new MemoryStream(response.ExtendedMetadatas[0].ExtensionDatas[0].ExtensionData.Value));
         }
 
         public EntityCanvazResponse GetCanvases(EntityCanvazRequest req)
@@ -167,12 +179,64 @@ namespace lib.dealer
             return Serializer.Deserialize<EntityCanvazResponse>(resp.GetResponseStream());
         }
 
+        public void CheckExtendedMetadataResponse(BatchedExtensionResponse response) {
+            if (response.ExtendedMetadatas.Count == 0)
+                throw new IOException("No metadata in BatchedExtensionResponse");
+
+            if (response.ExtendedMetadatas[0].ExtensionDatas.Count == 0)
+                throw new IOException("No metadata in ExtendedMetadata in BatchedExtensionResponse");
+
+            if (response.ExtendedMetadatas[0].ExtensionDatas[0].Header.StatusCode != 200)
+                throw new IOException("Bad status code for metadata: " + response.ExtendedMetadatas[0].ExtensionDatas[0].Header.StatusCode);
+        }
+        
         public BatchedExtensionResponse GetExtendedMetadata(BatchedEntityRequest req)
         {
             HttpResponse resp = Send(RequestMethod.POST, "/extended-metadata/v0/extended-metadata", null,
                 Utils.ProtoBytes(req));
             StatusCodeException.CheckStatus(resp);
             return Serializer.Deserialize<BatchedExtensionResponse>(resp.GetResponseStream());
+        }
+
+        public BatchedExtensionResponse GetExtendedMetadata(ExtensionKind extensionKind, String spotifyUri)
+        {
+            HttpResponse resp = Send(RequestMethod.POST, "/extended-metadata/v0/extended-metadata", null, Utils.ProtoBytes(
+                new BatchedEntityRequest
+                {
+                    EntityRequests =
+                    {
+                        new EntityRequest
+                        {
+                            EntityUri = spotifyUri,
+                            Queries =
+                            {
+                                new ExtensionQuery
+                                {
+                                    ExtensionKind = extensionKind
+                                }
+                            }
+                        }
+                    }
+                }));
+            
+            StatusCodeException.CheckStatus(resp);
+
+            byte[] response = resp.GetResponseBytes();
+            
+            if (response.Length == 0)
+                throw new IOException("Empty response for extended metadata request");
+            
+            return Serializer.Deserialize<BatchedExtensionResponse>(new MemoryStream(response));
+        }
+        
+        public BatchedExtensionResponse GetExtendedMetadata(ExtensionKind extensionKind, SpotifyId spotifyId)
+        {
+            return GetExtendedMetadata(extensionKind, spotifyId.ToSpotifyUri());
+        }
+
+        public BatchedExtensionResponse GetExtendedMetadata(ExtensionKind extensionKind, PlayableId playableId)
+        {
+            return GetExtendedMetadata(extensionKind, playableId.ToSpotifyUri());
         }
 
         public SelectedListContent GetPlaylist(PlaylistId playlistId)

@@ -58,7 +58,7 @@ namespace lib.dealer
             {
                 _conn = new ConnectionHolder(this,
                     String.Format("wss://{0}/?access_token={1}", _session.GetAPResolver().getRandomDealer(),
-                        _session.GetTokens().Get("playlist-read")));
+                        _session.GetTokens().Get()));
             }
         }
         
@@ -270,13 +270,18 @@ namespace lib.dealer
         {
             lock (_reqListeners)
             {
-                foreach (String key in _reqListeners.Keys)
+                string keyToRemove = null;
+                foreach (var kvp in _reqListeners)
                 {
-                    if (_reqListeners[key] == listener)
+                    if (kvp.Value == listener)
                     {
-                        _reqListeners.Remove(key);
+                        keyToRemove = kvp.Key;
                         break;
                     }
+                }
+                if (keyToRemove != null)
+                {
+                    _reqListeners.Remove(keyToRemove);
                 }
             }
         }

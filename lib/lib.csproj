@@ -120,6 +120,7 @@
         <Compile Include="common\Utils.cs" />
         <Compile Include="core\ApResolver.cs" />
         <Compile Include="core\EventService.cs" />
+        <Compile Include="core\Login5Api.cs" />
         <Compile Include="core\OAuth.cs" />
         <Compile Include="core\IPacketsReceiver.cs" />
         <Compile Include="core\SearchManager.cs" />
@@ -180,6 +181,13 @@
         <Compile Include="protogens\queue.cs" />
         <Compile Include="protogens\restrictions.cs" />
         <Compile Include="protogens\session.cs" />
+        <Compile Include="protogens\spotify\login5\v3\challenges\code.cs" />
+        <Compile Include="protogens\spotify\login5\v3\challenges\hashcash.cs" />
+        <Compile Include="protogens\spotify\login5\v3\client_info.cs" />
+        <Compile Include="protogens\spotify\login5\v3\credentials\credentials.cs" />
+        <Compile Include="protogens\spotify\login5\v3\identifiers\identifiers.cs" />
+        <Compile Include="protogens\spotify\login5\v3\login5.cs" />
+        <Compile Include="protogens\spotify\login5\v3\user_info.cs" />
         <Compile Include="protogens\storage-resolve.cs" />
         <Compile Include="protogens\transfer_state.cs" />
         <Compile Include="Version.cs" />

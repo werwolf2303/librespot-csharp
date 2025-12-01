@@ -5,7 +5,51 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="35d4f1d6-1a82-4640-ac21-b32da06f2e09" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/lib/crypto/CipherPair.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/crypto/CipherPair.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/audio/PlayableContentFeeder.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/PlayableContentFeeder.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/audio/storage/AudioFileFetch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/AudioFileFetch.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/audio/storage/AudioFileStreaming.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/AudioFileStreaming.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/audio/storage/ChannelManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/ChannelManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/cache/CacheJournal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/cache/CacheJournal.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/cache/CacheManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/cache/CacheManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/compileProto.sh" beforeDir="false" afterPath="$PROJECT_DIR$/lib/compileProto.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/ApResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/ApResolver.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/Session.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/Session.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/core/TokenProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/TokenProvider.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dealer/ApiClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dealer/ApiClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/dealer/DealerClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dealer/DealerClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/lib.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/lib/lib.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/authentication.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/authentication.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/canvaz-meta.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/canvaz-meta.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/canvaz.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/canvaz.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/client_token.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/client_token.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/connect.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/connect.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/connectivity.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/connectivity.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/context.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/context_page.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_page.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/context_player_options.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_player_options.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/context_track.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_track.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/entity_extension_data.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/entity_extension_data.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/explicit_content_pubsub.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/explicit_content_pubsub.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/extended_metadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/extended_metadata.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/extension_kind.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/extension_kind.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/keyexchange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/keyexchange.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/mercury.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/mercury.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/metadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/metadata.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/play_origin.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/play_origin.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/playback.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playback.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/player.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/playlist4_external.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playlist4_external.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/playlist_annotate3.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playlist_annotate3.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/pubsub.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/pubsub.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/queue.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/queue.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/restrictions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/restrictions.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/session.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/session.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/storage-resolve.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/storage-resolve.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/protogens/transfer_state.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/transfer_state.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/librespot-csharp/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/librespot-csharp/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/player/PagesLoader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/player/PagesLoader.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,27 +62,31 @@
   <component name="MacroExpansionManager">
     <option name="directoryName" value="UhaKymso" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2z8EMsaqPuShq1ZsvAhxPRRp3e8" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.rust.reset.selective.auto.import": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "/home/werwolf2303/Documents/GitHub/librespot-csharp",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/werwolf2303/Documents/GitHub/librespot-csharp&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="35d4f1d6-1a82-4640-ac21-b32da06f2e09" name="Changes" comment="" />
@@ -47,6 +95,10 @@
       <option name="presentableId" value="Default" />
       <updated>1751104254953</updated>
       <workItem from="1751104256165" duration="17000" />
+      <workItem from="1758050359732" duration="2397000" />
+      <workItem from="1758396918300" duration="10000" />
+      <workItem from="1758398885706" duration="36000" />
+      <workItem from="1758399349094" duration="27000" />
     </task>
     <servers />
   </component>
