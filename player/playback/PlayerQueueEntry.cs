@@ -155,6 +155,8 @@ namespace player.playback
 
                 tmp.Toggle(false, null);
                 tmp.Clear();
+                
+                LOGGER.DebugFormat("{0} has been removed from output.", this);
             }
 
             lock (_playbackLock)
@@ -194,6 +196,7 @@ namespace player.playback
             {
                 Dispose();
                 _listener.LoadingError(this, ex, _retried);
+                LOGGER.DebugFormat("{0} terminated at loading. Exception: {1}", this, ex.Message);
                 return;
             }
 
@@ -237,7 +240,7 @@ namespace player.playback
                 if (canGetTime)
                 {
                     int time = _decoder.Time();
-                    if (_notifyInstants.Any()) CheckInstants(time); 
+                    if (_notifyInstants.Count != 0) CheckInstants(time); 
                     if (_output == null) continue; 
                     _output.SetGain(Crossfade.GetGain(time));
                 }
@@ -246,6 +249,11 @@ namespace player.playback
                 {
                     if (_decoder.WriteSomeTo(_output) == -1)
                     {
+                        int time = _decoder.Time();
+
+                        LOGGER.DebugFormat("Player time offset is {0}. (id: {1})", _metadata.Duration() - time,
+                            PlaybackId);
+
                         Dispose();
                         break;
                     }
@@ -261,20 +269,32 @@ namespace player.playback
 
                     break;
                 }
+                catch (IndexOutOfRangeException e)
+                {
+                    if (!_closed)
+                    {
+                        Dispose();
+                    }
+                    
+                    _listener.PlaybackError(this, e);
+                    return;
+                }
             }
 
             _output?.Toggle(false, null);
             _listener.PlaybackEnded(this);
+            LOGGER.DebugFormat("{0} terminated.", this);
         }
 
         private void CheckInstants(int time)
         {
-            while (_notifyInstants.Any() && time >= _notifyInstants.Keys.First())
+            int key = _notifyInstants.First().Key;
+            if (time >= key)
             {
-                int key = _notifyInstants.Keys.First();
                 int callbackId = _notifyInstants[key];
                 _notifyInstants.Remove(key);
                 _listener.InstantReached(this, callbackId, time);
+                if (_notifyInstants.Count != 0) CheckInstants(time);
             }
         }
 
@@ -293,7 +313,7 @@ namespace player.playback
         {
             _closed = true;
             ClearOutput();
-            _decoder?.Dispose();
+            if (_decoder != null) _decoder?.Dispose();
         }
 
         public void StreamReadHalted(int chunk, long time)

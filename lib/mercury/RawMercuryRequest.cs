@@ -95,13 +95,11 @@ namespace lib.mercury
 
             public RawMercuryRequest Build()
             {
-                Header header = new Header
-                {
-                    ContentType = ContentType,
-                    Method = Method,
-                    Uri = Uri,
-                    StatusCode = StatusCode,
-                };
+                Header header = new Header();
+                if (ContentType != null) header.ContentType = ContentType;
+                if (Method != null) header.Method = Method;
+                if (Uri != null) header.Uri = Uri;
+                if (StatusCode == 0) header.StatusCode = StatusCode;
                 header.UserFields.AddRange(_userFields);
                 return new RawMercuryRequest(header, _payload.ToArray());
             }

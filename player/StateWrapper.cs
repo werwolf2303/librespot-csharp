@@ -1534,7 +1534,7 @@ namespace player
                         return StateWrapper.NextPlayable.OK_PLAY;
                     }
 
-                    IsPlayingQueue = true;
+                    IsPlayingQueue = false;
 
                     bool play = true;
                     PlayableIdWithIndex next = NextPlayableDoNotSet();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using lib.common;
 using log4net;
@@ -11,7 +12,7 @@ namespace player.playback
         private ScheduledExecutorService _executorService;
         private PlayerQueueEntry _head = null;
         private Object _funcLock = new Object();
-
+       
         internal PlayerQueue(ScheduledExecutorService executorService)
         {
             _executorService = executorService;
@@ -124,6 +125,8 @@ namespace player.playback
         public void Dispose()
         {
             _head?.Clear();
+            
+            LOGGER.Debug("Queue has been cleared.");
         }
 
         public abstract class Entry

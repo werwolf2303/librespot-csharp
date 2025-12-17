@@ -68,7 +68,7 @@ namespace librespot
             
             player.Load("spotify:track:5WHTFyqSii0lmT9R21abT8", true, false);
             
-            //Application.Run(new TestForm(player));
+            Application.Run(new TestForm(player));
         }
     }
 }

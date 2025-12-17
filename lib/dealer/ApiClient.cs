@@ -343,19 +343,13 @@ namespace lib.dealer
             };
 
             byte[] protoBytes = Utils.ProtoBytes(protoReq);
-            
-            HttpWebRequest request = WebRequest.CreateHttp("https://clienttoken.spotify.com/v1/clienttoken");
-            request.Method = "POST";
+
+            HttpRequest request = new HttpRequest("https://clienttoken.spotify.com/v1/clienttoken", HttpMethod.Post);
             request.Accept = "application/x-protobuf";
-            request.Headers.Add("Content-Encoding", "application/x-protobuf");
-            request.ContentLength = protoBytes.Length;
+            request.ContentEncoding = "application/x-protobuf";
+            request.SetData(protoBytes);
             
-            var stream = request.GetRequestStream();
-            stream.Write(protoBytes, 0, protoBytes.Length);
-            
-            var response = (HttpWebResponse)request.GetResponse();
-            
-            return Serializer.Deserialize<ClientTokenResponse>(response.GetResponseStream());
+            return Serializer.Deserialize<ClientTokenResponse>(_session.GetClient().NewCall(request).GetResponseStream());
         }
 
         public void SetClientToken(String clientToken)

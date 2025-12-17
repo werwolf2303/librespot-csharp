@@ -127,7 +127,7 @@ namespace lib.core
             {
                 request.UserAgent = Version.systemInfoString();
                 
-                if (request.RequestData == null || request.ExtraHeaders.ContainsKey("Content-Encoding"))
+                if (request.RequestData == null || request.ExtraHeaders.ContainsKey("Content-Encoding") || request.ContentEncoding != null)
                     return true;
 
                 request.ContentEncoding = "gzip";
@@ -1262,17 +1262,72 @@ namespace lib.core
             {
             }
         }
+
+        private class ProxySocket : Socket
+        {
+            private WebProxy _proxy;
+
+            public ProxySocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType) : base(addressFamily, socketType, protocolType)
+            {
+            }
+
+            public ProxySocket(SocketInformation socketInformation) : base(socketInformation)
+            {
+            }
+
+            public void SetProxy(WebProxy proxy)
+            {
+                _proxy = proxy;
+            }
+
+            public new void Connect(string host, int port)
+            {
+                if (_proxy != null)
+                {
+                    
+                    string connectRequest = $"CONNECT {host}:{port} HTTP/1.1\r\n" +
+                                            $"Host: {host}:{port}\r\n" +
+                                            "Connection: keep-alive\r\n";
+
+                    if (_proxy.Credentials is NetworkCredential)
+                    {
+                        var credentials = (NetworkCredential)_proxy.Credentials;
+                        connectRequest += $"Proxy-Authorization: Basic {Base64.ToBase64String(Encoding.UTF8.GetBytes($"{credentials.UserName}:{credentials.Password}"))}";
+                    }
+
+                    connectRequest += "\r\n";
+                    
+                    base.Connect(_proxy.Address.Host, _proxy.Address.Port);
+                    
+                    byte[] requestBytes = Encoding.ASCII.GetBytes(connectRequest);
+                    Send(requestBytes);
+
+                    byte[] responseBuffer = new byte[1024];
+                    int bytesReceived = Receive(responseBuffer);
+                    string response = Encoding.ASCII.GetString(responseBuffer, 0, bytesReceived);
+
+                    if (!response.StartsWith("HTTP/1.1 200"))
+                    {
+                        throw new Exception($"Connection to proxy failed! Response: {response}");
+                    }
+                }
+                else
+                {
+                    base.Connect(host, port);
+                }
+            }
+        }
         
         private class ConnectionHolder
         {
-            public Socket Socket;
+            public ProxySocket Socket;
             public NetworkStream Stream;
             public BinaryReader In;
             public BinaryWriter Out;
             private static int _retries = 0;
 
             /// <exception cref="IOException"></exception>
-            private ConnectionHolder(Socket socket)
+            private ConnectionHolder(ProxySocket socket)
             {
                 Socket = socket;
                 Stream = new NetworkStream(Socket);
@@ -1286,9 +1341,13 @@ namespace lib.core
                 String[] split = addr.Split(':');
                 String apAddr = split[0];
                 int apPort = int.Parse(split[1]);
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                ProxySocket socket = new ProxySocket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
+                    if (conf.Proxy != null)
+                    {
+                        socket.SetProxy(conf.Proxy);
+                    }
                     socket.Connect(apAddr, apPort);
                 }
                 catch (SocketException ex)

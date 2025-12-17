@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using deps.WebSocketSharp;
@@ -365,6 +366,21 @@ namespace lib.dealer
             {
                 _client = client;
                 _ws = new WebSocket(url);
+                if (_client._session.GetClient().Proxy != null)
+                {
+                    if (_client._session.GetClient().Proxy is WebProxy)
+                    {
+                        var proxy = (WebProxy)_client._session.GetClient().Proxy;
+                        var credentials = proxy.Credentials is NetworkCredential
+                            ? (NetworkCredential)proxy.Credentials
+                            : new NetworkCredential();
+                        _ws.SetProxy(proxy.Address.ToString(), credentials.UserName, credentials.Password);
+                    }
+                    else
+                    {
+                        LOGGER.Warn("WebSocket only supports WebProxy! WebSocket connection will not be proxied");
+                    }
+                }
                 new WebSocketListenerImpl(_ws, this, _client);
                 _ws.Connect();
             }

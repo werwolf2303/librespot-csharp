@@ -45,7 +45,8 @@ namespace player.metrics
             eventBuilder.Append("0").Append(_metrics._player._bitrate.ToString());
             eventBuilder.Append(_metrics._contextUri).Append(_metrics._player._encoding);
             eventBuilder.Append(_metrics._id.HasGid() ? _metrics._id.HexId() : "").Append("");
-            eventBuilder.Append("0").Append(_metrics._referrerIdentifier).Append(_metrics._featureVersion);
+            eventBuilder.Append("0").Append(_metrics._timestamp.ToString()).Append("0");
+            eventBuilder.Append("context").Append(_metrics._referrerIdentifier).Append(_metrics._featureVersion);
             eventBuilder.Append("com.spotify").Append(_metrics._player._transition).Append("none");
             eventBuilder.Append(_lastCommandSentByDeviceId).Append("na").Append("none");
             return eventBuilder;

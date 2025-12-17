@@ -27,7 +27,7 @@ namespace lib.core
                     mercuryRequestBuilder.AddUserField("X-ClientTimeStamp", Utils.getUnixTimeStampInMilliseconds().ToString());
                     mercuryRequestBuilder.AddPayloadPart(body);
                     MercuryClient.Response resp = session.GetMercury().SendSync(mercuryRequestBuilder.Build());
-                    
+
                     LOGGER.DebugFormat("Event sent. (body: {0}, result: {1})", EventBuilder.ToString(body), resp.StatusCode);
                 }
                 catch (IOException ex)
@@ -86,7 +86,7 @@ namespace lib.core
                 _body = new BinaryWriter(_memoryStream);
                 
                 AppendNoDelimiter(type.Id);
-                AppendNoDelimiter(type.Unknown);
+                Append(type.Unknown);
             }
 
             internal string ToString(byte[] body)

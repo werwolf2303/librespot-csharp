@@ -35,17 +35,10 @@ namespace decoder_api
         protected abstract int ReadInternal(Stream stream);
         public abstract int Time();
 
-        public void Close()
-        {
-            if (closed) return;
-            closed = true;
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         public void Dispose()
         {
-            Close();
+            closed = true;
+            audioIn.Dispose();
         }
 
         public void Seek(int positionMs)

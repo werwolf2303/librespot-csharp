@@ -16,7 +16,7 @@ namespace player.metrics
         internal String _featureVersion;
         internal String _referrerIdentifier;
         internal String _contextUri;
-        private long _timestamp;
+        internal long _timestamp;
         private List<Interval> _intervals = new List<Interval>(10);
         internal PlayerMetrics _player = null;
         internal Reason _reasonStart = null;

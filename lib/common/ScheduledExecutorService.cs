@@ -15,6 +15,9 @@ namespace lib.common
         private readonly AutoResetEvent _wakeup = new AutoResetEvent(false);
         private static ILog LOGGER = LogManager.GetLogger(typeof(ScheduledExecutorService));
 
+        private bool _shutdownInitiated = false;
+        private readonly object _shutdownLock = new object();
+
         public ScheduledExecutorService()
         {
             _isRunning = true;
@@ -254,6 +257,9 @@ namespace lib.common
 
         private void scheduleInternal(IScheduledFuture future)
         {
+            if (!_isRunning || _shutdownInitiated)
+                throw new InvalidOperationException("Scheduler is shut down. Cannot schedule new tasks");
+            
             lock (_scheduledFuturesLock)
             {
                 if (_scheduledFutures.Contains(future)) return; 
@@ -265,6 +271,10 @@ namespace lib.common
 
         public void schedule(IScheduledFuture future)
         {
+            if (future == null) throw new ArgumentNullException(nameof(future));
+            if (!_isRunning || _shutdownInitiated)
+                throw new InvalidOperationException("Cannot schedule task: executor is shutting down or already shut down");
+            
             ThreadPool.QueueUserWorkItem(state => { scheduleInternal(future); });
         }
 
@@ -281,21 +291,39 @@ namespace lib.common
 
         public void Dispose()
         {
-            _isRunning = false;
-            _wakeup.Set();
+            lock (_shutdownLock)
+            {
+                if (!_isRunning) return;
+                _shutdownInitiated = true;
+                _isRunning = false;
+            }
 
-            _workerThread.Join();
-
+            try
+            {
+                _wakeup.Set();
+            }
+            catch (ObjectDisposedException) {}
+            
+            _workerThread?.Join(5000);
+            
             lock (_scheduledFuturesLock)
             {
                 foreach (var future in _scheduledFutures)
                 {
-                    future.Cancel(false);
+                    try
+                    {
+                        future.Cancel(interruptIfRunning: false);
+                    }
+                    catch { }
                 }
                 _scheduledFutures.Clear();
             }
-
-            _wakeup.Dispose();
+            
+            try
+            {
+                _wakeup.Dispose();
+            }
+            catch {  }
         }
     }
 }

@@ -177,13 +177,12 @@ namespace librespot
 
         public void OnContextChanged(Player player, string newUri)
         {
-            throw new NotImplementedException();
         }
 
         public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata)
         {
-            trackBarTime.Minimum = 0;
-            trackBarTime.Maximum = metadata._track.Duration;
+            //trackBarTime.Minimum = 0;
+            //trackBarTime.Maximum = metadata._track.Duration;
             
         }
 
