@@ -113,10 +113,6 @@ namespace player.metrics
             {
                 _val = val;
             }
-
-            public Reason()
-            {
-            }
         }
 
         internal class Interval

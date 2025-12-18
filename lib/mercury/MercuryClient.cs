@@ -187,6 +187,8 @@ namespace lib.mercury
 
             if (flags != 1) return;
 
+            _partials.Remove(seq);
+
             Header header = Serializer.Deserialize<Header>(new MemoryStream(partial.Get(0)));
 
             Response resp = new Response(header, partial);
@@ -268,7 +270,7 @@ namespace lib.mercury
                 }
             }
 
-            _callbacks = new Dictionary<long, ICallback>();
+            _callbacks.Clear();
         }
         
         private class CallbackWrapper : ICallback

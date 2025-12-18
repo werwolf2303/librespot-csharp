@@ -24,7 +24,7 @@ namespace lib.core
                     mercuryRequestBuilder.Uri = "hm://event-service/v1/events";
                     mercuryRequestBuilder.Method = "POST";
                     mercuryRequestBuilder.AddUserField("Accept-Language", "en");
-                    mercuryRequestBuilder.AddUserField("X-ClientTimeStamp", Utils.getUnixTimeStampInMilliseconds().ToString());
+                    mercuryRequestBuilder.AddUserField("X-ClientTimeStamp", TimeProvider.currentTimeMillis().ToString());
                     mercuryRequestBuilder.AddPayloadPart(body);
                     MercuryClient.Response resp = session.GetMercury().SendSync(mercuryRequestBuilder.Build());
 
@@ -64,10 +64,6 @@ namespace lib.core
             {
                 Id = id;
                 Unknown = unknown;
-            }
-
-            public Type()
-            {
             }
         }
 

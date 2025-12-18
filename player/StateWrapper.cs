@@ -1253,8 +1253,11 @@ namespace player
                     IPlayableId playable = PlayableId.FromUri(uri);
                     if (playable.HasGid()) gid = playable.GetGid();
                     else gid = null;
-
-                    if (Queue.RemoveAll(track => track.Uri != "" && uri.Equals(track.Uri)) > 0)
+                    
+                    if (Queue.RemoveAll(track =>
+                            (!string.IsNullOrEmpty(track.Uri) && uri.Equals(track.Uri)) ||
+                            (track.Gid != null && track.Gid.Equals(gid))
+                        ) > 0)
                     {
                         UpdateTrackCount();
                         UpdatePrevNextTracks();
@@ -1330,7 +1333,7 @@ namespace player
                         Boolean.Parse(
                             _wrapper._state.ContextMetadatas.TryGetValue("transforming.shuffle", out var value)
                                 ? value
-                                : "false");
+                                : "true");
                     if (_wrapper._context.IsFinite() && _wrapper.IsShufflingContext() && transformingShuffle)
                         ShuffleEntirely();
                     else _wrapper._state.Options.ShufflingContext = false;
