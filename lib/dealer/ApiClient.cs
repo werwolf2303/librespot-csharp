@@ -70,12 +70,10 @@ namespace lib.dealer
                 case RequestMethod.POST:
                     request = new HttpRequest(_baseUrl + suffix, HttpMethod.Post);
                     request.SetData(body);
-                    request.ContentEncoding = requestBodyType;
                     break;
                 case RequestMethod.PUT:
                     request = new HttpRequest(_baseUrl + suffix, HttpMethod.Put);
                     request.SetData(body);
-                    request.ContentEncoding = requestBodyType;
                     break;
                 case RequestMethod.OPTIONS:
                     request = new HttpRequest(_baseUrl + suffix, HttpMethod.Options);

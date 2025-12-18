@@ -1108,6 +1108,8 @@ namespace lib.core
                     throw new Exception("You must select an authentication method.");
                 
                 TimeProvider.init(Conf);
+                
+                ServicePointManager.DefaultConnectionLimit = Int32.MaxValue;
 
                 Session session = new Session(new Inner(DeviceType, DeviceName, DeviceId, PreferredLocale, Conf));
                 session.Connect();

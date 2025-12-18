@@ -45,7 +45,7 @@ namespace librespot
             {
                 return true;
             };
-
+            
             Session.Configuration.Builder configuration = new Session.Configuration.Builder();
 
             configuration.SetStoreCredentials(true);
@@ -67,7 +67,8 @@ namespace librespot
             Player player = new Player(playercfg, session);
             
             player.Load("spotify:track:5WHTFyqSii0lmT9R21abT8", true, false);
-            
+
+            Application.Run(new TestForm(player));
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Text;
 namespace deps.HttpSharp
 {
     // https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
-    public class HttpResponse
+    public class HttpResponse : IDisposable
     {
         public string AcceptCH { get; private set; }
         public string AccessControlAllowOrigin { get; private set; }
@@ -151,6 +151,8 @@ namespace deps.HttpSharp
         private byte[] _requestData;
         private Uri _uri;
         private HttpWebResponse _httpWebResponse;
+        private Stream _responseStream;
+        private bool _disposed;
 
         internal HttpResponse(HttpRequest request)
         {
@@ -161,9 +163,13 @@ namespace deps.HttpSharp
 
             if (_requestData != null)
             {
-                webRequest.GetRequestStream().Write(_requestData, 0, _requestData.Length);
+                using (var requestStream = webRequest.GetRequestStream())
+                {
+                    requestStream.Write(_requestData, 0, _requestData.Length);
+                }
             } 
             _httpWebResponse = (HttpWebResponse)webRequest.GetResponse();
+            _responseStream = _httpWebResponse.GetResponseStream();
 
             AcceptCH = TryGet<string>("Accept-CH");
             AccessControlAllowOrigin = TryGet<string>("Access-Control-Allow-Origin");
@@ -246,30 +252,67 @@ namespace deps.HttpSharp
         {
             if (Headers.ContainsKey("Content-Length"))
             {
-                Stream cresponseStream = _httpWebResponse.GetResponseStream();
                 byte[] cdata = new byte[(int)ContentLength];
                 int offset = 0;
                 while (offset < cdata.Length)
                 {
-                    int read = cresponseStream.Read(cdata, offset, cdata.Length - offset);
+                    int read = _responseStream.Read(cdata, offset, cdata.Length - offset);
                     if (read == 0) break; 
                     offset += read;
                 }
-                cresponseStream.Close();
+                _responseStream.Close();
+                _responseStream.Dispose();
+                _responseStream = null;
                 return cdata;
             }
-            Stream responseStream = _httpWebResponse.GetResponseStream();
             MemoryStream dataStream = new MemoryStream();
             byte[] buffer = new Byte[2048];
             int length;
-            while ((length = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+            while ((length = _responseStream.Read(buffer, 0, buffer.Length)) > 0)
                 dataStream.Write(buffer, 0, length);
+            
+            _responseStream.Close();
+            _responseStream.Dispose();
+            _responseStream = null;
+            
             return dataStream.ToArray();
         }
 
         public Stream GetResponseStream()
         {
-            return _httpWebResponse.GetResponseStream();
+            return _responseStream;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+            if (disposing)
+            {
+                if (_responseStream != null)
+                {
+                    try { _responseStream.Close(); } catch { }
+                    try { _responseStream.Dispose(); } catch { }
+                    _responseStream = null;
+                }
+                if (_httpWebResponse != null)
+                {
+                    try { _httpWebResponse.Close(); } catch { }
+                    try { _httpWebResponse.Dispose(); } catch { }
+                    _httpWebResponse = null;
+                }
+            }
+            _disposed = true;
+        }
+
+        ~HttpResponse()
+        {
+            Dispose(false);
         }
     }
 }

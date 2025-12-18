@@ -254,6 +254,7 @@ namespace deps.HttpSharp
             HttpMethod = httpMethod;
             _request = WebRequest.CreateHttp(uri);
             _request.Method = HttpMethod.ToString().ToUpper();
+            _request.KeepAlive = false;
         }
         
         public HttpRequest(string url, HttpMethod httpMethod)
@@ -262,6 +263,7 @@ namespace deps.HttpSharp
             HttpMethod = httpMethod;
             _request = WebRequest.CreateHttp(url);
             _request.Method = HttpMethod.ToString().ToUpper();
+            _request.KeepAlive = false;
         }
 
         public void AddRange(int range)
