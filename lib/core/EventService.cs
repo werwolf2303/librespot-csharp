@@ -106,14 +106,14 @@ namespace lib.core
 
             public EventBuilder Append(char c)
             {
-                _body.Write(0x09);
+                _body.Write((byte) 0x09);
                 _body.Write(c);
                 return this;
             }
 
             public EventBuilder Append(String str)
             {
-                _body.Write(0x09);
+                _body.Write((byte) 0x09);
                 AppendNoDelimiter(str);
                 return this;
             }
