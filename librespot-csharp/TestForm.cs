@@ -51,7 +51,7 @@ namespace librespot
                         trackBarTime.Invoke((Action)(() =>
                         {
                             if (player.Time() == -1) return;
-                            trackBarTime.Value = this.player.Time();
+                           // trackBarTime.Value = this.player.Time();
                         }));
                     }
                     Thread.Sleep(1000);

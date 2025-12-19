@@ -68,6 +68,16 @@ namespace lib.audio.playback
                 Monitor.PulseAll(_lock);
             }
         }
+        
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                _buffer.Clear();
+                _isCompleted = false;
+                Monitor.PulseAll(_lock);
+            }
+        }
 
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();

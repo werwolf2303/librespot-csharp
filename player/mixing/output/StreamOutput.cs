@@ -41,5 +41,9 @@ namespace player.mixing.output
         public void Suspend()
         {
         }
+
+        public void Clear()
+        {
+        }
     }
 }

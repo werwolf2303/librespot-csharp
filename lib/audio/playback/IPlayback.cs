@@ -35,5 +35,10 @@ namespace lib.audio.playback
          * Writes the pcm data to the audio device
          */
         void Write(byte[] buffer, int offset, int count);
+
+        /**
+         * Clears the output buffer
+         */
+        void Clear();
     }
 }

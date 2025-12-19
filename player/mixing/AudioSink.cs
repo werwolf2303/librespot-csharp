@@ -73,6 +73,11 @@ namespace player.mixing
             _mixing.SecondOut().Clear();
         }
 
+        public void Clear()
+        {
+            _output.Clear();
+        }
+
         public MixingLine.MixingOutput SomeOutput()
         {
             return _mixing.SomeOut();

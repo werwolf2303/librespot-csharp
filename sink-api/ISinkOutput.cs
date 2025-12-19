@@ -13,5 +13,7 @@ namespace sink_api
         void Suspend();
 
         void Resume();
+
+        void Clear();
     }
 }

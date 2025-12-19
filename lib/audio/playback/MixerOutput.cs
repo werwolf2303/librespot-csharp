@@ -79,5 +79,10 @@ namespace lib.audio.playback
         {
             _playback.Dispose();
         }
+
+        public void Clear()
+        {
+            _playback.Clear();
+        }
     }
 }

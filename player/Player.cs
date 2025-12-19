@@ -366,7 +366,8 @@ namespace player
                 trans._startedReason);
             _state.SetPlaybackId(playbackId);
             _session.GetEventService().SendEvent(new NewPlaybackIdEvent(_state.GetSessionId(), playbackId));
-            
+
+            _sink.Clear();
             if (play) _sink.Resume();
             else _sink.Pause();
             

@@ -64,15 +64,23 @@ namespace lib.audio
         public void Dispatch(Packet packet)
         {
             BinaryReader payload = new BinaryReader(new MemoryStream(packet._payload));
-            int seq = payload.ReadInt32();
-
-            Callback callback = _callbacks[seq];
-            _callbacks.Remove(seq);
-            if (callback == null)
+            byte[] seqBytes = payload.ReadBytes(4);
+            if (seqBytes.Length < 4)
+            {
+                LOGGER.Warn("Payload too short to contain sequence number");
+                return;
+            }
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(seqBytes);
+            int seq = BitConverter.ToInt32(seqBytes, 0);
+            
+            if (!_callbacks.TryGetValue(seq, out Callback callback))
             {
                 LOGGER.Warn("Couldn't find callback for seq: " + seq);
                 return;
             }
+            
+            _callbacks.Remove(seq);
 
             if (packet.Is(Packet.Type.AesKey))
             {

@@ -429,6 +429,35 @@ namespace lib.audio.playback
             }
         }
 
+        public void Clear()
+        {
+            // Drop any pending frames in ALSA and reprepare the device so playback restarts cleanly.
+            if (_pcmHandle != IntPtr.Zero)
+            {
+                try
+                {
+                    AlsaWrapper.snd_pcm_drop(_pcmHandle);
+                    AlsaWrapper.snd_pcm_prepare(_pcmHandle);
+                }
+                catch (Exception)
+                {
+                    // Ignore errors during clear to avoid crashing the player.
+                }
+            }
+
+            // Clear the main buffer so subsequent writes start from an empty buffer.
+            _mainBuffer?.Clear();
+
+            // Reset last read cache so after a pause/resume we don't replay stale data.
+            _lastBytesRead = 0;
+
+            // Wake any threads waiting on write so they can continue (or return) promptly.
+            lock (_writeLock)
+            {
+                Monitor.PulseAll(_writeLock);
+            }
+        }
+
         public void Dispose()
         {
             _stopped = true;
