@@ -247,22 +247,22 @@ namespace lib.dealer
         public JObject GetUserProfile(String id, int playlistLimit, int artistLimit)
         {
             StringBuilder url = new StringBuilder();
-            url.Append("(/user-profile-view/v3/profile/");
+            url.Append("/user-profile-view/v3/profile/");
             url.Append(id);
 
-            if (playlistLimit != null || artistLimit != null)
+            if (playlistLimit != -1 || artistLimit != -1)
             {
                 url.Append("?");
 
-                if (playlistLimit != null)
+                if (playlistLimit != -1)
                 {
                     url.Append("playlist_limit=");
                     url.Append(playlistLimit);
-                    if (artistLimit != null)
+                    if (artistLimit != -1)
                         url.Append("&");
                 }
 
-                if (artistLimit != null)
+                if (artistLimit != -1)
                 {
                     url.Append("artist_limit=");
                     url.Append(artistLimit);
