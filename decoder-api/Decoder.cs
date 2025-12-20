@@ -17,10 +17,6 @@ namespace decoder_api
 
         protected Decoder(SeekableInputStream audioIn, float normalizationFactor, int duration)
         {
-            if (!audioIn.CanSeek)
-            {
-                throw new ArgumentException("Input stream must be seekable to support the Decoder API.", nameof(audioIn));
-            }
             this.audioIn = audioIn;
             this.normalizationFactor = normalizationFactor;
             this.duration = duration;

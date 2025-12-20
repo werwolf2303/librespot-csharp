@@ -644,7 +644,7 @@ namespace player
             }
             catch (InvalidOperationException e)
             {
-                LOGGER.WarnFormat("Failed initializing tracks, falling back to start. (uri: {0}, uid: {1}, index: {2}", trackUri, trackUid, trackIndex);
+                LOGGER.WarnFormat("Failed initializing tracks, falling back to start. (uri: {0}, uid: {1}, index: {2}) Reason: {3}", trackUri, trackUid, trackIndex, e);
                 _tracksKeeper.InitializeStart();
             }
             
@@ -668,8 +668,8 @@ namespace player
                     return;
                 }
 
-                ProtoUtils.CopyOverMetadata(obj["metadata"].ToObject<JObject>(), _state);
-                _tracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(obj["pages"].ToObject<JArray>()));
+                ProtoUtils.CopyOverMetadata(obj.TryGetValue("metadata", out var metadata) ? metadata.ToObject<JObject>() : null, _state);
+                _tracksKeeper.UpdateContext(ProtoUtils.JsonToContextPages(obj.TryGetValue("pages", out var pages) ? pages.ToObject<JArray>() : null));
             }
         }
 
@@ -909,7 +909,7 @@ namespace player
             {
                 List<String> added = null;
                 List<String> removed = null;
-                 
+
                 JArray items = JObject.Parse(Encoding.UTF8.GetString(payload))["items"].ToObject<JArray>();
                 foreach (JToken elm in items)
                 {
@@ -955,8 +955,7 @@ namespace player
 
         public String GetContextMetadata(String key)
         {
-            if (_state.ContextMetadatas.ContainsKey(key)) return _state.ContextMetadatas[key];
-            return null;
+            return _state.ContextMetadatas.TryGetValue(key, out var value) ? value : null;
         }
 
         public void SetContextMetadata(String key, String value)
@@ -1364,6 +1363,7 @@ namespace player
                             uint index = (uint)finder(newTracks);
                             if (index == -1)
                             {
+                                LOGGER.Info("Did not find track, going to next page.");
                                 Tracks.AddRange(newTracks);
                                 continue;
                             }
@@ -1372,6 +1372,7 @@ namespace player
                             Tracks.AddRange(newTracks);
 
                             SetCurrentTrackIndex(index);
+                            LOGGER.InfoFormat("Initialized current track index to {0}.", index);
                             break;
                         }
                         else

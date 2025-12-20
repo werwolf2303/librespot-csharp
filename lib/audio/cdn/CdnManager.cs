@@ -255,11 +255,11 @@ namespace lib.audio.cdn
                 else
                 {
                     InternalResponse resp = Request(0, ChannelManager.CHUNK_SIZE - 1);
-                    String contentRange = resp._headers["Content-Range"];
+                    resp._headers.TryGetValue("Content-Range", out var contentRange);
                     if (contentRange == null)
                         throw new IOException("Missing Content-Range header!");
                     
-                    String[] split = Utils.split(resp._headers["Content-Range"], '/');
+                    String[] split = Utils.split(contentRange, '/');
                     _size = Int32.Parse(split[1]);
                     _chunks = (_size + ChannelManager.CHUNK_SIZE - 1) / ChannelManager.CHUNK_SIZE;
                     
@@ -379,7 +379,7 @@ namespace lib.audio.cdn
 
                 HttpResponse response = _session.GetClient().NewCall(request);
                 if (response.StatusCode != HttpStatusCode.PartialContent)
-                    throw new IOException(response.StatusCode.ToString() + ": " + response.StatusDescription);
+                    throw new IOException(response.StatusCode + ": " + response.StatusDescription);
 
                 if (response.GetResponseStream() == null)
                     throw new IOException("Response body is emptry!");

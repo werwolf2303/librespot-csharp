@@ -182,8 +182,8 @@ namespace lib.common
             JObject metadata = obj.TryGetValue("metadata", out var value) ? value.ToObject<JObject>() : null;
             if (metadata != null)
             {
-                foreach (String key in metadata.Properties())
-                    context.Metadatas.Add(key, metadata[key].ToObject<String>());
+                foreach (var property in metadata.Properties())
+                    context.Metadatas.Add(property.Name, property.Value.ToObject<String>());
             }
 
             if (obj.ContainsKey("pages"))
@@ -344,7 +344,7 @@ namespace lib.common
 
         public static void CopyOverMetadata(JObject obj, PlayerState to)
         {
-            foreach (String key in obj.Properties()) to.ContextMetadatas.Add(key, obj[key].ToObject<string>());
+            foreach (var property in obj.Properties()) to.ContextMetadatas.Add(property.Name, property.Value.ToObject<string>());
         }
 
         public static void CopyOverMetadata(Context from, PlayerState to)

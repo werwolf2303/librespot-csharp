@@ -114,7 +114,8 @@ namespace player
                     _player._state.Updated();
                 } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SetShufflingContext))
                 {
-                    _player._state.SetRepeatingContext(data.GetValueBool().Value);
+                    _player._state.SetShufflingContext(data.GetValueBool().Value);
+                    _player._state.Updated();
                 } else if (endpoint.Matches(DeviceStateHandler.Endpoint.AddToQueue))
                 {
                     _player.HandleAddToQueue(data.GetObj());
@@ -411,6 +412,8 @@ namespace player
                     LOGGER.ErrorExt("Cannot play context!", ex);
                     PanicState(null);
                 }
+
+                throw;
             }
         }
 
@@ -444,7 +447,7 @@ namespace player
             _state.SetPosition(pos);
             _events.Seeked(pos);
             
-            PlaybackMetrics pm = _metrics[_playerSession.CurrentPlaybackId()];
+            _metrics.TryGetValue(_playerSession.CurrentPlaybackId(), out var pm);
             if (pm != null)
             {
                 pm.EndInterval(_state.GetPosition());
@@ -714,7 +717,7 @@ namespace player
                 {
                     if (map.ContainsKey(key))
                     {
-                        image = (ImageId) ImageId.FromUri(map[key]);
+                        image = (ImageId) ImageId.FromUri(map.TryGetValue(key, out var value) ? value : null);
                     }
                 }
             }

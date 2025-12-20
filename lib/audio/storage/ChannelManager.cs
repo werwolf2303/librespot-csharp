@@ -55,8 +55,8 @@ namespace lib.audio.storage
             BinaryReader payload = new BinaryReader(new MemoryStream(packet._payload));
             if (packet.Is(Packet.Type.StreamChunkRes))
             {
-                short id = payload.ReadInt16();
-                Channel channel = _channels[id];
+                short id = payload.ReadInt16(); 
+                _channels.TryGetValue(id, out var channel);
                 if (channel == null)
                 {
                     LOGGER.WarnFormat("Couldn't find channel, id: {0}, receibed {1}", id, packet._payload.Length);
@@ -68,7 +68,7 @@ namespace lib.audio.storage
             else if (packet.Is(Packet.Type.ChannelError))
             {
                 short id = payload.ReadInt16();
-                Channel channel = _channels[id];
+                _channels.TryGetValue(id, out var channel);
                 if (channel == null) {
                     LOGGER.WarnFormat("Dropping channel error, id: {0}, code: {1}", id, payload.ReadInt16());
                     return;

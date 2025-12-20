@@ -24,6 +24,9 @@ namespace lib.audio.playback
                         case Platform.PlatformLinuxX86:
                             _playback = new Alsa();
                             break;
+                        case Platform.PlatformWin32X86:
+                            _playback = new Dummy();
+                            break;
                         default:
                             throw new NotImplementedException("Playback not implemented for: " + Version.platform());
                     }

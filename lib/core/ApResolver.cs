@@ -92,8 +92,8 @@ namespace lib.core
         {
             waitForPool();
 
-            List<String> urls = pool[type];
-            if (urls == null || urls.Count == 0) throw new Exception("Illegal state");
+            pool.TryGetValue(type, out var urls);
+            if (urls == null || urls.Count == 0) throw new InvalidOperationException();
             return urls[new Random().Next(0, urls.Count)];
         }
 

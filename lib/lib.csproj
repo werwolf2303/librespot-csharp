@@ -90,6 +90,7 @@
         <Compile Include="audio\PlayableContentFeeder.cs" />
         <Compile Include="audio\playback\Alsa.cs" />
         <Compile Include="audio\playback\BlockingStream.cs" />
+        <Compile Include="audio\playback\Dummy.cs" />
         <Compile Include="audio\playback\IPlayback.cs" />
         <Compile Include="audio\playback\MixerOutput.cs" />
         <Compile Include="audio\storage\AudioFile.cs" />

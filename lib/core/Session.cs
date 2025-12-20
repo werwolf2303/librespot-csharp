@@ -847,7 +847,7 @@ namespace lib.core
 
         public String GetUserAttribute(String key)
         {
-            return _userAttributes[key];
+            return _userAttributes.TryGetValue(key, out var value) ? value : null;
         }
 
         public String GetUserAttribute(String key, String fallback)

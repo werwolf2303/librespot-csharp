@@ -46,14 +46,14 @@ namespace librespot
             {
                 while (true)
                 {
-                    if (this.player.CurrentPlayable() != null)
-                    {
-                        trackBarTime.Invoke((Action)(() =>
-                        {
-                            if (player.Time() == -1) return;
+                    //if (this.player.CurrentPlayable() != null)
+                    //{
+                    //    trackBarTime.Invoke((Action)(() =>
+                    //    {
+                    //        if (player.Time() == -1) return;
                            // trackBarTime.Value = this.player.Time();
-                        }));
-                    }
+                    //    }));
+                    //}
                     Thread.Sleep(1000);
                 }
             }).Start();

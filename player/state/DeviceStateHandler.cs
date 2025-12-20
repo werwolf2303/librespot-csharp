@@ -137,7 +137,7 @@ namespace player.state
         public void OnMessage(String uri, Dictionary<String, String> headers, byte[] payload)
         {
             if (uri.StartsWith("hm://pusher/v1/connections/")) {
-                UpdateConnectionId(headers["Spotify-Connection-Id"]);
+                UpdateConnectionId(headers.TryGetValue("Spotify-Connection-Id", out var value) ? value : null);
             } else if (Equals(uri, "hm://connect-state/v1/connect/volume")) {
                 SetVolumeCommand cmd = Serializer.Deserialize<SetVolumeCommand>(new MemoryStream(payload));
                 SetVolume((uint)cmd.Volume);
@@ -351,7 +351,7 @@ namespace player.state
 
                 JToken elm;
                 if (
-                    (elm = Utils.OptionalJSON<JObject>(options, "initially_paused", null)) != null
+                    (elm = Utils.OptionalJSON<JToken>(options, "initially_paused", null)) != null
                     && elm.Type == JTokenType.Boolean)
                 {
                     return elm.ToObject<bool>();
@@ -366,7 +366,7 @@ namespace player.state
                 if (context == null) return null;
                 
                 JToken elm;
-                if ((elm = Utils.OptionalJSON<JObject>(context, "uri", null)) != null
+                if ((elm = Utils.OptionalJSON<JToken>(context, "uri", null)) != null
                     && elm.Type == JTokenType.String)
                 {
                     return elm.ToObject<string>();

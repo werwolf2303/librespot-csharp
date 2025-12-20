@@ -167,7 +167,7 @@ namespace player.crossfade
             }
             else
             {
-                _fadeIn = _fadeInMap[reason];
+                _fadeIn = _fadeInMap.TryGetValue(reason, out var value) ? value : null;
                 _activeInterval = null;
                 LOGGER.DebugFormat("Changed fade in. (curr: {0}, custom: {1}, why: {2}, id: {3}", _fadeIn, customFade,
                     reason, _playbackId);
@@ -186,7 +186,7 @@ namespace player.crossfade
             }
             else
             {
-                _fadeOut = _fadeOutMap[reason];
+                _fadeOut = _fadeOutMap.TryGetValue(reason, out var fadeOut) ? fadeOut : null;
                 _activeInterval = null;
                 LOGGER.DebugFormat("Changed fade out. (curr: {0}, custom: {2}, why: {3}, id: {4})", _fadeOut,
                     customFade, reason, _playbackId);

@@ -12,14 +12,12 @@ namespace lib.json
 
         public String Uri()
         {
-            if(!Obj.ContainsKey("uri")) return null;
-            return Obj["uri"].ToObject<string>();
+            return Obj.TryGetValue("uri", out var value) ? value.ToObject<String>() : null;
         }
 
         public List<ContextTrack> Tracks()
         {
-            if(!Obj.ContainsKey("tracks")) return new List<ContextTrack>();
-            return ProtoUtils.JsonToContextTracks(Obj["tracks"].ToObject<JArray>());
+            return ProtoUtils.JsonToContextTracks(Obj.TryGetValue("tracks", out var value) ? value.ToObject<JArray>() : null);
         }
     }
 }

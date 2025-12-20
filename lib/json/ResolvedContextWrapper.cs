@@ -14,26 +14,22 @@ namespace lib.json
 
         public List<ContextPage> Pages()
         {
-            if(!Obj.ContainsKey("pages")) return new List<ContextPage>();
-            return ProtoUtils.JsonToContextPages(Obj["pages"].ToObject<JArray>());
+            return ProtoUtils.JsonToContextPages(Obj.TryGetValue("pages", out var value) ? value.ToObject<JArray>() : null);
         }
 
         public JObject Metadata()
         {
-            if(!Obj.ContainsKey("metadata")) return null;
-            return Obj["metadata"].ToObject<JObject>();
+            return Obj.TryGetValue("metadata", out var value) ? value.ToObject<JObject>() : null;
         }
 
         public String Uri()
         {
-            if(!Obj.ContainsKey("uri")) return null;
-            return Obj["uri"].ToObject<string>();
+            return Obj.TryGetValue("uri", out var value) ? value.ToObject<String>() : null;
         }
 
         public String Url()
         {
-            if(!Obj.ContainsKey("url")) return null;
-            return Obj["url"].ToObject<string>();
+            return Obj.TryGetValue("url", out var value) ? value.ToObject<String>() : null;
         }
     }
 }

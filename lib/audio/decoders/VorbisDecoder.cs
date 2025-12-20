@@ -168,7 +168,7 @@ namespace lib.audio.decoders
                     for (int j = 0; j < range; j++)
                     {
                         int value = (int)(_pcmInfo[0][i][_pcmIndex[i] + j] * 32767);
-                        value *= (int) normalizationFactor;
+                        value *= (int) (value * normalizationFactor);
                         
                         if (value > 32767) value = 32767;
                         else if (value < -32768) value = -32768;

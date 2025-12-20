@@ -213,10 +213,12 @@ namespace lib.mercury
             }else if (packet.Is(Packet.Type.MercuryReq) || packet.Is(Packet.Type.MercurySub) ||
                       packet.Is(Packet.Type.MercuryUnsub))
             {
-                ICallback callback = _callbacks[seq];
-                _callbacks.Remove(seq);
+                _callbacks.TryGetValue(seq, out var callback);
                 if (callback != null)
+                {
                     callback.Response(resp);
+                    _callbacks.Remove(seq);
+                }
                 else LOGGER.WarnFormat("Skipped Mercury response, seq: {0}, uri: {1}, code: {2}", seq, header.Uri, header.StatusCode);
 
                 lock (_removeCallbackLock)

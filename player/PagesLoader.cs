@@ -145,13 +145,13 @@ namespace player
         internal void PutFirstPages(List<ContextPage> pages, String contextUri)
         {
             if (_currentPage != -1 || _pages.Count != 0) throw new Exception("Illegal state");
-            foreach (ContextPage page in _pages)
+            foreach (ContextPage page in pages)
             {
                 List<ContextTrack> tracks = new List<ContextTrack>(page.Tracks);
                 SanitizeTracks(tracks, contextUri == null ? null : PlayableId.InferUriPrefix(contextUri));
                 page.Tracks.Clear();
                 page.Tracks.AddRange(tracks);
-                pages.Add(page);
+                _pages.Add(page);
             }
         }
 

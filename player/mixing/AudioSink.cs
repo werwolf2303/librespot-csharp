@@ -18,7 +18,6 @@ namespace player.mixing
         private Thread _thread;
         private volatile bool _closed = false;
         private volatile bool _paused = true;
-        private ManualResetEvent _pauseEvent = new ManualResetEvent(true);
 
         public AudioSink(PlayerConfiguration conf)
         {
@@ -51,10 +50,6 @@ namespace player.mixing
 
             if (conf._bypassSinkVolume) SetVolume(Player.VOLUME_MAX);
             else SetVolume(conf._initialVolume);
-
-            _thread = new Thread(Run);
-            _thread.Name = "player-audio-sink";
-            _thread.Start();
         }
         
         private ISinkOutput InitCustomOutputSink(string className, Object[] parameters)
@@ -86,14 +81,14 @@ namespace player.mixing
         public void Resume()
         {
             _paused = false;
-            _pauseEvent.Reset();
+            if (_thread == null) _thread = new Thread(Run);
+            if (!_thread.IsAlive) _thread.Start();
             _output.Resume();
         }
 
         public void Pause()
         {
             _paused = true;
-            _pauseEvent.Set();
             _output.Suspend();
         }
 
@@ -110,6 +105,7 @@ namespace player.mixing
         public void Dispose()
         {
             _closed = true;
+            _paused = true;
             _thread.Interrupt();
             
             ClearOutputs();
@@ -124,8 +120,7 @@ namespace player.mixing
             {
                 if (_paused)
                 {
-                    started = false;
-                    _pauseEvent.WaitOne();
+                    break;
                 }
                 else
                 {
@@ -141,7 +136,7 @@ namespace player.mixing
                 }
             }
             
-            _output.Dispose();
+            if (!_paused) _output.Dispose();
         }
 
         public void Flush()

@@ -51,7 +51,7 @@ namespace librespot
             configuration.SetStoreCredentials(true);
             configuration.SetStoredCredentialsFile("credentials.json");
             configuration.SetCacheEnabled(false);
-            configuration.SetProxy(new WebProxy("127.0.0.1", 8080));
+            //configuration.SetProxy(new WebProxy("127.0.0.1", 8000));
 
             Session.Builder builder = new Session.Builder(configuration.Build());
 
@@ -67,9 +67,9 @@ namespace librespot
             Player player = new Player(playercfg, session);
             
             //player.Load("spotify:track:1HswQtdv4WCKysFAwTPzKg", true, false);
-            player.Load("spotify:track:51FZnO9sWc2dazJneozkHp", true, false);
+            player.Load("spotify:track:51FZnO9sWc2dazJneozkHp", false, false);
 
-            Application.Run(new TestForm(player));
+            //Application.Run(new TestForm(player));
         }
     }
 }
