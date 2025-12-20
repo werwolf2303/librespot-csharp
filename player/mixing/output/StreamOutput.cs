@@ -45,5 +45,9 @@ namespace player.mixing.output
         public void Clear()
         {
         }
+
+        public void Flush()
+        {
+        }
     }
 }

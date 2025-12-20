@@ -238,11 +238,10 @@ public abstract class AbsChunkedInputStream : SeekableInputStream, IDisposable
             {
                 try
                 {
-                    Thread.Sleep((int)(Math.Pow(2, _retries[chunk])) * 100);
+                    Thread.Sleep((int) (Math.Log10(_retries[chunk]) * 1000));
                 }
                 catch (ThreadInterruptedException)
                 {
-                    Thread.CurrentThread.Interrupt();
                 }
 
                 CheckAvailability(chunk, true, true);

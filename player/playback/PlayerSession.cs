@@ -279,6 +279,7 @@ namespace player.playback
             if ((entry = _queue.Next()) != null && entry.HasOutput()) _queue.Remove(entry);
             
             _queue.Head().Seek(pos);
+            _sink.Flush();
         }
 
         public PlayerMetrics CurrentMetrics()

@@ -14,6 +14,19 @@ namespace lib.audio.playback
             Playback = 0,
             Capture = 1,
         }
+        
+        public enum SndPcmState : int
+        {
+            Open = 0,
+            Setup = 1,
+            Prepared = 2,
+            Running = 3,
+            XRun = 4,
+            Draining = 5,
+            Paused = 6,
+            Suspended = 7,
+            Disconnected = 8
+        }
 
         public enum SndPcmAccess
         {
@@ -32,7 +45,7 @@ namespace lib.audio.playback
         [DllImport("libasound.so.2")]
         public static extern long snd_pcm_hw_params_sizeof();
         
-        [DllImport("libasound.so")]
+        [DllImport("libasound.so.2")]
         public static extern long snd_pcm_avail_update(IntPtr pcmHandle);
 
         [DllImport("libasound.so.2")]
@@ -67,13 +80,26 @@ namespace lib.audio.playback
         public static extern int snd_pcm_drop(IntPtr pcm);
 
         [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_drain(IntPtr pcm);
+
+        [DllImport("libasound.so.2")]
         public static extern int snd_pcm_writei(IntPtr pcm, byte[] buffer, long sizeInFrames);
 
         [DllImport("libasound.so.2")]
         public static extern int snd_pcm_recover(IntPtr pcm, int err, int silent);
         
-        [DllImport("libasound.so")]
+        [DllImport("libasound.so.2")]
         public static extern int snd_pcm_wait(IntPtr pcmHandle, int timeoutMs);
+        
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_hw_params_malloc(out IntPtr ptr);
+
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_delay(IntPtr pcm, out long delayFrames);
+        
+        [DllImport("libasound.so.2")]
+        public static extern int snd_pcm_get_params(IntPtr pcm, out ulong bufferSize, out ulong periodSize);
+
 
         public class AlsaException : Exception
         {
@@ -103,6 +129,8 @@ namespace lib.audio.playback
         private Object _pauseLock = new Object();
         private int _lastBytesRead;
         private bool _alsaPausingSupported;
+        private ulong _alsaBufferSize;
+        private ulong _alsaPeriodSize;
         
         public void Init(OutputAudioFormat audioFormat)
         {
@@ -114,8 +142,8 @@ namespace lib.audio.playback
 
             CheckAlsaError(AlsaWrapper.snd_pcm_open(out _pcmHandle, "default", 0, 0), "snd_pcm_open");
 
-            long hwParamsSize = AlsaWrapper.snd_pcm_hw_params_sizeof();
-            IntPtr hwParams = Marshal.AllocHGlobal((int)hwParamsSize);
+            IntPtr hwParams;
+            CheckAlsaError(AlsaWrapper.snd_pcm_hw_params_malloc(out hwParams), "hw_params_malloc");
 
             CheckAlsaError(AlsaWrapper.snd_pcm_hw_params_any(_pcmHandle, hwParams), "snd_pcm_hw_params_any");
 
@@ -135,13 +163,10 @@ namespace lib.audio.playback
                 "snd_pcm_hw_params_set_channels");
 
             CheckAlsaError(AlsaWrapper.snd_pcm_hw_params(_pcmHandle, hwParams), "snd_pcm_hw_params");
+            
+            CheckAlsaError(AlsaWrapper.snd_pcm_get_params(_pcmHandle, out _alsaBufferSize, out _alsaPeriodSize), "snd_pcm_get_params");
 
             _alsaPausingSupported = AlsaWrapper.snd_pcm_hw_params_can_pause(hwParams) == 1;
-
-            if (hwParams != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(hwParams);
-            }
         }
 
         private void CheckAlsaError(int err, string functionName)
@@ -279,8 +304,7 @@ namespace lib.audio.playback
                 }
 
                 uint framesToWrite = (uint)(bytesRead / _bytesPerFrame);
-
-
+                
                 int result = AlsaWrapper.snd_pcm_writei(_pcmHandle, _buffer, framesToWrite);
                 if (result == -32)
                 {
@@ -431,7 +455,6 @@ namespace lib.audio.playback
 
         public void Clear()
         {
-            // Drop any pending frames in ALSA and reprepare the device so playback restarts cleanly.
             if (_pcmHandle != IntPtr.Zero)
             {
                 try
@@ -441,27 +464,50 @@ namespace lib.audio.playback
                 }
                 catch (Exception)
                 {
-                    // Ignore errors during clear to avoid crashing the player.
                 }
             }
-
-            // Clear the main buffer so subsequent writes start from an empty buffer.
             _mainBuffer?.Clear();
-
-            // Reset last read cache so after a pause/resume we don't replay stale data.
             _lastBytesRead = 0;
-
-            // Wake any threads waiting on write so they can continue (or return) promptly.
             lock (_writeLock)
             {
                 Monitor.PulseAll(_writeLock);
             }
         }
 
+        public void Flush()
+        {
+            if (_pcmHandle == IntPtr.Zero)
+                return;
+
+            ulong targetAvail = _alsaBufferSize - _alsaPeriodSize;
+
+            while (true)
+            {
+                long avail = AlsaWrapper.snd_pcm_avail_update(_pcmHandle);
+
+                if (avail < 0)
+                {
+                    AlsaWrapper.snd_pcm_recover(_pcmHandle, (int)avail, 1);
+                    continue;
+                }
+
+                if ((ulong)avail >= targetAvail)
+                    break;
+                
+                AlsaWrapper.snd_pcm_wait(_pcmHandle, 100);
+            }
+        }
+
+        
         public void Dispose()
         {
             _stopped = true;
-            _playbackThread.Join();
+
+            if (_playbackThread != null && _playbackThread.IsAlive)
+            {
+                _playbackThread.Join();
+            }
+
             if (_pcmHandle != IntPtr.Zero)
             {
                 AlsaWrapper.snd_pcm_close(_pcmHandle);

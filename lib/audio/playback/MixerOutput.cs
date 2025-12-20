@@ -84,5 +84,10 @@ namespace lib.audio.playback
         {
             _playback.Clear();
         }
+
+        public void Flush()
+        {
+            _playback.Flush();
+        }
     }
 }

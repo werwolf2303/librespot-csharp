@@ -80,7 +80,7 @@ namespace player.mixing
 
         public MixingLine.MixingOutput SomeOutput()
         {
-            return _mixing.SomeOut();
+            return _mixing.SomeOut(this);
         }
 
         public void Resume()
@@ -142,6 +142,11 @@ namespace player.mixing
             }
             
             _output.Dispose();
+        }
+
+        public void Flush()
+        {
+            _output.Flush();
         }
     }
 }

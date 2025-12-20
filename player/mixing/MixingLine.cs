@@ -20,6 +20,7 @@ public sealed class MixingLine : Stream
         private volatile float _sg = 1;
         private volatile float _gg = 1;
         private OutputAudioFormat _format = OutputAudioFormat.DEFAULT_FORMAT;
+        private AudioSink _audioSink;
 
         public MixingLine() { }
 
@@ -54,8 +55,9 @@ public sealed class MixingLine : Stream
             }
         }
         
-        public MixingOutput SomeOut()
+        public MixingOutput SomeOut(AudioSink sink)
         {
+            _audioSink = sink;
             if (_fout == null) return FirstOut();
             if (_sout == null) return SecondOut();
             return null;
@@ -128,7 +130,11 @@ public sealed class MixingLine : Stream
         public override bool CanWrite => false;
         public override long Length => throw new NotSupportedException();
         public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        public override void Flush() { }
+
+        public override void Flush()
+        {
+            _audioSink.Flush();
+        }
         public override int ReadByte() => throw new NotSupportedException();
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
         public override void SetLength(long value) => throw new NotSupportedException();
@@ -166,7 +172,12 @@ public sealed class MixingLine : Stream
             public override bool CanWrite => true;
             public override long Length => throw new NotSupportedException();
             public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-            public override void Flush() { }
+
+            public override void Flush()
+            {
+                _owner.Flush();
+            }
+            
             public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
             public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
             public override void SetLength(long value) => throw new NotSupportedException();

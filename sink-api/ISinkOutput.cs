@@ -15,5 +15,7 @@ namespace sink_api
         void Resume();
 
         void Clear();
+
+        void Flush();
     }
 }

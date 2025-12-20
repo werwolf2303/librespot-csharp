@@ -40,5 +40,10 @@ namespace lib.audio.playback
          * Clears the output buffer
          */
         void Clear();
+
+        /**
+         * Waits until all data has been written to the output
+         */
+        void Flush();
     }
 }

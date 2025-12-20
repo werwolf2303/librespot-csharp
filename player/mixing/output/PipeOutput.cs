@@ -78,7 +78,11 @@ namespace player.mixing.output
         public void Clear()
         {
         }
-        
+
+        public void Flush()
+        {
+        }
+
         public void Dispose()
         {
             _outputStream?.Dispose();

@@ -29,11 +29,25 @@ namespace lib.audio.playback
             get => throw new NotSupportedException(); set => throw new NotSupportedException(); 
         }
 
-        public override void Flush() { }
+        public override void Flush()
+        {
+            lock (_lock)
+            {
+                Monitor.Wait(_lock);
+            }
+        }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             int bytesRead = 0;
+
+            if (_buffer.Count == 0)
+            {
+                lock (_lock)
+                {
+                    Monitor.PulseAll(_lock);
+                }
+            }
 
             lock (_lock)
             {
