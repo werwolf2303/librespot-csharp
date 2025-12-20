@@ -40,7 +40,7 @@ namespace lib.audio
             reader = new BinaryReader(new MemoryStream(data));
             
             return new NormalizationData(
-                reader.ReadSingle(), // Track Gain dB)
+                reader.ReadSingle(), // Track Gain dB
                 reader.ReadSingle(), // Track Peak
                 reader.ReadSingle(), // Album Gain dB
                 reader.ReadSingle()  // Album Peak
@@ -51,14 +51,14 @@ namespace lib.audio
         {
             float gain = useAlbumGain ? AlbumGainDb : TrackGainDb;
             LOGGER.Debug("Using gain: " + gain);
-            float normalisationFactor = (float) Math.Pow(10, (gain + normalisationPregain / 20));
-            if (normalisationFactor * TrackPeak > 1)
-            {
-                LOGGER.Warn("Reducing normalisation factor to prevent clipping. PLease add negative pregain to avoid.");
-                normalisationFactor = 1 / TrackPeak;
-            }
-            
-            return normalisationFactor;
+            float normalisationFactor = (float) Math.Pow(10, (gain + normalisationPregain) / 20.0);
+             if (normalisationFactor * TrackPeak > 1)
+             {
+                 LOGGER.Warn("Reducing normalisation factor to prevent clipping. Please add negative pregain to avoid.");
+                 normalisationFactor = 1 / TrackPeak;
+             }
+             
+             return normalisationFactor;
         }
         
         public float GetFactor(float normlisationPregain)

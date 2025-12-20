@@ -160,37 +160,38 @@ namespace lib.audio.decoders
             int samples;
             while ((samples = _jorbisDspState.SynthesisPcmOut(_pcmInfo, _pcmIndex)) > 0)
             {
-                range = Math.Min(samples, _convertedBufferSize);
+                int maxFrames = Math.Max(1, _convertedBufferSize / (2 * _jorbisInfo.Channels));
+                range = Math.Min(samples, maxFrames);
 
                 for (int i = 0; i < _jorbisInfo.Channels; i++)
                 {
                     int sampleIndex = i * 2;
                     for (int j = 0; j < range; j++)
                     {
-                        int value = (int)(_pcmInfo[0][i][_pcmIndex[i] + j] * 32767);
-                        value *= (int) (value * normalizationFactor);
-                        
+                        float fSample = _pcmInfo[0][i][_pcmIndex[i] + j] * normalizationFactor;
+                        int value = (int)(fSample * 32767f);
+
                         if (value > 32767) value = 32767;
                         else if (value < -32768) value = -32768;
-                        else if (value < 0) value = value | 32768;
 
-                        _convertedBuffer[sampleIndex] = (byte)(value);
-                        _convertedBuffer[sampleIndex + 1] = (byte)((uint)value >> 8);
-                        
-                        sampleIndex += 2 * _jorbisInfo.Channels;
+                        short s = (short)value;
+                        _convertedBuffer[sampleIndex] = (byte)(s & 0xFF);
+                        _convertedBuffer[sampleIndex + 1] = (byte)((s >> 8) & 0xFF);
+                         
+                         sampleIndex += 2 * _jorbisInfo.Channels;
                     }
                 }
-                
+                 
                 int c = 2 * _jorbisInfo.Channels * range;
-                outStream.Write(_convertedBuffer, 0, c);
-                outStream.Flush();
+                outStream.Write(_convertedBuffer, 0, c); 
+                outStream.Flush(); 
                 written += c;
                 _jorbisDspState.SynthesisRead(range);
 
                 long granulepos = _joggPacket.GranulePos;
                 if (granulepos != -1 && _joggPacket.EndOfStream == 0)
                 {
-                    granulepos -= samples;
+                    granulepos -= samples; 
                     granulepos -= (long)BUFFER_SIZE * 6 * SampleSizeBytes();
                     _pcmOffset = granulepos;
                 }
