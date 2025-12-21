@@ -24,17 +24,19 @@ namespace player.crossfade
 
         public CrossfadeController(String playbackId, int duration, Dictionary<String, String> metadata,
             PlayerConfiguration conf)
-        {
-            _playbackId = playbackId;
+        { 
+            _playbackId = playbackId; 
             _trackDuration = duration;
             _defaultFadeDuration = conf._crossfadeDuration;
             
-            String fadeOutUri = metadata.TryGetValue("audio.fade_out_uri", out var fadeOutUriValue) ? fadeOutUriValue : null;
+            String fadeOutUri = metadata.TryGetValue("audio.fade_out_uri", out var fadeOutUriValue) 
+                ? fadeOutUriValue 
+                : null;
             _fadeOutPlayable = fadeOutUri == null ? null : PlayableId.FromUri(fadeOutUri);
-
-            PopulateFadeIn(metadata);
-            PopulateFadeOut(metadata);
             
+            PopulateFadeIn(metadata); 
+            PopulateFadeOut(metadata);
+
             LOGGER.DebugFormat("Loaded crossfade intervals (id: {0}, in: {1}, out: {2}", playbackId, _fadeInMap, _fadeOutMap);
         }
 

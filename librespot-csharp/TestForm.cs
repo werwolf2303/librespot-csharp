@@ -22,6 +22,7 @@ namespace librespot
         private System.Windows.Forms.TrackBar trackBarVolume;
 
         private Player player;
+        private bool playbackPaused = false;
         
         protected override void Dispose(bool disposing)
         {
@@ -32,12 +33,16 @@ namespace librespot
             base.Dispose(disposing);
         }
 
-        public TestForm(Player _player) 
+        public delegate void RunThis();
+
+        public TestForm(Player _player, RunThis runThis) 
         {
             this.player = _player;
             InitializeComponent();
             
             player.AddEventsListener(this);
+
+            runThis();
         }
 
         protected override void OnShown(EventArgs e)
@@ -46,17 +51,26 @@ namespace librespot
             {
                 while (true)
                 {
-                    //if (this.player.CurrentPlayable() != null)
-                    //{
-                    //    trackBarTime.Invoke((Action)(() =>
-                    //    {
-                    //        if (player.Time() == -1) return;
-                           // trackBarTime.Value = this.player.Time();
-                    //    }));
-                    //}
+                    if (player.CurrentPlayable() != null)
+                    {
+                        trackBarTime.Invoke((Action)(() =>
+                        {
+                            if (playbackPaused) return;
+                            if (player.Time() == -1) return;
+                            trackBarTime.Value = player.Time();
+                        }));
+                    }
                     Thread.Sleep(1000);
                 }
             }).Start();
+            
+            trackBarVolume.Invoke((Action)(() =>
+            {
+                trackBarVolume.Minimum = 0;
+                trackBarVolume.Maximum = 65536;
+                trackBarVolume.Value = 65536;
+                player.SetVolume(65536);
+            }));
         }
 
         #region Windows Form Designer generated code
@@ -89,7 +103,7 @@ namespace librespot
             this.btnPrevious.UseVisualStyleBackColor = true;
             this.btnPrevious.Click += (sender, e) => 
             {
-                player.Previous();
+                player.Previous(false);
             };
             // 
             // btnPlayPause
@@ -137,6 +151,7 @@ namespace librespot
             {
                 if (trackBarTime.Value >= trackBarTime.Minimum && trackBarTime.Value <= trackBarTime.Maximum)
                 {
+                    if (!playbackPaused) return;
                     player.Seek(trackBarTime.Value);
                 }
             };
@@ -179,11 +194,8 @@ namespace librespot
         {
         }
 
-        public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata)
+        public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata, bool userInitiated)
         {
-            //trackBarTime.Minimum = 0;
-            //trackBarTime.Maximum = metadata._track.Duration;
-            
         }
 
         public void OnPlaybackEnded(Player player)
@@ -192,14 +204,17 @@ namespace librespot
 
         public void OnPlaybackPaused(Player player, long trackTime)
         {
+            playbackPaused = true;
         }
 
         public void OnPlaybackResumed(Player player, long trackTime)
         {
+            playbackPaused = false;
         }
 
         public void OnPlaybackFailed(Player player, Exception ex)
         {
+            playbackPaused = true;
         }
 
         public void OnTrackSeeked(Player player, long trackTime)
@@ -208,6 +223,8 @@ namespace librespot
 
         public void OnMetadataAvailable(Player player, MetadataWrapper metadata)
         {
+            trackBarTime.Minimum = 0;
+            trackBarTime.Maximum = metadata._track.Duration;
         }
 
         public void OnPlaybackHaltStateChanged(Player player, bool halted, long trackTime)
@@ -224,6 +241,7 @@ namespace librespot
 
         public void OnPanicState(Player player)
         {
+            playbackPaused = true;
         }
 
         public void OnStartedLoading(Player player)

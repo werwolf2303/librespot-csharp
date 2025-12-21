@@ -191,9 +191,9 @@ namespace lib.audio.decoders
                 long granulepos = _joggPacket.GranulePos;
                 if (granulepos != -1 && _joggPacket.EndOfStream == 0)
                 {
-                    granulepos -= samples; 
+                    granulepos -= samples;
                     granulepos -= (long)BUFFER_SIZE * 6 * SampleSizeBytes();
-                    _pcmOffset = granulepos;
+                    _pcmOffset = Math.Max(0, granulepos);
                 }
             }
 

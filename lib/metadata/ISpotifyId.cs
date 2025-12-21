@@ -26,7 +26,7 @@ namespace lib.metadata
                 case PlayableIds.Artist:
                     return ArtistId.FromBase62(base62);
                 case PlayableIds.Image:
-                    return ArtistId.FromBase62(base62);
+                    return ImageId.FromHex(base62);
                 case PlayableIds.Playlist:
                     return new PlaylistId(base62);
                 case PlayableIds.Show:

@@ -44,7 +44,7 @@ namespace player
         private ScheduledExecutorService.ScheduledFuture<int> _volumeChangedFuture;
         private Object _funcLock = new Object();
 
-        internal StateWrapper(Session session, Player player, PlayerConfiguration conf)
+        internal StateWrapper(Session session, Player player, PlayerConfiguration conf, ScheduledExecutorService scheduler)
         {
             _session = session;
             _player = player;
@@ -52,6 +52,7 @@ namespace player
             _state = InitState(new PlayerState());
             
             _device.AddListener(this);
+            _scheduler = scheduler;
             _session.GetDealer().AddMessageListener(this, "spotify:user:attributes:update", "hm://playlist/", "hm://collection/collection/" + session.Username() + "/json");
         }
 
@@ -415,22 +416,21 @@ namespace player
                     return;
                 }
 
-                if (track.Duration != 0) _tracksKeeper.UpdateTrackDuration(track.Duration);
+                if (track.ShouldSerializeDiscNumber()) _tracksKeeper.UpdateTrackDuration(track.Duration);
 
-                ProvidedTrack builder = new ProvidedTrack();
-                if (track.Popularity != 0) builder.Metadatas.Add("popularity", track.Popularity.ToString());
-                // FIXME: I'm unsure about if it's null or just a default value e.g. false
-                if (track.Explicit) builder.Metadatas.Add("is_explicit", track.Explicit.ToString());
-                if (track.HasLyrics) builder.Metadatas.Add("has_lyrics", track.HasLyrics.ToString());
-                if (track.Name != "") builder.Metadatas.Add("title", track.Name);
-                if (track.DiscNumber != 0) builder.Metadatas.Add("album_disc_number", track.DiscNumber.ToString());
+                ProvidedTrack builder = _state.Track;
+                if (track.ShouldSerializePopularity()) builder.Metadatas.Add("popularity", track.Popularity.ToString());
+                if (track.ShouldSerializeExplicit()) builder.Metadatas.Add("is_explicit", track.Explicit.ToString());
+                if (track.ShouldSerializeHasLyrics()) builder.Metadatas.Add("has_lyrics", track.HasLyrics.ToString());
+                if (track.ShouldSerializeName()) builder.Metadatas.Add("title", track.Name);
+                if (track.ShouldSerializeDiscNumber()) builder.Metadatas.Add("album_disc_number", track.DiscNumber.ToString());
 
                 for (int i = 0; i < track.Artists.Count; i++)
                 {
                     Artist artist = track.Artists[i];
-                    if (artist.Name != "")
+                    if (artist.ShouldSerializeName())
                         builder.Metadatas.Add("artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
-                    if (artist.Gid != null)
+                    if (artist.ShouldSerializeGid())
                         builder.Metadatas.Add("artist_uri" + (i == 0 ? "" : (":" + i)),
                             ArtistId.FromHex(Utils.bytesToHex(artist.Gid)).ToSpotifyUri());
                 }
@@ -444,22 +444,22 @@ namespace player
                         builder.Metadatas.Add("album_disc_count", album.Discs.Count.ToString());
                     }
 
-                    if (album.Name != "") builder.Metadatas.Add("album_title", album.Name);
-                    if (album.Gid != null)
+                    if (album.ShouldSerializeName()) builder.Metadatas.Add("album_title", album.Name);
+                    if (album.ShouldSerializeGid())
                         builder.Metadatas.Add("album_uri",
                             AlbumId.FromHex(Utils.bytesToHex(album.Gid)).ToSpotifyUri());
 
                     for (int i = 0; i < album.Artists.Count; i++)
                     {
                         Artist artist = album.Artists[i];
-                        if (artist.Name != "")
+                        if (artist.ShouldSerializeName())
                             builder.Metadatas.Add("album_artist_name" + (i == 0 ? "" : (":" + i)), artist.Name);
-                        if (artist.Gid != null)
+                        if (artist.ShouldSerializeGid())
                             builder.Metadatas.Add("album_artist_uri" + (i == 0 ? "" : (":" + i)),
                                 ArtistId.FromHex(Utils.bytesToHex(artist.Gid)).ToSpotifyUri());
                     }
 
-                    if (track.DiscNumber != 0)
+                    if (track.ShouldSerializeDiscNumber())
                     {
                         foreach (Disc disc in album.Discs)
                         {
@@ -496,16 +496,16 @@ namespace player
                     return;
                 }
 
-                if (episode.Duration != 0) _tracksKeeper.UpdateTrackDuration(episode.Duration);
+                if (episode.ShouldSerializeDuration()) _tracksKeeper.UpdateTrackDuration(episode.Duration);
 
-                ProvidedTrack builder = new ProvidedTrack();
-                if (episode.Explicit) builder.Metadatas.Add("is_explicit", episode.Explicit.ToString());
-                if (episode.Name != "") builder.Metadatas.Add("title", episode.Name);
+                ProvidedTrack builder = _state.Track;
+                if (episode.ShouldSerializeExplicit()) builder.Metadatas.Add("is_explicit", episode.Explicit.ToString());
+                if (episode.ShouldSerializeName()) builder.Metadatas.Add("title", episode.Name);
 
                 if (episode.Show != null)
                 {
                     Show show = episode.Show;
-                    if (show.Name != "") builder.Metadatas.Add("album_title", show.Name);
+                    if (show.ShouldSerializeName()) builder.Metadatas.Add("album_title", show.Name);
 
                     if (show.CoverImage != null) ImageId.PutAsMetadata(builder, show.CoverImage);
                 }
@@ -1087,7 +1087,7 @@ namespace player
             private void UpdateTrackCount()
             {
                 if (_wrapper._context.IsFinite()) 
-                    _wrapper._state.ContextMetadatas.Add("track_count", (Tracks.Count + Queue.Count).ToString());
+                    _wrapper._state.ContextMetadatas["track_count"] = (Tracks.Count + Queue.Count).ToString();
                 else 
                     _wrapper._state.ContextMetadatas.Remove("track_count");
             }
@@ -1166,7 +1166,7 @@ namespace player
             internal void UpdateTrackDuration(int duration)
             {
                 _wrapper._state.Duration = duration;
-                _wrapper._state.Track.Metadatas.Add("duration", duration.ToString());
+                _wrapper._state.Track.Metadatas["duration"] = duration.ToString();
                 UpdateMetadataFor((int) GetCurrentTrackIndex(), "duration", duration.ToString());
             }
 

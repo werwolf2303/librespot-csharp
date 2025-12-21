@@ -95,7 +95,7 @@ namespace player.playback
                     vLocalId.Name(), vLocalId.Duration(), Playable.ToSpotifyUri(), PlaybackId);
             }
 
-            Crossfade = new CrossfadeController(PlaybackId, _metadata.Duration(), _listener.MetadataFor(Playable),
+            Crossfade = new CrossfadeController(PlaybackId, _metadata.Duration(), _listener.MetadataFor(Playable) ?? new Dictionary<String, String>(),
                 _conf);
             if (Crossfade.HasAnyFadeOut() || _conf._preloadEnabled)
                 NotifyInstant(INSTANT_PRELOAD, Crossfade.FadeOutStartTimeMin() - 20000);

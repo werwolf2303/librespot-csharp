@@ -107,7 +107,6 @@ namespace lib.common
         {
             private long _executionTime;
             private T _value;
-            private object _executionLock = new object();
             private Function _function;
             private Thread _thread;
             private object _valueLock = new object();
@@ -171,7 +170,7 @@ namespace lib.common
 
             public Thread ExecuteIfNeeded(long currentTimeMilliseconds)
             {
-                if (_executed || _executing) return null;
+                if (_executed || _executing || _isCancelled) return null;
                 if (currentTimeMilliseconds >= _executionTime)
                 {
                     _executing = true;
@@ -180,12 +179,17 @@ namespace lib.common
                         try
                         {
                             T result = _function();
-
-                            lock (_valueLock)
-                            {
-                                _value = result;
+                            
+                            lock (_valueLock) 
+                            { 
+                                _value = result; 
                                 Monitor.PulseAll(_valueLock);
                             }
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            _isCancelled = true;
+                            LOGGER.Info("Scheduled task interrupted and cancelled");
                         }
                         catch (Exception ex)
                         {
@@ -195,7 +199,7 @@ namespace lib.common
                         {
                             _executing = false;
                             _executed = true;
-                            if (_infinite) Reschedule();
+                            if (_infinite && !_isCancelled) Reschedule();
                         }
                     });
                     _thread.Name = "ScheduledExecutorService-worker";
@@ -209,10 +213,18 @@ namespace lib.common
 
             public void Cancel(bool interruptIfRunning = true)
             {
-                if (!_executing) return;
-                if (!interruptIfRunning && _executing) return;
-                if (_thread != null) _thread.Interrupt();
                 _isCancelled = true;
+                if (_executing)
+                {
+                    if (interruptIfRunning && _thread != null)
+                    {
+                        try { _thread.Interrupt(); } catch { }
+                    }
+                }
+                else
+                {
+                    _executed = true;
+                }
             }
 
             public bool IsCancelled()
@@ -246,7 +258,10 @@ namespace lib.common
             {
                 lock (_valueLock)
                 {
-                    Monitor.Wait(_valueLock);
+                    while (!_executed && !_isCancelled)
+                    {
+                        Monitor.Wait(_valueLock);
+                    }
                 }
 
                 return _value;

@@ -280,8 +280,8 @@ namespace lib.common
                 providedTrack.Uri = uriPrefix + Encoding.UTF8.GetString(PlayableId.Base62.Encode(track.Gid));
             }
             
-            providedTrack.AlbumUri = track.Metadatas.TryGetValue("album_uri", out string value) ? value : "";
-            providedTrack.ArtistUri = track.Metadatas.TryGetValue("artist_uri", out value) ? value : "";
+            providedTrack.AlbumUri = track.Metadatas.TryGetValue("album_uri", out string value) ? value : null;
+            providedTrack.ArtistUri = track.Metadatas.TryGetValue("artist_uri", out value) ? value : null;
             
             foreach (String key in track.Metadatas.Keys) 
                 providedTrack.Metadatas.Add(key, track.Metadatas[key]);
@@ -295,7 +295,7 @@ namespace lib.common
 
             JArray formats = new JArray(files.Count);
             foreach (AudioFile file in files) 
-                if (file.format != null) formats.Add(file.format);
+                formats.Add(file.format);
             
             if (formats.Count > 0) builder.Metadatas.Add("available_file_formats", formats.ToString());
         }

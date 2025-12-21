@@ -65,7 +65,7 @@ namespace player
         private void InitState()
         {
             _deviceStateListener = new DeviceStateListenerImpl(this);
-            _state = new StateWrapper(_session, this, _conf);
+            _state = new StateWrapper(_session, this, _conf, _session.GetScheduledExecutorService());
             _state.AddListener(_deviceStateListener);
         }
 
@@ -107,7 +107,7 @@ namespace player
                     _player.HandleSkipNext(data.GetObj(), TransitionInfo.SkippedNext(_player._state));
                 } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SkipPrev))
                 {
-                    _player.HandleSkipPrev();
+                    _player.HandleSkipPrev(false);
                 } else if (endpoint.Matches(DeviceStateHandler.Endpoint.SetRepeatingContext))
                 {
                     _player._state.SetRepeatingContext(data.GetValueBool().Value);
@@ -235,9 +235,9 @@ namespace player
             HandleSkipNext(null, TransitionInfo.SkippedNext(_state));
         }
 
-        public void Previous()
+        public void Previous(bool forcePreviousTrack)
         {
-            HandleSkipPrev();
+            HandleSkipPrev(forcePreviousTrack);
         }
 
         public void Seek(int pos)
@@ -553,8 +553,8 @@ namespace player
             }
         }
         
-        private void HandleSkipPrev() {
-            if (_state.GetPosition() < 3000)
+        private void HandleSkipPrev(bool forcePreviousTrack) {
+            if (_state.GetPosition() < 3000 || forcePreviousTrack)
             {
                 StateWrapper.PreviousPlayable prev = _state.GetPreviousPlayable();
                 if (prev.IsOk())
@@ -932,7 +932,7 @@ namespace player
         {
             void OnContextChanged(Player player, String newUri);
 
-            void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata);
+            void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata, bool userInitiated);
 
             void OnPlaybackEnded(Player player);
 
@@ -1047,7 +1047,7 @@ namespace player
                 {
                 }
 
-                public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata)
+                public void OnTrackChanged(Player player, IPlayableId id, MetadataWrapper metadata, bool userInitiated)
                 {
                 }
 
@@ -1137,7 +1137,7 @@ namespace player
                 {
                     run();
                     return 0;
-                }, 50, ScheduledExecutorService.TimeUnit.MILLISECONDS));
+                }, 1, ScheduledExecutorService.TimeUnit.MILLISECONDS));
             }
 
             internal void PlaybackEnded()
@@ -1182,9 +1182,11 @@ namespace player
             {
                 IPlayableId id = _player._state.GetCurrentPlayable();
                 if (id == null) return;
+                
+                Console.WriteLine("Track change in player");
 
                 MetadataWrapper metadata = _player.CurrentMetadata();
-                _listeners.ForEach(l => Schedule(() => l.OnTrackChanged(_player, id, metadata)));
+                _listeners.ForEach(l => Schedule(() => l.OnTrackChanged(_player, id, metadata, userInitiated)));
             }
 
             internal void Seeked(int pos)
