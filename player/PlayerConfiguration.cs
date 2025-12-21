@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using lib.audio.decoders;
 
 namespace player
@@ -15,6 +16,7 @@ namespace player
         public AudioOutputMethod _audioOutputMethod;
         public String _audioOutputClass;
         public bool _preloadEnabled;
+        public Dictionary<String, Type> _mixers;
         
         // Output
         public AudioOutput _output;
@@ -55,7 +57,8 @@ namespace player
             int initialVolume,
             int volumeSteps,
             bool bypassSinkVolume,
-            String localFilesPath
+            String localFilesPath,
+            Dictionary<String, Type> mixers
             )
         {
             _preloadEnabled = preloadEnabled;
@@ -79,6 +82,7 @@ namespace player
             _volumeSteps = volumeSteps;
             _bypassSinkVolume = bypassSinkVolume;
             _localFilesPath = localFilesPath;
+            _mixers = mixers;
         }
         
         public enum AudioOutput
@@ -88,7 +92,7 @@ namespace player
 
         public enum AudioOutputMethod
         {
-            AUTO, ALSA, CUSTOM
+            AUTO, CUSTOM
         }
         
         public class Builder
@@ -103,6 +107,7 @@ namespace player
             private bool _preloadEnabled = true;
             private AudioOutputMethod _audioOutputMethod = AudioOutputMethod.AUTO;
             private String _audioOutputClass = "";
+            private Dictionary<String, Type> _mixers;
             
             // Output
             private AudioOutput _output = AudioOutput.MIXER;
@@ -245,6 +250,17 @@ namespace player
                 return this;
             }
 
+            /**
+             * Type has to be IPlayback and String is the platform e.g. PlatformLinux. Platform can be retrieved from Version.cs
+             * <br />
+             * The platform string will be matched via contains
+             */
+            public Builder SetMixers(Dictionary<String, Type> mixers)
+            {
+                _mixers = mixers;
+                return this;
+            }
+            
             public PlayerConfiguration Build()
             {
                 return new PlayerConfiguration(
@@ -268,7 +284,8 @@ namespace player
                     _initialVolume,
                     _volumeSteps,
                     _bypassSinkVolume,
-                    _localFilesPath
+                    _localFilesPath,
+                    _mixers
                 );
             }
         }

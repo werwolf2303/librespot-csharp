@@ -1,18 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
             Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{44E5E2EB-B339-4AB0-AB1F-0E3EEF8A1329}</ProjectGuid>
-        <OutputType>Exe</OutputType>
+        <ProjectGuid>{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}</ProjectGuid>
+        <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>librespot_csharp</RootNamespace>
-        <AssemblyName>librespot_csharp</AssemblyName>
+        <RootNamespace>playback_linux</RootNamespace>
+        <AssemblyName>playback_linux</AssemblyName>
         <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,59 +33,23 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="EasyHttp">
-          <HintPath>..\packages\EasyHttp.1.7.0\lib\net40\EasyHttp.dll</HintPath>
-        </Reference>
-        <Reference Include="JsonFx">
-          <HintPath>..\packages\JsonFx.2.0.1209.2802\lib\net40\JsonFx.dll</HintPath>
-        </Reference>
-        <Reference Include="log4net">
-          <HintPath>..\packages\log4net.2.0.16\lib\net40\log4net.dll</HintPath>
-        </Reference>
-        <Reference Include="NAudio">
-          <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
-        </Reference>
-        <Reference Include="Newtonsoft.Json">
-          <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
-        </Reference>
-        <Reference Include="NtpDateTime">
-          <HintPath>..\packages\NtpDateTime.1.0.8\lib\NtpDateTime.dll</HintPath>
-        </Reference>
-        <Reference Include="protobuf-net">
-          <HintPath>..\packages\protobuf-net.2.4.9\lib\net35\protobuf-net.dll</HintPath>
-        </Reference>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
-        <Reference Include="System.Drawing" />
-        <Reference Include="System.Windows.Forms" />
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Program.cs"/>
+        <Compile Include="Alsa.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="TestForm.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\decoder-api\decoder-api.csproj">
         <Project>{07dc769c-c6ee-4269-aa26-81f031946ef5}</Project>
         <Name>decoder-api</Name>
       </ProjectReference>
-      <ProjectReference Include="..\deps\deps.csproj">
-        <Project>{a961c373-4854-47f9-91df-1ab68479e0c3}</Project>
-        <Name>deps</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\lib\lib.csproj">
-        <Project>{1de0fbc2-185c-499d-b691-1ff01fff28f2}</Project>
-        <Name>lib</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\playback-linux\playback-linux.csproj">
-        <Project>{b9d5db2f-5bc5-4b95-a5d7-9ab7ea537343}</Project>
-        <Name>playback-linux</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\player\player.csproj">
-        <Project>{65044903-83c0-4f32-938b-e9a861d2f837}</Project>
-        <Name>player</Name>
+      <ProjectReference Include="..\playback-api\playback-api.csproj">
+        <Project>{51be1a9c-ae60-4161-beb2-2402201181ba}</Project>
+        <Name>playback-api</Name>
       </ProjectReference>
       <ProjectReference Include="..\sink-api\sink-api.csproj">
         <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>

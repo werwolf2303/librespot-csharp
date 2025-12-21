@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -61,6 +62,10 @@ namespace librespot
             PlayerConfiguration playercfg = new PlayerConfiguration.Builder()
                 .SetOutput(PlayerConfiguration.AudioOutput.MIXER)
                 .SetOutputClass("")
+                .SetMixers(new Dictionary<string, Type>()
+                {
+                    {"PlatformLinux", typeof(Alsa)}
+                })
                 .Build();
 
 

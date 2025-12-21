@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using decoder_api;
-using lib.audio.decoders;
 using sink_api;
 
 namespace lib.audio.playback

@@ -14,6 +14,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "deps", "deps\deps.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dacp", "dacp\dacp.csproj", "{FF642152-EF3F-4F99-B3DD-922C8A23B0B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playback-windows", "playback-windows\playback-windows.csproj", "{740C622A-8E2E-4EFD-908B-03F3AF5CD556}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playback-linux", "playback-linux\playback-linux.csproj", "{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playback-api", "playback-api\playback-api.csproj", "{51BE1A9C-AE60-4161-BEB2-2402201181BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +54,17 @@ Global
 		{FF642152-EF3F-4F99-B3DD-922C8A23B0B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF642152-EF3F-4F99-B3DD-922C8A23B0B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF642152-EF3F-4F99-B3DD-922C8A23B0B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{740C622A-8E2E-4EFD-908B-03F3AF5CD556}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{740C622A-8E2E-4EFD-908B-03F3AF5CD556}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{740C622A-8E2E-4EFD-908B-03F3AF5CD556}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{740C622A-8E2E-4EFD-908B-03F3AF5CD556}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9D5DB2F-5BC5-4B95-A5D7-9AB7EA537343}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

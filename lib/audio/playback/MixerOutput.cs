@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using lib.common;
 using log4net;
 using sink_api;
@@ -13,26 +14,23 @@ namespace lib.audio.playback
         private bool _logAvailableMixers;
         private float _lastVolume = -1;
         private bool _running = false;
-        
-        public MixerOutput(String[] mixerSearchKeywords, bool logAvailableMixers, String audioOutputMethod, String audioOutputClass)
+
+        public MixerOutput(String[] mixerSearchKeywords, bool logAvailableMixers, String audioOutputMethod, String audioOutputClass, Dictionary<String, Type> mixers)
         {
             switch (audioOutputMethod)
             {
                 case "AUTO":
-                    switch (Version.platform())
+                    String platformString = Version.platform().ToString();
+                    if (mixers == null)
+                        throw new InvalidOperationException("No available mixers specified. Add some using PlayerConfiguration");
+                    foreach (var playbackClass in mixers)
                     {
-                        case Platform.PlatformLinuxX86:
-                            _playback = new Alsa();
-                            break;
-                        case Platform.PlatformWin32X86:
-                            _playback = new Dummy();
-                            break;
-                        default:
-                            throw new NotImplementedException("Playback not implemented for: " + Version.platform());
+                        if (!platformString.Contains(playbackClass.Key)) continue;
+                        _playback = playbackClass.Value.GetConstructor(new Type[] {}).Invoke(new object[] {}) as IPlayback;
+                        break;
                     }
-                    break;
-                case "ALSA":
-                    _playback = new Alsa();
+                    if (_playback == null)
+                        throw new NotImplementedException("Playback not implemented for: " + Version.platform());
                     break;
                 case "CUSTOM":
                     if (audioOutputClass == null)

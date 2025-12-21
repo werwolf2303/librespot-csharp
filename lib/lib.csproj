@@ -88,10 +88,6 @@
         <Compile Include="audio\MetadataWrapper.cs" />
         <Compile Include="audio\NormalizationData.cs" />
         <Compile Include="audio\PlayableContentFeeder.cs" />
-        <Compile Include="audio\playback\Alsa.cs" />
-        <Compile Include="audio\playback\BlockingStream.cs" />
-        <Compile Include="audio\playback\Dummy.cs" />
-        <Compile Include="audio\playback\IPlayback.cs" />
         <Compile Include="audio\playback\MixerOutput.cs" />
         <Compile Include="audio\storage\AudioFile.cs" />
         <Compile Include="audio\storage\AudioFileFetch.cs" />
@@ -243,6 +239,10 @@
       <ProjectReference Include="..\deps\deps.csproj">
         <Project>{a961c373-4854-47f9-91df-1ab68479e0c3}</Project>
         <Name>deps</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\playback-api\playback-api.csproj">
+        <Project>{51be1a9c-ae60-4161-beb2-2402201181ba}</Project>
+        <Name>playback-api</Name>
       </ProjectReference>
       <ProjectReference Include="..\sink-api\sink-api.csproj">
         <Project>{adadb154-abd1-4eb3-8d8b-b660af4f496c}</Project>

@@ -25,7 +25,7 @@ namespace player.mixing
             {
                 case PlayerConfiguration.AudioOutput.MIXER:
                     _output = new MixerOutput(conf._mixerSearchKeywords, conf._logAvailableMixers,
-                        conf._audioOutputMethod.ToString(), conf._audioOutputClass);
+                        conf._audioOutputMethod.ToString(), conf._audioOutputClass, conf._mixers);
                     break;
                 case PlayerConfiguration.AudioOutput.PIPE:
                     if (conf._outputPipe == null)
