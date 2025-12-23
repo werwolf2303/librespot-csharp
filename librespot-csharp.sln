@@ -20,6 +20,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playback-linux", "playback-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "playback-api", "playback-api\playback-api.csproj", "{51BE1A9C-AE60-4161-BEB2-2402201181BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{00444ACA-7455-458A-94AF-6A4C500BD011}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zeroconf", "zeroconf\zeroconf.csproj", "{78712289-323C-4CA2-BD0A-21A7FB5F5845}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "http-server", "http-server\http-server.csproj", "{479F0460-D8EF-46A0-AC38-16D77D7EBDF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +72,17 @@ Global
 		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51BE1A9C-AE60-4161-BEB2-2402201181BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00444ACA-7455-458A-94AF-6A4C500BD011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00444ACA-7455-458A-94AF-6A4C500BD011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00444ACA-7455-458A-94AF-6A4C500BD011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00444ACA-7455-458A-94AF-6A4C500BD011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78712289-323C-4CA2-BD0A-21A7FB5F5845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78712289-323C-4CA2-BD0A-21A7FB5F5845}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78712289-323C-4CA2-BD0A-21A7FB5F5845}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78712289-323C-4CA2-BD0A-21A7FB5F5845}.Release|Any CPU.Build.0 = Release|Any CPU
+		{479F0460-D8EF-46A0-AC38-16D77D7EBDF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{479F0460-D8EF-46A0-AC38-16D77D7EBDF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{479F0460-D8EF-46A0-AC38-16D77D7EBDF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{479F0460-D8EF-46A0-AC38-16D77D7EBDF6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

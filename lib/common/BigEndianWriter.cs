@@ -82,4 +82,10 @@ public static class BigEndianWriter
         }
         writer.Write(bytes);
     }
+
+    public static void Clear(this BinaryWriter writer)
+    {
+        writer.BaseStream.Position = 0;
+        writer.BaseStream.SetLength(0);
+    }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using api.server;
 using deps.WebSocketSharp;
 using lib.audio;
 using lib.audio.decoders;
@@ -28,6 +29,33 @@ namespace librespot
     internal class Program
     {
         public static void Main(string[] args)
+        {
+            Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
+            ConsoleAppender consoleAppender = new ConsoleAppender();
+            consoleAppender.Name = "librespot-csharp"; 
+            PatternLayout consoleLayout = new PatternLayout();
+            consoleLayout.ConversionPattern = "%date [%thread] %-5level %logger - %message%newline";
+            consoleLayout.ActivateOptions(); 
+            consoleAppender.Layout = consoleLayout;
+            consoleAppender.ActivateOptions();
+            Logger rootLogger = hierarchy.Root;
+            rootLogger.Level = Level.All;
+            rootLogger.AddAppender(consoleAppender);
+            hierarchy.Configured = true;
+            
+            //new HttpServer().EnableCors().SetMaxConnections(Int32.MaxValue).RegisterHandler(new HttpServerEndpoint((request, pathParams) =>
+            //{
+            //    return new HttpServerResponse(content: "<body style='background-color: black; color: white'><a>Hello World</a></body>");
+            //})).Start("127.0.0.1", 8000);
+
+            new RawHttpServer().Run();
+            
+            while (true)
+            {
+            }
+        }
+        
+        /*public static void Main(string[] args)
         {
             Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
             ConsoleAppender consoleAppender = new ConsoleAppender();
@@ -77,6 +105,6 @@ namespace librespot
 
                 player.AddToQueue("spotify:track:51FZnO9sWc2dazJneozkHp");
             }));
-        }
+        }*/
     }
 }

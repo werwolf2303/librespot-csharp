@@ -820,6 +820,21 @@ namespace lib.core
             }
         }
 
+        public void AddCloseListener(CloseListener listener)
+        {
+            if (!_closeListeners.Contains(listener)) _closeListeners.Add(listener);
+        }
+
+        public void AddReconnectionListener(ReconnectionListener listener)
+        {
+            if (!_reconnectionListeners.Contains(listener)) _reconnectionListeners.Add(listener);
+        }
+
+        public void RemoveReconnectionListener(ReconnectionListener listener)
+        {
+            _reconnectionListeners.Remove(listener);
+        }
+
         private void ParseProductInfo(byte[] payload)
         {
             if (_userAttributes.Count != 0) _userAttributes.Clear();
@@ -866,7 +881,7 @@ namespace lib.core
         {
             void OnClose();
         }
-
+        
         private class Inner
         {
             public DeviceType DeviceType;
@@ -887,7 +902,7 @@ namespace lib.core
             }
         }
 
-        public abstract class AbsBuilder<T>
+        public abstract class AbsBuilder<B> where B : AbsBuilder<B>
         {
             protected Configuration Conf;
             protected String DeviceId = null;
@@ -905,18 +920,20 @@ namespace lib.core
             {
             }
 
+            protected abstract B This();
+
             /**
              * Sets the preferred locale for the user.
              *
              * @param locale A 2 chars locale code
              */
-            public AbsBuilder<T> SetPreferredLocale(String locale)
+            public B SetPreferredLocale(String locale)
             {
                 if (locale.Length != 2)
                     throw new Exception("Invalid locale: " + locale);
 
                 PreferredLocale = locale;
-                return this;
+                return This();
             }
 
             /**
@@ -924,10 +941,10 @@ namespace lib.core
              *
              * @param deviceName The device name
              */
-            public AbsBuilder<T> SetDeviceName(String deviceName)
+            public B SetDeviceName(String deviceName)
             {
                 DeviceName = deviceName;
-                return this;
+                return This();
             }
 
             /**
@@ -935,13 +952,13 @@ namespace lib.core
              *
              * @param deviceId A 40 chars string
              */
-            public AbsBuilder<T> SetDeviceId(String deviceId)
+            public B SetDeviceId(String deviceId)
             {
                 if (deviceId != null && deviceId.Length != 40)
                     throw new Exception("Device ID must be 40 chars long.");
 
                 DeviceId = deviceId;
-                return this;
+                return This();
             }
 
             /**
@@ -949,10 +966,10 @@ namespace lib.core
              *
              * @param token A 168 bytes Base64 encoded string
              */
-            public AbsBuilder<T> SetClientToken(String token)
+            public B SetClientToken(String token)
             {
                 ClientToken = token;
-                return this;
+                return This();
             }
 
             /**
@@ -960,10 +977,10 @@ namespace lib.core
              *
              * @param deviceType The {@link com.spotify.connectstate.Connect.DeviceType}
              */
-            public AbsBuilder<T> SetDeviceType(DeviceType deviceType)
+            public B SetDeviceType(DeviceType deviceType)
             {
                 DeviceType = deviceType;
-                return this;
+                return This();
             }
         }
 
@@ -977,6 +994,11 @@ namespace lib.core
 
             public Builder()
             {
+            }
+
+            protected override Builder This()
+            {
+                return this;
             }
 
             private static LoginCredentials DecryptBlob(String deviceId, String username, byte[] encryptedBlob)

@@ -82,6 +82,7 @@
         <Compile Include="Player.cs" />
         <Compile Include="PlayerConfiguration.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
+        <Compile Include="ShellEvents.cs" />
         <Compile Include="StateWrapper.cs" />
         <Compile Include="state\DeviceStateHandler.cs" />
         <Compile Include="state\RestrictionsManager.cs" />
