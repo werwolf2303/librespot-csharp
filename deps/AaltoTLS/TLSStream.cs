@@ -27,12 +27,14 @@
 
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Security;
-using System.Security.Permissions;
 using System.Security.Cryptography.X509Certificates;
 
 using deps.AaltoTLS.Authentication;
+
+#if NET40
+using System.Security.Permissions;
+#endif
 
 namespace deps.AaltoTLS
 {
@@ -191,8 +193,9 @@ namespace deps.AaltoTLS
 		
 		
 		// Overridden Stream class methods
-		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public override IAsyncResult BeginRead(byte[] buffer,
 		                                       int offset,
 		                                       int count,
@@ -203,7 +206,9 @@ namespace deps.AaltoTLS
 			return null;
 		}
 		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public override IAsyncResult BeginWrite(byte[] buffer,
 		                                        int offset,
 		                                        int count,
@@ -301,7 +306,9 @@ namespace deps.AaltoTLS
 			                                                  null, null));
 		}
 		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public virtual IAsyncResult BeginAuthenticateAsClient(string targetHost,
 		                                                      AsyncCallback asyncCallback,
 		                                                      Object asyncState)
@@ -314,7 +321,9 @@ namespace deps.AaltoTLS
 			                                 asyncState);
 		}
 		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public virtual IAsyncResult BeginAuthenticateAsClient(string targetHost,
 		                                                      X509CertificateCollection clientCertificates,
 		                                                      SslProtocols enabledSslProtocols,
@@ -326,7 +335,9 @@ namespace deps.AaltoTLS
 			return null;
 		}
 		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public virtual IAsyncResult BeginAuthenticateAsServer(X509Certificate serverCertificate,
 		                                                      AsyncCallback asyncCallback,
 		                                                      Object asyncState)
@@ -339,7 +350,9 @@ namespace deps.AaltoTLS
 			                                 asyncState);
 		}
 		
+#if NET40
 		[HostProtectionAttribute(SecurityAction.LinkDemand, ExternalThreading = true)]
+#endif
 		public virtual IAsyncResult BeginAuthenticateAsServer(X509Certificate serverCertificate,
 		                                                      bool clientCertificateRequired,
 		                                                      SslProtocols enabledSslProtocols,

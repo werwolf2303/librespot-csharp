@@ -135,11 +135,6 @@ namespace deps.HttpSharp
             get => _httpWebResponse.StatusDescription;
         }
 
-        public bool SupportsHeaders
-        {
-            get => _httpWebResponse.SupportsHeaders;
-        }
-
         public byte[] GetRequestData
         {
             get => _requestData;
@@ -303,7 +298,6 @@ namespace deps.HttpSharp
                 if (_httpWebResponse != null)
                 {
                     try { _httpWebResponse.Close(); } catch { }
-                    try { _httpWebResponse.Dispose(); } catch { }
                     _httpWebResponse = null;
                 }
             }

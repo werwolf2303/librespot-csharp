@@ -65,4 +65,5 @@
   &lt;Assembly Path="/home/werwolf2303/Documents/GitHub/librespot-csharp/packages/Theraot.Core.3.2.11/lib/net40/Theraot.Core.dll" /&gt;
   &lt;Assembly Path="/home/werwolf2303/Documents/GitHub/librespot-csharp/packages/NAudio.1.10.0/lib/net35/NAudio.dll" /&gt;
   &lt;Assembly Path="/home/werwolf2303/Documents/GitHub/librespot-csharp/packages/OpenTK.3.0.1/lib/net20/OpenTK.dll" /&gt;
+  &lt;Assembly Path="/home/werwolf2303/.nuget/packages/log4net/2.0.17/lib/net40/log4net.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>

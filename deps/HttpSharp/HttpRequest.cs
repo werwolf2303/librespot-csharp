@@ -218,11 +218,6 @@ namespace deps.HttpSharp
             get => _request.ServicePoint;
         }
 
-        public bool SupportsCookieContainer
-        {
-            get => _request.SupportsCookieContainer;
-        }
-
         public string TransferEncoding
         {
             get => _request.TransferEncoding; set => _request.TransferEncoding = value;
@@ -252,7 +247,7 @@ namespace deps.HttpSharp
         {
             _url = uri;
             HttpMethod = httpMethod;
-            _request = WebRequest.CreateHttp(uri);
+            _request = (HttpWebRequest) HttpWebRequest.Create(uri);
             _request.Method = HttpMethod.ToString().ToUpper();
             _request.KeepAlive = false;
         }
@@ -261,7 +256,7 @@ namespace deps.HttpSharp
         {
             _url = new Uri(url);
             HttpMethod = httpMethod;
-            _request = WebRequest.CreateHttp(url);
+            _request = (HttpWebRequest) HttpWebRequest.Create(url);
             _request.Method = HttpMethod.ToString().ToUpper();
             _request.KeepAlive = false;
         }

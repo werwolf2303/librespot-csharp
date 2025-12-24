@@ -1,3 +1,4 @@
+#if NET40
 using System;
 using System.Threading;
 using System.Windows.Forms;
@@ -253,3 +254,4 @@ namespace librespot
         }
     }
 }
+#endif

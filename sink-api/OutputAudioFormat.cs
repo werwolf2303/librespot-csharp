@@ -1,5 +1,4 @@
 using System;
-using NAudio.Wave;
 
 namespace sink_api
 {
@@ -61,11 +60,6 @@ namespace sink_api
                    && (format.getFrameRate() == -1 || format.getFrameRate() == getFrameRate())
                    && (format.getFrameSize() == -1 || format.getFrameSize() == getFrameSize())
                    && (getSampleSizeInBits() <= 8 || format.isBigEndian() == isBigEndian());
-        }
-        
-        public WaveFormat ToWaveFormat()
-        {
-            return new WaveFormat((int)getSampleRate(), getSampleSizeInBits(), getChannels());
         }
     }
 }
