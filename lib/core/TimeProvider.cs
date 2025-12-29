@@ -2,12 +2,12 @@ using System;
 using System.IO;
 using System.Net;
 using deps.HttpSharp;
+using deps.NtpDateTime;
 using lib.common;
 using lib.dealer;
 using lib.mercury;
 using log4net;
 using Newtonsoft.Json.Linq;
-using Tarczynski.NtpDateTime;
 
 namespace lib.core
 {
