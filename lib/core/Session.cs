@@ -987,6 +987,7 @@ namespace lib.core
         public class Builder : AbsBuilder<Builder>
         {
             private LoginCredentials _loginCredentials = null;
+            private OAuth _oAuth = null;
 
             public Builder(Configuration conf) : base(conf)
             {
@@ -1109,8 +1110,8 @@ namespace lib.core
                 if (Conf.StoreCredentials && File.Exists(Conf.StoredCredentialsFile))
                     return Stored();
 
-                OAuth oauth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"));
-                _loginCredentials = oauth.flow();
+                _oAuth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"));
+                _loginCredentials = _oAuth.flow();
                 
                 return this;
             }
@@ -1126,8 +1127,11 @@ namespace lib.core
 
             public Session Create()
             {
-                if (_loginCredentials == null)
+                if (_loginCredentials == null && _oAuth == null)
                     throw new Exception("You must select an authentication method.");
+
+                if (_loginCredentials == null && _oAuth != null)
+                    throw new Exception("OAuth did not succeed.");
                 
                 TimeProvider.init(Conf);
                 

@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using deps.HttpSharp;
 using log4net;
 using Newtonsoft.Json.Linq;
@@ -36,13 +37,19 @@ namespace lib.core
 
         private String successUrl = "https://open.spotify.com/desktop/auth/success";
         private String failureUrl = "https://open.spotify.com/desktop/auth/error";
+
+        private bool credentialsOk = false;
+        private OnUrlAvailable onUrlAvailableCallback;
         
-        public OAuth(String clientId, Uri redirectUrl)
+        public OAuth(String clientId, Uri redirectUrl, OnUrlAvailable onUrlAvailableCallback = null)
         {
             this.clientId = clientId;
             this.redirectUrl = redirectUrl;
+            this.onUrlAvailableCallback = onUrlAvailableCallback;
         }
 
+        public delegate void OnUrlAvailable(string url, Task cancelOAuth);
+        
         private String generateCodeVerifier()
         {
             String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -117,14 +124,13 @@ namespace lib.core
                     byte[] data;
                     String templateHTML =
                         "<script>window.location.href='{0}';</script>";
-                    bool ok = false;
                     
                     String code = request.QueryString["code"];
                     if (code != null)
                     {
                         data = Encoding.UTF8.GetBytes(String.Format(templateHTML, successUrl));
                         setCode(code);
-                        ok = true;
+                        credentialsLock = true;
                     }
                     else data = Encoding.UTF8.GetBytes(String.Format(templateHTML, failureUrl));
                     
@@ -133,16 +139,12 @@ namespace lib.core
                     response.ContentLength64 = data.Length;
                     response.OutputStream.Write(data, 0, data.Length);
                     response.Close();
-
-                    if (ok)
-                    {
-                        Dispose();
-                        lock (credentialsLock)
-                        {
-                            Monitor.PulseAll(credentialsLock);
-                        }
-                    }
                 }
+            }
+            
+            lock (credentialsLock)
+            {
+                Monitor.PulseAll(credentialsLock);
             }
         }
 
@@ -157,11 +159,18 @@ namespace lib.core
 
         public LoginCredentials flow()
         {
-            LOGGER.Info("OAuth: Visit in your browser and log in: " + getAuthUrl());
+            string authUrl = getAuthUrl();
+            if (onUrlAvailableCallback != null)
+                onUrlAvailableCallback(authUrl, new Task(Dispose));
+            LOGGER.Info("OAuth: Visit in your browser and log in: " + authUrl);
             runCallbackServer();
             lock (credentialsLock)
             {
                 Monitor.Wait(credentialsLock);
+            }
+            if (!credentialsOk)
+            {
+                return null;
             }
             requestToken();
             return getCredentials();
