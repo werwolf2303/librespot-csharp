@@ -5,51 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="35d4f1d6-1a82-4640-ac21-b32da06f2e09" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/librespot-csharp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/librespot-csharp.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/audio/PlayableContentFeeder.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/PlayableContentFeeder.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/audio/storage/AudioFileFetch.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/AudioFileFetch.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/audio/storage/AudioFileStreaming.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/AudioFileStreaming.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/audio/storage/ChannelManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/audio/storage/ChannelManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/cache/CacheJournal.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/cache/CacheJournal.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/cache/CacheManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/cache/CacheManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/compileProto.sh" beforeDir="false" afterPath="$PROJECT_DIR$/lib/compileProto.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/ApResolver.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/ApResolver.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/Session.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/Session.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/core/TokenProvider.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/core/TokenProvider.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/dealer/ApiClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dealer/ApiClient.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/dealer/DealerClient.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/dealer/DealerClient.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/api.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/api/api.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dacp/dacp.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/dacp/dacp.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/decoder-api/decoder-api.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/decoder-api/decoder-api.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deps/deps.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/deps/deps.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/http-server/http-server.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/http-server/http-server.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/lib.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/lib/lib.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/authentication.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/authentication.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/canvaz-meta.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/canvaz-meta.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/canvaz.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/canvaz.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/client_token.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/client_token.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/connect.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/connect.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/connectivity.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/connectivity.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/context.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/context_page.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_page.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/context_player_options.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_player_options.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/context_track.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/context_track.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/entity_extension_data.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/entity_extension_data.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/explicit_content_pubsub.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/explicit_content_pubsub.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/extended_metadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/extended_metadata.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/extension_kind.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/extension_kind.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/keyexchange.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/keyexchange.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/mercury.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/mercury.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/metadata.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/metadata.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/play_origin.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/play_origin.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/playback.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playback.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/player.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/player.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/playlist4_external.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playlist4_external.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/playlist_annotate3.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/playlist_annotate3.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/pubsub.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/pubsub.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/queue.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/queue.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/restrictions.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/restrictions.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/session.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/session.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/storage-resolve.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/storage-resolve.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/protogens/transfer_state.cs" beforeDir="false" afterPath="$PROJECT_DIR$/lib/protogens/transfer_state.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/librespot-csharp/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/librespot-csharp/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/player/PagesLoader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/player/PagesLoader.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/librespot-csharp/librespot.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/librespot-csharp/librespot.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playback-api/playback-api.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/playback-api/playback-api.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playback-linux/playback-linux.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/playback-linux/playback-linux.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/playback-windows/playback-windows.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/playback-windows/playback-windows.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/player/player.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/player/player.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sink-api/sink-api.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/sink-api/sink-api.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zeroconf/zeroconf.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/zeroconf/zeroconf.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,6 +30,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "werwolf2303"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/werwolf2303/librespot-csharp.git",
+    "accountId": "98809126-7ac2-4a56-a0aa-52d64082d014"
+  }
+}]]></component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="UhaKymso" />
   </component>
@@ -70,23 +53,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/werwolf2303/Documents/GitHub/librespot-csharp&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.build.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/werwolf2303/Documents/GitHub/librespot-csharp",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-PY-252.26199.168" />
+        <option value="bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="35d4f1d6-1a82-4640-ac21-b32da06f2e09" name="Changes" comment="" />
@@ -99,10 +91,14 @@
       <workItem from="1758396918300" duration="10000" />
       <workItem from="1758398885706" duration="36000" />
       <workItem from="1758399349094" duration="27000" />
+      <workItem from="1767093994698" duration="2377000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/build_py$build.coverage" NAME="build Coverage Results" MODIFIED="1767096200731" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
