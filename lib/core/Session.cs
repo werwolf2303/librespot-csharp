@@ -1105,12 +1105,12 @@ namespace lib.core
                 return this;
             }
 
-            public Builder OAuth()
+            public Builder OAuth(OAuth.OnUrlAvailable onUrlAvailableCallback = null)
             {
                 if (Conf.StoreCredentials && File.Exists(Conf.StoredCredentialsFile))
                     return Stored();
 
-                _oAuth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"));
+                _oAuth = new OAuth(MercuryRequests.KEYMASTER_CLIENT_ID, new Uri("http://127.0.0.1:5588/login"), onUrlAvailableCallback);
                 _loginCredentials = _oAuth.flow();
                 
                 return this;
